@@ -12,23 +12,24 @@ suggestions**, and a **styled PDF** download.
 - **Guided questionnaire** (one tap per question): age, month, Ramadan, length of
   stay, company, goal, daily pace, transport, outdoor preference, fitness,
   budget, and Rawdah planning.
-- **Personalized itinerary engine** that builds a day-by-day plan from the answers:
-  - Always anchors plans on **Al-Masjid an-Nabawi** and **Quba Mosque** (musts).
-  - **Tourist / half** trips are attraction-led (the Haram no longer dominates
-    every day); **religious** trips stay worship-centred.
-  - **Weather-aware** date-farm timing by visit month.
-  - **Via Ferrata** is included for young, active, outdoor-loving visitors with
-    friends on a half-religious or tourist trip.
-  - Real Madinah places: **Al Marbad Farm**, **Al-Aliya date farm**, **King Fahd
-    Central Park**, **Uhud E-Bike trail**, **Uhud quad / 4WD**, **Wadi Al-Jinn**
-    (Magnetic Valley), **Hijaz Railway** & **Dar Al Madinah** museums, the
-    **Qur'an Printing Complex**, the dates market, malls, and an **AlUla** day trip.
+- **AI-generated itinerary** built entirely by Gemini from the answers, guided to:
+  - Always anchor plans on **Al-Masjid an-Nabawi** and **Quba Mosque** (musts).
+  - Keep **tourist / half** trips attraction-led and **religious** trips worship-centred.
+  - Give a **different specialty coffee every day**, a **heritage tea** across the
+    trip, and **3 varied meals** on full days, in real clock-time blocks.
+  - Adapt to the month's **weather** and the **Ramadan** night rhythm.
+  - Include a **Via Ferrata** climb for young, active, outdoor-loving friend groups
+    on a leisure trip.
+  - Surface real, current Madinah places — date farms (Al Marbad, Al Safiyah…),
+    Uhud e-bike/quad, Wadi Al-Jinn, parks, museums, new cafés (Tommah, Alhay…),
+    plus an **AlUla** day trip — and a beautiful photo for each.
 - **AI builds the whole plan.** Right after the questionnaire, Google **Gemini**
   generates the complete, hour-by-hour itinerary so it always includes Madinah's
   newest places (e.g. Alhay, Tommah, Jadat Quba, Al Marbad, Al Safiyah, Serah
-  Museum) and picks a beautiful photo query per stop. If no AI key/endpoint is
-  available, the site **falls back automatically** to a built-in deterministic
-  engine, so it always produces a plan.
+  Museum) and picks a beautiful photo query per stop. Every plan is AI-generated —
+  there is no built-in itinerary engine. If no AI key/endpoint is configured, the
+  site shows a clear "connect the AI guide" message with a retry button instead of
+  a plan.
 - **Interactive map** (Leaflet + OpenStreetMap, no key) pinning every stop, with
   **📍 Open in Maps** and **🎟 Reserve / Info** links per activity (Nusuk, Visit
   Saudi, Hala Yalla, Sightscape, Welcome Saudi).
@@ -47,9 +48,9 @@ api/gemini.js            # Gemini proxy for Vercel / Node serverless
 .env.example             # GEMINI_API_KEY placeholder (never commit real keys)
 ```
 
-The site always produces a plan: with an AI key/endpoint it is **AI-crafted**;
-without one it uses the built-in engine. The map, booking links, photos and PDF
-are all client-side either way.
+Every plan is **AI-crafted** by Gemini — an AI key (test mode) or the
+`/api/gemini` endpoint is **required** to generate a plan. The map, booking
+links, photos and PDF rendering are all client-side.
 
 ### Two ways to enable the AI
 1. **Single-file test:** paste your key into the `TEST_GEMINI_KEY` constant near

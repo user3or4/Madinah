@@ -358,294 +358,34 @@ skipBtn.addEventListener('click',()=>next());
 async function finish(){
   progressEl.style.width='100%';percentEl.textContent='100%';
   const result=document.getElementById('result');
+  const shell=document.getElementById('planShell');
   result.style.display='block';
-  document.getElementById('planShell').innerHTML=
+  shell.innerHTML=
     `<div class="loading-card"><div class="spinner"></div>
        <h3>Crafting your journey…</h3>
        <p>Our AI guide is mapping the best of Madinah for you — mosques, farms, cafés, food and adventures, hour by hour.</p></div>`;
   result.scrollIntoView({behavior:'smooth'});
-  let plan=null;
-  try{ plan=await generateAIPlan(answers); }catch(e){ console.warn('AI plan failed, using built-in engine:',e.message); }
-  if(!plan || !plan.days || !plan.days.length){ plan=buildPlan(answers); plan._fallback=true; }
-  renderPlan(plan);
+  try{
+    const plan=await generateAIPlan(answers);
+    renderPlan(plan);
+  }catch(e){
+    shell.innerHTML=
+      `<div class="loading-card"><div style="font-size:2.6rem">🌙</div>
+         <h3>We couldn't reach the AI guide</h3>
+         <p>Map Peace builds every plan with AI. Paste your Gemini key into <code>TEST_GEMINI_KEY</code> for a quick test, or deploy <code>/api/gemini</code> with the <code>GEMINI_API_KEY</code> secret, then try again.</p>
+         <p style="color:var(--ink-soft);font-size:.85rem;margin-top:.6rem">(${e.message})</p>
+         <div class="plan-actions">
+           <button class="btn btn-gold" id="retryBtn">Try again</button>
+           <button class="btn btn-outline" onclick="document.getElementById('quiz').scrollIntoView({behavior:'smooth'})">Edit answers</button>
+         </div></div>`;
+    const rb=document.getElementById('retryBtn');
+    if(rb) rb.addEventListener('click',finish);
+  }
 }
 renderStep();
 
-/* ===================== WEATHER ===================== */
-function weatherProfile(m){
-  m=parseInt(m,10);
-  if([12,1,2].includes(m)) return {ico:'❄️',label:'Cool & pleasant',temp:'12–24°C',outdoor:true,note:'Beautiful weather — ideal for mountains, valleys, farms and long walks. Bring a light jacket for the evenings.'};
-  if([3,4,11].includes(m)) return {ico:'🌤️',label:'Warm & comfortable',temp:'20–32°C',outdoor:true,note:'Lovely conditions for the outdoors. Mornings and late afternoons are perfect for adventure.'};
-  if([10].includes(m)) return {ico:'🌅',label:'Warm, cooling down',temp:'26–35°C',outdoor:true,note:'Still warm at midday but pleasant early and late. Plan outdoor activities for the morning or after Asr.'};
-  if([5].includes(m)) return {ico:'☀️',label:'Hot',temp:'30–40°C',outdoor:false,note:'It gets hot by midday. Keep heavy activity to the early morning or evening, and stay hydrated.'};
-  return {ico:'🔥',label:'Very hot',temp:'38–45°C',outdoor:false,note:'Peak summer heat. We keep daytime light and shaded, and move the city to the cool of the night.'};
-}
-
-/* ===================== PLACE LIBRARY (real Madinah places) ===================== */
-const NUSUK='https://www.nusuk.sa/';
-const HALA='https://halayalla.com/sa-en/madina/experiences/c/adventures-and-activities';
-const VS_ADV='https://book.visitsaudi.com/sa-en/experiences/al-madinah-al-munawwarah';
+/* ===================== HELPERS ===================== */
 function gmaps(name){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(name+', Al Madinah, Saudi Arabia');}
-// Real representative photos (Creative-Commons via LoremFlickr) with stable locks; falls back to a colour if offline.
-function flick(tags,lock){return 'https://loremflickr.com/360/240/'+tags+'?lock='+lock;}
-function placeImg(name,kind){
-  if(kind==='coffee') return flick('coffee,cafe,latte',41+(name.length%6));
-  if(kind==='tea') return flick('tea,teapot,arabic',47+(name.length%4));
-  if(kind==='food') return flick('arabic,food,restaurant',51+(name.length%8));
-  const n=name.toLowerCase();
-  if(n.includes('nabawi')||n.includes('rawdah')||n.includes('taraweeh')) return flick('medina,prophet,mosque',21);
-  if(n.includes('quba')) return flick('quba,mosque,medina',22);
-  if(n.includes('marbad')) return flick('palm,farm,oasis',23);
-  if(n.includes('aliya')||n.includes('date')) return flick('dates,palm,harvest',24);
-  if(n.includes('park')) return flick('park,fountain,garden',25);
-  if(n.includes('e-bike')||n.includes('bike')) return flick('bicycle,trail,desert',26);
-  if(n.includes('quad')||n.includes('4wd')) return flick('quad,bike,offroad',27);
-  if(n.includes('ferrata')) return flick('via,ferrata,climbing',28);
-  if(n.includes('uhud')) return flick('mountain,medina,uhud',29);
-  if(n.includes('baqi')) return flick('medina,cemetery,islam',30);
-  if(n.includes('qiblatain')||n.includes('seven mosques')) return flick('mosque,medina,minaret',31);
-  if(n.includes("qur'an")||n.includes('quran')) return flick('quran,book,calligraphy',32);
-  if(n.includes('railway')) return flick('hijaz,railway,train',33);
-  if(n.includes('museum')) return flick('museum,heritage,arabia',34);
-  if(n.includes('jinn')||n.includes('magnetic')||n.includes('baida')) return flick('valley,desert,mountains',35);
-  if(n.includes('hike')||n.includes('volcanic')) return flick('hiking,volcanic,sunrise',36);
-  if(n.includes('market')||n.includes('old madinah')) return flick('dates,market,souq',37);
-  if(n.includes('mall')) return flick('mall,shopping,modern',38);
-  if(n.includes('alula')) return flick('alula,hegra,desert',39);
-  return flick('medina,saudi,arabia',40);
-}
-
-// each place: time,name,desc,lat,lng + flags(must,ferrata,far) + book{url,label} + info(url)
-const P = {
-  haram:(t)=>({time:t||'Maghrib & Isha',name:"Al-Masjid an-Nabawi (Prophet's Mosque ﷺ)",must:true,lat:24.4672,lng:39.6112,
-    desc:"Pray in the Prophet's Mosque and send your salah upon him ﷺ. A prayer here is worth a thousand elsewhere."}),
-  rawdah:()=>({time:'Pre-dawn',name:'Visit the Rawdah',must:true,lat:24.4672,lng:39.6112,
-    desc:'The garden of Paradise between the Prophet\'s pulpit and his chamber ﷺ. Reserve a free slot on the Nusuk app in advance.',book:{url:NUSUK,label:'Book on Nusuk'}}),
-  quba:()=>({time:'After Fajr',name:'Quba Mosque',must:true,lat:24.4393,lng:39.6171,
-    desc:'The first mosque in Islam. Make wudu at your hotel and pray two rak\'ah here — equal in reward to an Umrah.'}),
-  uhud:()=>({time:'Morning',name:'Mount Uhud & the Martyrs',lat:24.5085,lng:39.6140,
-    desc:'Stand where the Battle of Uhud took place and visit the resting place of Hamza (RA) and the martyrs.'}),
-  baqi:()=>({time:'After Fajr/Asr',name:'Jannat al-Baqi',lat:24.4666,lng:39.6147,
-    desc:'The blessed cemetery beside the mosque — resting place of many companions and family of the Prophet ﷺ. Open at set hours; check before you go.'}),
-  qiblatain:()=>({time:'Late morning',name:'Masjid al-Qiblatain & the Seven Mosques',lat:24.4843,lng:39.5876,
-    desc:'Where the qiblah turned toward Makkah, plus the historic Khandaq (Trench) mosques nearby.'}),
-  quran:()=>({time:'Morning',name:"King Fahd Qur'an Printing Complex",lat:24.4790,lng:39.5640,
-    desc:'See how millions of copies of the Qur\'an are printed and gifted to the world. A calm, inspiring visit (check visiting hours).',info:'https://www.visitsaudi.com/en/madinah'}),
-  darMuseum:()=>({time:'Afternoon',name:'Dar Al Madinah Museum',lat:24.4690,lng:39.5860,
-    desc:'A beautifully curated journey through the history, geography and heritage of the blessed city.',info:'https://www.visitsaudi.com/en/madinah'}),
-  hijaz:()=>({time:'Afternoon',name:'Hijaz Railway Museum',lat:24.4718,lng:39.6095,
-    desc:'The restored Ottoman railway station — locomotives, history and architecture of the famous Hijaz line.',info:'https://www.visitsaudi.com/en/madinah'}),
-  marbad:(t)=>({time:t||'Late afternoon',name:'Al Marbad Farm (مزرعة المربد)',lat:24.4310,lng:39.6240,
-    desc:'A stunning palm-grove destination minutes from Quba: open-air restaurants (Saraya Ward, Ajwatech, ROW), a bird sanctuary, zip wire, archery and kids\' rides. A perfect Madinah evening.',info:'https://welcomesaudi.com/activity/al-marbad-farm-madinah'}),
-  aliya:(t)=>({time:t||'Late afternoon',name:'Al-Aliya Date Farm (near Quba)',lat:24.4360,lng:39.6150,
-    desc:'Beside Quba and famous for premium Ajwa dates — sample many varieties, watch the harvest and buy fresh dates to take home.'}),
-  kfpark:()=>({time:'After 4 PM',name:'King Fahd Central Park',lat:24.4280,lng:39.5890,
-    desc:'A vast green park (open 4 PM–midnight) with lakes, fountains, play zones, camel & horse rides and picnic lawns — ideal for families.'}),
-  wadiJinn:()=>({time:'Half-day trip',name:'Wadi Al-Jinn (Magnetic Valley) & Wadi Al-Baida',lat:24.6170,lng:39.4330,
-    desc:'About 30 km NW: the famous valley where a car in neutral seems to roll uphill, ringed by dramatic black volcanic mountains. ATV, camel and horse rides on site. Best with a car.'}),
-  ebike:()=>({time:'Early morning',name:'Uhud History Trail — E-Bike Tour',lat:24.5040,lng:39.6080,
-    desc:'A guided e-bike ride through the Uhud battlefield: Archers\' Hill (Mount Al-Rumat), Al Fash Mosque and the Prophet\'s Cave, with expert commentary. Snacks & safety gear included.',book:{url:HALA,label:'Book on Hala Yalla'}}),
-  quad:()=>({time:'Morning',name:'Uhud Mountain Quad Bike / 4WD Adventure',lat:24.5120,lng:39.6200,
-    desc:'Conquer the trails around Uhud by quad bike or Jeep Wrangler — an off-road climb with sweeping views over the city.',book:{url:VS_ADV,label:'Book on Visit Saudi'}}),
-  ferrata:()=>({time:'Early morning',name:'Via Ferrata Mountain Climb',ferrata:true,lat:24.5300,lng:39.6400,
-    desc:'A guided iron-path climb across Madinah\'s rugged peaks — steel cables, ladders and a suspension bridge with breathtaking views. Wear closed sport shoes, go early, and book ahead.',book:{url:'https://sightscape.com/madinah/Mountain-Climbing',label:'Info & operators'}}),
-  hike:()=>({time:'Early morning',name:'Sunrise Hike on the Volcanic Trails',lat:24.5200,lng:39.6300,
-    desc:'Trek the black basalt hills around the city for golden-hour views over the valley. Carry water and start at dawn.'}),
-  dateMarket:()=>({time:'Afternoon',name:'Dates Market & Old Madinah',lat:24.4710,lng:39.6175,
-    desc:'Taste Ajwa and dozens of date varieties, pick up gifts, and wander the old city around the Haram.'}),
-  malls:()=>({time:'Evening',name:'Al Noor Mall / Al Rashid Mall',lat:24.4300,lng:39.5800,
-    desc:'Dining, coffee and shopping in air-conditioned comfort — a relaxed evening, especially in the hotter months.'}),
-  alula:()=>({time:'Full-day trip',name:'Day Trip to AlUla',far:true,lat:26.6087,lng:37.9216,
-    desc:'About 3 hours away: Hegra (Saudi\'s first UNESCO site), Nabataean tombs, Elephant Rock and the old town. An unforgettable add-on for longer trips.',book:{url:'https://book.visitsaudi.com',label:'Book a tour'}}),
-  ramadanNight:()=>({time:'Iftar → Taraweeh',name:'Iftar near the Haram + Taraweeh & Qiyam',must:true,lat:24.4672,lng:39.6112,
-    desc:'Break your fast in the mosque courtyards, then pray Taraweeh and Qiyam behind the imams of the Prophet\'s Mosque — a night you will never forget.'}),
-};
-
-/* ===================== FOOD & DRINK (real Madinah places) ===================== */
-const COFFEE=[
-  {name:'ROW Specialty Coffee',kind:'coffee',icon:'☕',lat:24.4690,lng:39.6080,desc:'Spanish latte & French toast at a local favourite near the Haram (also a branch inside Al Marbad farm).'},
-  {name:'44X Specialty Coffee',kind:'coffee',icon:'☕',lat:24.4625,lng:39.6020,desc:'Sleek roastery with excellent breakfasts, sweets and a calm outdoor terrace.'},
-  {name:'Wacafe Specialty Coffee',kind:'coffee',icon:'☕',lat:24.4705,lng:39.6105,desc:'Set in a historic former bakery — try the filter coffee and Hasawi cookies in the courtyard.'},
-  {name:'Kiffa Coffee & Roastery',kind:'coffee',icon:'☕',lat:24.4660,lng:39.5980,desc:'Rich house roast; order a Spanish latte or an affogato to beat the heat.'},
-  {name:'8Oz Coffee',kind:'coffee',icon:'☕',lat:24.4585,lng:39.6035,desc:'Industrial-cool space full of plants — reliable espresso and cold brews.'},
-  {name:'Ajwatech Cafe (Al Marbad farm)',kind:'coffee',icon:'☕',lat:24.4312,lng:39.6242,desc:'Ajwa-date lattes and date ice cream among the palms — uniquely Madani.'},
-];
-const TEA=[
-  {name:'Etrah Cafe',kind:'tea',icon:'🫖',lat:24.4668,lng:39.6088,desc:"Heritage Hijazi tea blends steeped in Madinah's own herbs — the local way to slow down."},
-  {name:'Tea Garden, Dar Al Taqwa',kind:'tea',icon:'🫖',lat:24.4690,lng:39.6112,desc:'A serene garden tea lounge by the Haram for Arabic tea served with dates.'},
-];
-const BREAKFAST=[
-  {name:'Foul & Tameez — traditional Hijazi breakfast',kind:'food',icon:'🍳',lat:24.4700,lng:39.6150,desc:'Start like a local: foul, fresh tameez bread and shakshuka at a neighbourhood spot.'},
-  {name:'Masoub & Balaleet — sweet Hijazi morning',kind:'food',icon:'🍳',lat:24.4695,lng:39.6135,desc:'A sweet local breakfast of banana-bread masoub and saffron balaleet.'},
-  {name:'Shakshuka & Manakish (Levantine breakfast)',kind:'food',icon:'🍳',lat:24.4662,lng:39.6120,desc:'Bubbling shakshuka and fresh-baked manakish with mint tea.'},
-  {name:'Saraya Ward brunch (Al Marbad farm)',kind:'food',icon:'🍳',lat:24.4310,lng:39.6240,desc:'Syrian breakfast among the palm groves of Al Marbad farm.'},
-];
-const MAINS=[
-  {name:'Al Baik',kind:'food',icon:'🍽️',lat:24.4720,lng:39.6155,desc:"Saudi Arabia's beloved crispy broasted chicken with garlic sauce — fast, fun and iconic."},
-  {name:'Saleeg — the Madani signature dish',kind:'food',icon:'🍽️',lat:24.4700,lng:39.6140,desc:"Madinah's own creamy rice slow-cooked in broth with tender chicken. A must-try."},
-  {name:'Hyderabad House',kind:'food',icon:'🍽️',lat:24.4712,lng:39.6168,desc:'Aromatic Hyderabadi biryani and curries — a long-time Madinah favourite.'},
-  {name:'Al Beiruti',kind:'food',icon:'🍽️',lat:24.4655,lng:39.6125,desc:'Fresh Lebanese mezze, charcoal grills and shawarma in a cosy setting.'},
-  {name:'Zaitoon Restaurant',kind:'food',icon:'🍽️',lat:24.4668,lng:39.6132,desc:'Mediterranean & Middle Eastern plates a short walk from the Haram.'},
-  {name:'Swiss House',kind:'food',icon:'🍽️',lat:24.4600,lng:39.6000,desc:'Family-friendly international menu — fondue, schnitzel and pizzas.'},
-  {name:'Mandi & Madfoon (Yemeni)',kind:'food',icon:'🍽️',lat:24.4685,lng:39.6160,desc:'Smoky slow-cooked lamb or chicken over fragrant rice — hearty and authentic.'},
-  {name:'Ottoman Turkish Grill',kind:'food',icon:'🍽️',lat:24.4640,lng:39.6050,desc:'Charcoal kebabs, pide and Turkish classics for a change of flavour.'},
-];
-
-/* ===================== PLAN ENGINE ===================== */
-function buildPlan(a){
-  const w=weatherProfile(a.month);
-  const monthName=QUESTIONS.find(q=>q.id==='month').options.find(o=>o.v===a.month)?.label||'';
-  const dayCount={'1-2':2,'3-4':4,'5-6':6,'7plus':8}[a.days]||3;
-  const ramadan=a.ramadan==='yes';
-  const young=['under18','18-25','26-40'].includes(a.age);
-  const fitOK=a.fitness!=='low';
-  const lovesOutdoor=a.outdoor==='love';
-  const someOutdoor=a.outdoor!=='no';
-  const hasCar=a.transport==='car';
-  const goal=a.goal;
-  const farmTime = w.outdoor ? 'Late afternoon' : 'After Asr (cool hours)';
-
-  const ferrataEligible = young && fitOK && lovesOutdoor && (a.company==='friends'||a.company==='solo') && (goal==='half'||goal==='tourist');
-
-  /* Build backlog of attractions ordered by this visitor's goal */
-  const backlog=[];
-  const add=(x)=>backlog.push(x);
-
-  add(P.quba()); // always a must, early
-  if(a.rawdah==='yes' || goal==='religious') add(P.rawdah());
-
-  if(goal==='religious'){
-    add(P.uhud()); add(P.baqi()); add(P.qiblatain()); add(P.quran());
-    add(P.marbad(farmTime)); add(P.dateMarket()); add(P.hijaz()); add(P.darMuseum());
-  } else if(goal==='half' || goal==='wedding'){
-    add(P.uhud()); add(P.baqi());
-    if(ferrataEligible) add(P.ferrata());
-    add(P.marbad(farmTime));
-    if(someOutdoor) add(P.ebike());
-    add(P.qiblatain());
-    if(someOutdoor && (hasCar||goal!=='wedding')) add(P.wadiJinn());
-    add(P.darMuseum()); add(P.dateMarket());
-    if(a.company==='family') add(P.kfpark());
-    if(a.budget!=='budget') add(P.aliya(farmTime));
-  } else { /* tourist — attraction-led */
-    add(P.marbad(farmTime));
-    if(someOutdoor) add(P.ebike());
-    if(ferrataEligible) add(P.ferrata());
-    if(someOutdoor) add(P.wadiJinn());
-    add(P.uhud());
-    if(lovesOutdoor && fitOK) add(P.quad());
-    add(P.kfpark());
-    add(P.aliya(farmTime));
-    add(P.darMuseum()); add(P.hijaz());
-    add(P.qiblatain());
-    if(lovesOutdoor && fitOK && w.outdoor) add(P.hike());
-    add(P.dateMarket()); add(P.malls());
-    if(dayCount>=6 && hasCar) add(P.alula());
-  }
-  if(dayCount>=6 && (goal==='half') && hasCar) add(P.alula());
-
-  /* rotating pickers so every day brings a new coffee / meal / tea */
-  let ci=0,ti=0,bfi=0,mi=0;
-  const nextCoffee=()=>COFFEE[ci++ % COFFEE.length];
-  const nextTea=()=>TEA[ti++ % TEA.length];
-  const nextBreakfast=()=>BREAKFAST[bfi++ % BREAKFAST.length];
-  const nextMain=()=>MAINS[mi++ % MAINS.length];
-  const fb=(time,item)=>({time,name:item.name,desc:item.desc,lat:item.lat,lng:item.lng,kind:item.kind,icon:item.icon});
-
-  /* pull attractions in priority order from the goal-built backlog */
-  const usedAttr=new Set(); let ax=0;
-  const attr=()=>{ while(ax<backlog.length){const e=backlog[ax++]; if(!usedAttr.has(e.name)){usedAttr.add(e.name);return e;}} return null; };
-  const at=(time,exp)=> exp?Object.assign({},exp,{time}):null;
-  const mosque=(time,label,desc)=>({time,name:label,must:true,lat:24.4672,lng:39.6112,mapName:'Al-Masjid an-Nabawi',icon:'🕌',desc:desc||"Prayer in congregation at the Prophet's Mosque ﷺ — a thousandfold reward."});
-
-  const anchorDaily = goal!=='tourist';   // tourist: Haram on day 1 + last day; others: daily
-  const days=[];
-  const themes=["Arrival & the Prophet's Mosque ﷺ",'Worship & heritage','Nature & discovery','Adventure & farms','Explore at your pace','Reflection & gifts','A grand day out','Rest & farewell'];
-
-  for(let d=0; d<dayCount; d++){
-    const anchorToday = ramadan || anchorDaily || d===0 || d===dayCount-1;
-    const teaToday = d===0 || d%3===2;               // tea at least on day 1, then every few days
-    const morningPrayer = goal!=='tourist' && anchorToday;
-    const B=[]; const push=x=>{ if(x) B.push(x); };
-
-    if(ramadan){
-      push(mosque('03:30 – 04:15','Suhoor & Tahajjud','A light suhoor, then voluntary night prayer before dawn.'));
-      push(mosque('04:40 – 05:10',"Fajr at the Prophet's Mosque ﷺ",'Begin the blessed day in congregation.'));
-      push(at('16:30 – 18:00',attr()));
-      push(mosque('18:30 – 19:05','Iftar by the Haram + Maghrib','Break your fast in the courtyards, then pray Maghrib.'));
-      push(mosque('20:30 – 22:00','Taraweeh & Qiyam ﷺ',"Stand with the imams of the Prophet's Mosque — unforgettable nights."));
-      push(fb('22:15 – 23:15',nextMain()));
-      push(fb('23:15 – 00:00',nextCoffee()));
-      if(teaToday) push(fb('00:00 – 00:40',nextTea()));
-    } else if(a.pace==='night'){
-      if(anchorToday) push(mosque('19:00 – 20:00',"Maghrib & Isha at the Prophet's Mosque ﷺ",'The heart of every evening in Madinah.'));
-      push(at('20:00 – 21:15',attr()));
-      push(fb('21:15 – 22:30',nextMain()));
-      push(fb('22:30 – 23:15',nextCoffee()));
-      if(teaToday) push(fb('23:15 – 00:00',nextTea()));
-    } else if(a.pace==='half'){
-      if(morningPrayer) push(mosque('05:45 – 06:30',"Fajr at the Prophet's Mosque ﷺ"));
-      push(at('07:30 – 09:30',attr()));
-      push(fb('09:30 – 10:30',nextBreakfast()));
-      push(fb('10:30 – 11:15',nextCoffee()));
-      push(at('11:30 – 13:00',attr()));
-      if(teaToday) push(fb('17:30 – 18:15',nextTea()));
-      if(anchorToday) push(mosque('19:00 – 20:00',"Maghrib & Isha at the Prophet's Mosque ﷺ"));
-      push(fb('20:00 – 21:30',nextMain()));
-    } else { /* full day */
-      if(morningPrayer) push(mosque('05:30 – 06:15',"Fajr at the Prophet's Mosque ﷺ"));
-      push(at('07:30 – 09:30',attr()));
-      push(fb('09:30 – 10:30',nextBreakfast()));
-      push(fb('10:30 – 11:15',nextCoffee()));
-      push(at('11:30 – 13:00',attr()));
-      push(fb('13:00 – 14:30',nextMain()));
-      push(at('16:30 – 18:00',attr()));
-      if(teaToday) push(fb('18:00 – 18:45',nextTea()));
-      if(anchorToday) push(mosque('18:50 – 19:45',"Maghrib & Isha at the Prophet's Mosque ﷺ"));
-      push(fb('20:00 – 21:30',nextMain()));
-    }
-
-    const theme = d===0 ? themes[0] : (themes[d]||'Explore at your pace');
-    days.push({n:d+1, theme, blocks:B});
-  }
-
-  // Guarantee Quba (a must) appears even if attractions overflowed — insert it in sensible time order
-  const allNames=new Set(days.flatMap(dd=>dd.blocks.map(b=>b.name)));
-  if(!allNames.has('Quba Mosque')){
-    const q=Object.assign({},P.quba(),{time:'16:30 – 18:00'});
-    const i=days[0].blocks.findIndex(b=>/Iftar|Maghrib|Isha|Taraweeh/.test(b.name));
-    if(i>=0) days[0].blocks.splice(i,0,q); else days[0].blocks.push(q);
-  }
-
-  /* Tips */
-  const tips=[];
-  tips.push('Pray every fard salah you can inside the Prophet\'s Mosque — a prayer here equals a thousand elsewhere.');
-  if(a.rawdah==='yes'||goal==='religious') tips.push('Reserve your Rawdah visit on the Nusuk app days in advance; slots open early and fill fast.');
-  tips.push('At Quba, make wudu at the hotel and pray two rak\'ah — equal in reward to an Umrah.');
-  if(goal==='tourist') tips.push('Even on a tourist trip, slip into the Haram for a prayer whenever you pass — it is the soul of Madinah.');
-  if(!w.outdoor) tips.push('It will be hot — carry water, wear a cap, and keep outdoor plans to early morning or after Asr.');
-  else tips.push('The weather is on your side — keep mornings free for the outdoors and evenings for the Haram.');
-  if(ramadan) tips.push('In Ramadan the city lives at night: rest by day, break your fast near the Haram, then pray Taraweeh & Qiyam.');
-  if(ferrataEligible) tips.push('Book your Via Ferrata and Uhud e-bike sessions ahead, wear closed sport shoes, and go early — they are the highlights for active groups.');
-  tips.push(hasCar ? 'With your own car, Quba, the farms and Wadi Al-Jinn are easy — use Google Maps and avoid the Haram core at prayer times.' : 'Use Careem or Uber to get around; for Quba, Uhud, farms and the valley, agree a return trip or ask the driver to wait.');
-  if(a.company==='family') tips.push('Keep a relaxed pace with children: King Fahd Park, Al Marbad farm and early nights will be their favourites.');
-  if(goal==='wedding') tips.push('Around the wedding we kept the days lighter — leave a flexible buffer for family gatherings and rest.');
-  tips.push('Make it a ritual: a new specialty coffee every day (Madinah\'s café scene is superb) and at least one heritage tea at Etrah.');
-  tips.push('Don\'t leave without tasting Saleeg — Madinah\'s signature creamy chicken-and-rice dish — and an Ajwa-date latte.');
-  tips.push('Café and restaurant times are suggestions — shift them around the adhan, and tap “Open in Maps” for directions.');
-
-  /* Chips */
-  const chips=[];
-  chips.push(monthName+' • '+w.label);
-  chips.push(dayCount+' days');
-  chips.push({solo:'Solo',friends:'With friends',family:'With family'}[a.company]);
-  chips.push({religious:'Religious',half:'Religion + leisure',wedding:'Wedding visit',tourist:'Tourist'}[goal]);
-  if(ramadan) chips.push('Ramadan 🌙');
-  if(ferrataEligible) chips.push('Via Ferrata included');
-  chips.push('Daily specialty coffee ☕');
-
-  return {weather:w,monthName,dayCount,days,tips,chips,ramadan,goal};
-}
 
 /* ===================== RENDER ===================== */
 let planMap=null;
@@ -659,7 +399,6 @@ function renderPlan(p){
       <h2>Your Map of Peace</h2>
       <p>${goalLine} A ${p.dayCount}-day plan shaped around your answers — anchored, as always, on the Prophet's Mosque ﷺ and Quba.${p._ai?' ✨ Crafted live by AI to include Madinah\'s newest places.':''}</p>
       <div class="chips">${p.chips.map(c=>`<span class="chip">${c}</span>`).join('')}</div>
-      ${p._fallback?'<p style="margin-top:1rem;font-size:.82rem;color:rgba(247,242,233,.7)">Built with the offline guide — add your AI key (or deploy <code>/api/gemini</code>) for live, always-fresh plans.</p>':''}
     </div>
     <div class="weather-band"><div class="ico">${p.weather.ico}</div><div>
       <h4>${p.monthName}: ${p.weather.label} <span style="font-weight:400;color:var(--ink-soft);font-size:.9rem;">(${p.weather.temp})</span></h4>
@@ -682,7 +421,7 @@ function renderPlan(p){
       html+=`<div class="block"><div class="time">${b.time}</div><div class="b-body">
           <h4><span style="color:var(--gold)">${b.icon||'📍'}</span>${b.name} ${badge}</h4>
           <p>${b.desc}</p><div class="act-links">${links}</div></div>
-          <div class="b-thumb" style="background-image:url('${b.imgUrl||placeImg(b.name,b.kind)}')"></div></div>`;
+          <div class="b-thumb" style="background-image:url('${b.imgUrl||flickFromWords((b.name||'madinah')+' '+(b.kind||''),(b.name||'x').length)}')"></div></div>`;
     });
     html+=`</div>`;
   });
