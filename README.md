@@ -23,28 +23,40 @@ suggestions**, and a **styled PDF** download.
     Central Park**, **Uhud E-Bike trail**, **Uhud quad / 4WD**, **Wadi Al-Jinn**
     (Magnetic Valley), **Hijaz Railway** & **Dar Al Madinah** museums, the
     **Qur'an Printing Complex**, the dates market, malls, and an **AlUla** day trip.
+- **AI builds the whole plan.** Right after the questionnaire, Google **Gemini**
+  generates the complete, hour-by-hour itinerary so it always includes Madinah's
+  newest places (e.g. Alhay, Tommah, Jadat Quba, Al Marbad, Al Safiyah, Serah
+  Museum) and picks a beautiful photo query per stop. If no AI key/endpoint is
+  available, the site **falls back automatically** to a built-in deterministic
+  engine, so it always produces a plan.
 - **Interactive map** (Leaflet + OpenStreetMap, no key) pinning every stop, with
   **📍 Open in Maps** and **🎟 Reserve / Info** links per activity (Nusuk, Visit
   Saudi, Hala Yalla, Sightscape, Welcome Saudi).
-- **Real photos** for each place (Creative-Commons via LoremFlickr) with a colour
-  fallback so nothing ever looks broken.
-- **✨ AI "Discover more places"** — an optional button that asks Google **Gemini**
-  for fresh, lesser-known spots matching the visitor's trip (see setup below).
+- **Real photos** for each place (the AI's photo query → Creative-Commons via
+  LoremFlickr) with a colour fallback so nothing ever looks broken.
+- **✨ AI "Discover more places"** — a button to refresh with extra lesser-known spots.
 - **Output**: shown on the page, **styled PDF** (html2canvas + jsPDF; print
   fallback), and a standalone **.html** download.
 
 ## Tech & structure
 
 ```
-index.html                 # the whole site (HTML + CSS + JS), no build step
-functions/api/discover.js  # AI endpoint for EdgeOne Pages / Cloudflare Pages
-api/discover.js            # AI endpoint for Vercel / Node serverless
-.env.example               # GEMINI_API_KEY placeholder (never commit real keys)
+index.html               # the whole site (HTML + CSS + JS), no build step
+functions/api/gemini.js  # Gemini proxy for EdgeOne Pages / Cloudflare Pages
+api/gemini.js            # Gemini proxy for Vercel / Node serverless
+.env.example             # GEMINI_API_KEY placeholder (never commit real keys)
 ```
 
-The site works fully **without** the AI function — the questionnaire, map,
-booking links, photos and PDF are all client-side. The AI button only needs the
-serverless function when you want live suggestions.
+The site always produces a plan: with an AI key/endpoint it is **AI-crafted**;
+without one it uses the built-in engine. The map, booking links, photos and PDF
+are all client-side either way.
+
+### Two ways to enable the AI
+1. **Single-file test:** paste your key into the `TEST_GEMINI_KEY` constant near
+   the top of the `<script>` in `index.html`, then just open the file. The browser
+   calls Gemini directly (test only — the key is visible; never commit it).
+2. **Production:** leave `TEST_GEMINI_KEY` blank and deploy with the
+   `/api/gemini` function + a `GEMINI_API_KEY` secret (below).
 
 ## Run locally
 
@@ -55,18 +67,19 @@ python3 -m http.server 8000   # then open http://localhost:8000
 The `/api/discover` AI button needs a function host (below); locally you can run
 it with the Vercel CLI (`vercel dev`) or Wrangler (`wrangler pages dev .`).
 
-## Enabling the AI "Discover more" feature
+## Enabling the AI in production
 
 1. Get a **Gemini API key** from Google AI Studio.
 2. Set it as a **secret / environment variable** named `GEMINI_API_KEY` in your
    hosting dashboard — **do not** put it in the code or commit it.
-   - **EdgeOne Pages / Cloudflare Pages**: uses `functions/api/discover.js`. Add
+   - **EdgeOne Pages / Cloudflare Pages**: uses `functions/api/gemini.js`. Add
      the variable under the project's *Environment variables / Secrets*.
-   - **Vercel**: uses `api/discover.js`. Add the variable under
+   - **Vercel**: uses `api/gemini.js`. Add the variable under
      *Settings → Environment Variables*.
-   - **Netlify**: rename the handler to Netlify's signature, or proxy to the
+   - **Netlify**: adapt the handler to Netlify's signature, or proxy to the
      Vercel/Pages function; set the env var in *Site settings → Environment*.
-3. Deploy. The button calls `POST /api/discover` and renders the returned places.
+3. Deploy. The site calls `POST /api/gemini` to build the plan and to power the
+   "Discover more" button.
 
 > 🔐 **Security:** never hardcode or commit the key. If a key is ever shared in
 > plaintext (chat, screenshot, commit), **rotate/revoke it** and issue a new one.
