@@ -134,7 +134,7 @@
   .day-head .dtheme{font-size:.82rem;color:var(--ink-soft);}
   .block{display:flex;gap:1.1rem;padding:1.1rem 1.6rem;border-bottom:1px dashed var(--sand-200);}
   .block:last-child{border-bottom:none;}
-  .block .time{flex-shrink:0;width:96px;font-size:.78rem;font-weight:600;color:var(--green-600);text-transform:uppercase;letter-spacing:.04em;padding-top:.15rem;}
+  .block .time{flex-shrink:0;width:108px;font-size:.82rem;font-weight:700;color:var(--green-600);letter-spacing:.01em;padding-top:.15rem;font-variant-numeric:tabular-nums;}
   .block .b-thumb{flex-shrink:0;width:108px;height:80px;border-radius:10px;background-size:cover;background-position:center;background-color:#15583f;box-shadow:0 6px 16px -10px rgba(10,58,42,.7);}
   .block .b-body{flex:1;}
   .block .b-body h4{font-family:'Inter',sans-serif;font-size:1.04rem;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
@@ -376,7 +376,10 @@ const VS_ADV='https://book.visitsaudi.com/sa-en/experiences/al-madinah-al-munaww
 function gmaps(name){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(name+', Al Madinah, Saudi Arabia');}
 // Real representative photos (Creative-Commons via LoremFlickr) with stable locks; falls back to a colour if offline.
 function flick(tags,lock){return 'https://loremflickr.com/360/240/'+tags+'?lock='+lock;}
-function placeImg(name){
+function placeImg(name,kind){
+  if(kind==='coffee') return flick('coffee,cafe,latte',41+(name.length%6));
+  if(kind==='tea') return flick('tea,teapot,arabic',47+(name.length%4));
+  if(kind==='food') return flick('arabic,food,restaurant',51+(name.length%8));
   const n=name.toLowerCase();
   if(n.includes('nabawi')||n.includes('rawdah')||n.includes('taraweeh')) return flick('medina,prophet,mosque',21);
   if(n.includes('quba')) return flick('quba,mosque,medina',22);
@@ -446,6 +449,36 @@ const P = {
     desc:'Break your fast in the mosque courtyards, then pray Taraweeh and Qiyam behind the imams of the Prophet\'s Mosque — a night you will never forget.'}),
 };
 
+/* ===================== FOOD & DRINK (real Madinah places) ===================== */
+const COFFEE=[
+  {name:'ROW Specialty Coffee',kind:'coffee',icon:'☕',lat:24.4690,lng:39.6080,desc:'Spanish latte & French toast at a local favourite near the Haram (also a branch inside Al Marbad farm).'},
+  {name:'44X Specialty Coffee',kind:'coffee',icon:'☕',lat:24.4625,lng:39.6020,desc:'Sleek roastery with excellent breakfasts, sweets and a calm outdoor terrace.'},
+  {name:'Wacafe Specialty Coffee',kind:'coffee',icon:'☕',lat:24.4705,lng:39.6105,desc:'Set in a historic former bakery — try the filter coffee and Hasawi cookies in the courtyard.'},
+  {name:'Kiffa Coffee & Roastery',kind:'coffee',icon:'☕',lat:24.4660,lng:39.5980,desc:'Rich house roast; order a Spanish latte or an affogato to beat the heat.'},
+  {name:'8Oz Coffee',kind:'coffee',icon:'☕',lat:24.4585,lng:39.6035,desc:'Industrial-cool space full of plants — reliable espresso and cold brews.'},
+  {name:'Ajwatech Cafe (Al Marbad farm)',kind:'coffee',icon:'☕',lat:24.4312,lng:39.6242,desc:'Ajwa-date lattes and date ice cream among the palms — uniquely Madani.'},
+];
+const TEA=[
+  {name:'Etrah Cafe',kind:'tea',icon:'🫖',lat:24.4668,lng:39.6088,desc:"Heritage Hijazi tea blends steeped in Madinah's own herbs — the local way to slow down."},
+  {name:'Tea Garden, Dar Al Taqwa',kind:'tea',icon:'🫖',lat:24.4690,lng:39.6112,desc:'A serene garden tea lounge by the Haram for Arabic tea served with dates.'},
+];
+const BREAKFAST=[
+  {name:'Foul & Tameez — traditional Hijazi breakfast',kind:'food',icon:'🍳',lat:24.4700,lng:39.6150,desc:'Start like a local: foul, fresh tameez bread and shakshuka at a neighbourhood spot.'},
+  {name:'Masoub & Balaleet — sweet Hijazi morning',kind:'food',icon:'🍳',lat:24.4695,lng:39.6135,desc:'A sweet local breakfast of banana-bread masoub and saffron balaleet.'},
+  {name:'Shakshuka & Manakish (Levantine breakfast)',kind:'food',icon:'🍳',lat:24.4662,lng:39.6120,desc:'Bubbling shakshuka and fresh-baked manakish with mint tea.'},
+  {name:'Saraya Ward brunch (Al Marbad farm)',kind:'food',icon:'🍳',lat:24.4310,lng:39.6240,desc:'Syrian breakfast among the palm groves of Al Marbad farm.'},
+];
+const MAINS=[
+  {name:'Al Baik',kind:'food',icon:'🍽️',lat:24.4720,lng:39.6155,desc:"Saudi Arabia's beloved crispy broasted chicken with garlic sauce — fast, fun and iconic."},
+  {name:'Saleeg — the Madani signature dish',kind:'food',icon:'🍽️',lat:24.4700,lng:39.6140,desc:"Madinah's own creamy rice slow-cooked in broth with tender chicken. A must-try."},
+  {name:'Hyderabad House',kind:'food',icon:'🍽️',lat:24.4712,lng:39.6168,desc:'Aromatic Hyderabadi biryani and curries — a long-time Madinah favourite.'},
+  {name:'Al Beiruti',kind:'food',icon:'🍽️',lat:24.4655,lng:39.6125,desc:'Fresh Lebanese mezze, charcoal grills and shawarma in a cosy setting.'},
+  {name:'Zaitoon Restaurant',kind:'food',icon:'🍽️',lat:24.4668,lng:39.6132,desc:'Mediterranean & Middle Eastern plates a short walk from the Haram.'},
+  {name:'Swiss House',kind:'food',icon:'🍽️',lat:24.4600,lng:39.6000,desc:'Family-friendly international menu — fondue, schnitzel and pizzas.'},
+  {name:'Mandi & Madfoon (Yemeni)',kind:'food',icon:'🍽️',lat:24.4685,lng:39.6160,desc:'Smoky slow-cooked lamb or chicken over fragrant rice — hearty and authentic.'},
+  {name:'Ottoman Turkish Grill',kind:'food',icon:'🍽️',lat:24.4640,lng:39.6050,desc:'Charcoal kebabs, pide and Turkish classics for a change of flavour.'},
+];
+
 /* ===================== PLAN ENGINE ===================== */
 function buildPlan(a){
   const w=weatherProfile(a.month);
@@ -499,52 +532,78 @@ function buildPlan(a){
   }
   if(dayCount>=6 && (goal==='half') && hasCar) add(P.alula());
 
-  /* Slots per day from pace */
-  const slots = a.pace==='night'?1 : a.pace==='half'?2 : 3;
+  /* rotating pickers so every day brings a new coffee / meal / tea */
+  let ci=0,ti=0,bfi=0,mi=0;
+  const nextCoffee=()=>COFFEE[ci++ % COFFEE.length];
+  const nextTea=()=>TEA[ti++ % TEA.length];
+  const nextBreakfast=()=>BREAKFAST[bfi++ % BREAKFAST.length];
+  const nextMain=()=>MAINS[mi++ % MAINS.length];
+  const fb=(time,item)=>({time,name:item.name,desc:item.desc,lat:item.lat,lng:item.lng,kind:item.kind,icon:item.icon});
 
-  /* When do we anchor the Haram each day?  Religious & wedding: daily. Half: daily (lighter). Tourist: day 1 + last day only. */
-  const anchorDaily = goal!=='tourist';
+  /* pull attractions in priority order from the goal-built backlog */
+  const usedAttr=new Set(); let ax=0;
+  const attr=()=>{ while(ax<backlog.length){const e=backlog[ax++]; if(!usedAttr.has(e.name)){usedAttr.add(e.name);return e;}} return null; };
+  const at=(time,exp)=> exp?Object.assign({},exp,{time}):null;
+  const mosque=(time,label,desc)=>({time,name:label,must:true,lat:24.4672,lng:39.6112,mapName:'Al-Masjid an-Nabawi',icon:'🕌',desc:desc||"Prayer in congregation at the Prophet's Mosque ﷺ — a thousandfold reward."});
 
-  const used=new Set();
+  const anchorDaily = goal!=='tourist';   // tourist: Haram on day 1 + last day; others: daily
   const days=[];
-  let bi=0;
-  const themes=['Arrival & the Prophet\'s Mosque ﷺ','Worship & heritage','Nature & discovery','Adventure & farms','Explore at your pace','Reflection & gifts','A grand day out','Rest & farewell'];
+  const themes=["Arrival & the Prophet's Mosque ﷺ",'Worship & heritage','Nature & discovery','Adventure & farms','Explore at your pace','Reflection & gifts','A grand day out','Rest & farewell'];
 
   for(let d=0; d<dayCount; d++){
-    const blocks=[];
-    let fillSlots = slots;
-
-    // reserve one slot for an evening Haram / Ramadan anchor if anchoring this day
     const anchorToday = ramadan || anchorDaily || d===0 || d===dayCount-1;
-    if(anchorToday) fillSlots = Math.max(1, slots-1);
+    const teaToday = d===0 || d%3===2;               // tea at least on day 1, then every few days
+    const morningPrayer = goal!=='tourist' && anchorToday;
+    const B=[]; const push=x=>{ if(x) B.push(x); };
 
-    if(a.pace!=='night'){
-      let placed=0;
-      while(placed<fillSlots && bi<backlog.length){
-        const exp=backlog[bi++];
-        if(used.has(exp.name)) continue;
-        used.add(exp.name); blocks.push(exp); placed++;
-        if(/AlUla|Wadi Al-Jinn/.test(exp.name)) break; // big trips fill the day
-      }
-    } else {
-      // nights-only: pull a light evening item occasionally (farm/market/mall)
-      if(d>0 && bi<backlog.length){
-        const exp=backlog[bi++];
-        if(!used.has(exp.name)){used.add(exp.name);blocks.push(exp);}
-      }
+    if(ramadan){
+      push(mosque('03:30 – 04:15','Suhoor & Tahajjud','A light suhoor, then voluntary night prayer before dawn.'));
+      push(mosque('04:40 – 05:10',"Fajr at the Prophet's Mosque ﷺ",'Begin the blessed day in congregation.'));
+      push(at('16:30 – 18:00',attr()));
+      push(mosque('18:30 – 19:05','Iftar by the Haram + Maghrib','Break your fast in the courtyards, then pray Maghrib.'));
+      push(mosque('20:30 – 22:00','Taraweeh & Qiyam ﷺ',"Stand with the imams of the Prophet's Mosque — unforgettable nights."));
+      push(fb('22:15 – 23:15',nextMain()));
+      push(fb('23:15 – 00:00',nextCoffee()));
+      if(teaToday) push(fb('00:00 – 00:40',nextTea()));
+    } else if(a.pace==='night'){
+      if(anchorToday) push(mosque('19:00 – 20:00',"Maghrib & Isha at the Prophet's Mosque ﷺ",'The heart of every evening in Madinah.'));
+      push(at('20:00 – 21:15',attr()));
+      push(fb('21:15 – 22:30',nextMain()));
+      push(fb('22:30 – 23:15',nextCoffee()));
+      if(teaToday) push(fb('23:15 – 00:00',nextTea()));
+    } else if(a.pace==='half'){
+      if(morningPrayer) push(mosque('05:45 – 06:30',"Fajr at the Prophet's Mosque ﷺ"));
+      push(at('07:30 – 09:30',attr()));
+      push(fb('09:30 – 10:30',nextBreakfast()));
+      push(fb('10:30 – 11:15',nextCoffee()));
+      push(at('11:30 – 13:00',attr()));
+      if(teaToday) push(fb('17:30 – 18:15',nextTea()));
+      if(anchorToday) push(mosque('19:00 – 20:00',"Maghrib & Isha at the Prophet's Mosque ﷺ"));
+      push(fb('20:00 – 21:30',nextMain()));
+    } else { /* full day */
+      if(morningPrayer) push(mosque('05:30 – 06:15',"Fajr at the Prophet's Mosque ﷺ"));
+      push(at('07:30 – 09:30',attr()));
+      push(fb('09:30 – 10:30',nextBreakfast()));
+      push(fb('10:30 – 11:15',nextCoffee()));
+      push(at('11:30 – 13:00',attr()));
+      push(fb('13:00 – 14:30',nextMain()));
+      push(at('16:30 – 18:00',attr()));
+      if(teaToday) push(fb('18:00 – 18:45',nextTea()));
+      if(anchorToday) push(mosque('18:50 – 19:45',"Maghrib & Isha at the Prophet's Mosque ﷺ"));
+      push(fb('20:00 – 21:30',nextMain()));
     }
 
-    // evening anchor
-    if(ramadan) blocks.push(P.ramadanNight());
-    else if(anchorToday) blocks.push(P.haram());
-
-    let theme = d===0 ? themes[0] : (themes[d]||'Explore at your pace');
-    days.push({n:d+1, theme, blocks});
+    const theme = d===0 ? themes[0] : (themes[d]||'Explore at your pace');
+    days.push({n:d+1, theme, blocks:B});
   }
 
-  // Guarantee Quba appears (it's a must) even if scheduling overflowed
+  // Guarantee Quba (a must) appears even if attractions overflowed — insert it in sensible time order
   const allNames=new Set(days.flatMap(dd=>dd.blocks.map(b=>b.name)));
-  if(!allNames.has('Quba Mosque')) days[0].blocks.unshift(P.quba());
+  if(!allNames.has('Quba Mosque')){
+    const q=Object.assign({},P.quba(),{time:'16:30 – 18:00'});
+    const i=days[0].blocks.findIndex(b=>/Iftar|Maghrib|Isha|Taraweeh/.test(b.name));
+    if(i>=0) days[0].blocks.splice(i,0,q); else days[0].blocks.push(q);
+  }
 
   /* Tips */
   const tips=[];
@@ -559,7 +618,9 @@ function buildPlan(a){
   tips.push(hasCar ? 'With your own car, Quba, the farms and Wadi Al-Jinn are easy — use Google Maps and avoid the Haram core at prayer times.' : 'Use Careem or Uber to get around; for Quba, Uhud, farms and the valley, agree a return trip or ask the driver to wait.');
   if(a.company==='family') tips.push('Keep a relaxed pace with children: King Fahd Park, Al Marbad farm and early nights will be their favourites.');
   if(goal==='wedding') tips.push('Around the wedding we kept the days lighter — leave a flexible buffer for family gatherings and rest.');
-  tips.push('Tap “Open in Maps” on any stop for directions, and “Reserve / Info” to book ahead where needed.');
+  tips.push('Make it a ritual: a new specialty coffee every day (Madinah\'s café scene is superb) and at least one heritage tea at Etrah.');
+  tips.push('Don\'t leave without tasting Saleeg — Madinah\'s signature creamy chicken-and-rice dish — and an Ajwa-date latte.');
+  tips.push('Café and restaurant times are suggestions — shift them around the adhan, and tap “Open in Maps” for directions.');
 
   /* Chips */
   const chips=[];
@@ -569,6 +630,7 @@ function buildPlan(a){
   chips.push({religious:'Religious',half:'Religion + leisure',wedding:'Wedding visit',tourist:'Tourist'}[goal]);
   if(ramadan) chips.push('Ramadan 🌙');
   if(ferrataEligible) chips.push('Via Ferrata included');
+  chips.push('Daily specialty coffee ☕');
 
   return {weather:w,monthName,dayCount,days,tips,chips,ramadan,goal};
 }
@@ -600,13 +662,14 @@ function renderPlan(p){
     html+=`<div class="day"><div class="day-head"><div class="dnum">${d.n}</div><div><h3>Day ${d.n}</h3><div class="dtheme">${d.theme}</div></div></div>`;
     d.blocks.forEach(b=>{
       const badge=b.must?'<span class="badge badge-must">Must visit</span>':(b.ferrata?'<span class="badge badge-ferrata">Adventure</span>':'');
-      let links=`<a href="${gmaps(b.name)}" target="_blank" rel="noopener">📍 Open in Maps</a>`;
+      const mq=b.mapName||b.name;
+      let links=`<a href="${gmaps(mq)}" target="_blank" rel="noopener">📍 Open in Maps</a>`;
       if(b.book) links+=`<a class="book" href="${b.book.url}" target="_blank" rel="noopener">🎟 ${b.book.label}</a>`;
       else if(b.info) links+=`<a href="${b.info}" target="_blank" rel="noopener">ℹ️ More info</a>`;
       html+=`<div class="block"><div class="time">${b.time}</div><div class="b-body">
-          <h4><span style="color:var(--gold)">📍</span>${b.name} ${badge}</h4>
+          <h4><span style="color:var(--gold)">${b.icon||'📍'}</span>${b.name} ${badge}</h4>
           <p>${b.desc}</p><div class="act-links">${links}</div></div>
-          <div class="b-thumb" style="background-image:url('${placeImg(b.name)}')"></div></div>`;
+          <div class="b-thumb" style="background-image:url('${placeImg(b.name,b.kind)}')"></div></div>`;
     });
     html+=`</div>`;
   });
@@ -619,7 +682,7 @@ function renderPlan(p){
     </div>
 
     <div class="tips"><h3>✦ Notes for your journey</h3><ul>${p.tips.map(t=>`<li>${t}</li>`).join('')}</ul></div>
-    <p class="src-note">Places &amp; activities sourced from Visit Saudi, Hala Yalla, Welcome Saudi &amp; local guides. Confirm hours, prices &amp; availability before you go.</p>
+    <p class="src-note">Places, cafés &amp; restaurants sourced from Visit Saudi, Hala Yalla, Welcome Saudi, Wanderlog, Tripadvisor &amp; local guides. Confirm hours, prices &amp; availability before you go.</p>
     <div class="plan-actions no-pdf" data-html2canvas-ignore="true">
       <button class="btn btn-gold" id="pdfBtn">⬇ Download styled PDF</button>
       <button class="btn btn-outline" id="htmlBtn">Download (.html)</button>
@@ -711,7 +774,7 @@ function renderMap(p){
   const group=[];
   pts.forEach(b=>{
     const m=L.marker([b.lat,b.lng]).addTo(planMap);
-    m.bindPopup(`<strong>${b.name}</strong><br/><a href="${gmaps(b.name)}" target="_blank" rel="noopener">Open in Google Maps →</a>`);
+    m.bindPopup(`<strong>${(b.icon||'')} ${b.name}</strong><br/><a href="${gmaps(b.mapName||b.name)}" target="_blank" rel="noopener">Open in Google Maps →</a>`);
     group.push([b.lat,b.lng]);
   });
   if(group.length) planMap.fitBounds(group,{padding:[40,40],maxZoom:13});
