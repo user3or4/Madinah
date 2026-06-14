@@ -4,47 +4,28 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Map Peace — Your Personal Guide to Al-Madinah</title>
-<meta name="description" content="Map Peace helps visitors to Al-Madinah Al-Munawwarah discover where to go. Answer a few questions and receive a personalized, day-by-day plan you can view, print, and download." />
+<meta name="description" content="Map Peace helps visitors to Al-Madinah Al-Munawwarah discover where to go — real places, an interactive map, booking links, and a personal day-by-day plan you can view and download as a styled PDF." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Amiri:ital@0;1&display=swap" rel="stylesheet" />
+<!-- Leaflet (interactive map, no API key) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
   :root{
-    --green-900:#0a3a2a;
-    --green-800:#0e4733;
-    --green-700:#15583f;
-    --green-600:#1d6e4f;
-    --sand-50:#f7f2e9;
-    --sand-100:#f1e9da;
-    --sand-200:#e7dbc6;
-    --gold:#c2a14d;
-    --gold-soft:#d9c186;
-    --ink:#23271f;
-    --ink-soft:#5a5f53;
-    --white:#ffffff;
-    --shadow:0 18px 50px -25px rgba(10,58,42,.55);
-    --radius:18px;
+    --green-900:#0a3a2a;--green-800:#0e4733;--green-700:#15583f;--green-600:#1d6e4f;
+    --sand-50:#f7f2e9;--sand-100:#f1e9da;--sand-200:#e7dbc6;
+    --gold:#c2a14d;--gold-soft:#d9c186;
+    --ink:#23271f;--ink-soft:#5a5f53;--white:#ffffff;
+    --shadow:0 18px 50px -25px rgba(10,58,42,.55);--radius:18px;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html{scroll-behavior:smooth;}
-  body{
-    font-family:'Inter',system-ui,sans-serif;
-    color:var(--ink);
-    background:var(--sand-50);
-    line-height:1.6;
-    -webkit-font-smoothing:antialiased;
-  }
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--sand-50);line-height:1.6;-webkit-font-smoothing:antialiased;}
   h1,h2,h3,.serif{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;line-height:1.15;}
   .arabic{font-family:'Amiri',serif;}
   .wrap{width:min(1080px,92%);margin-inline:auto;}
-  .btn{
-    display:inline-flex;align-items:center;gap:.6rem;
-    border:none;cursor:pointer;font-family:'Inter',sans-serif;
-    font-weight:600;font-size:1rem;letter-spacing:.01em;
-    padding:.95rem 2rem;border-radius:999px;
-    transition:transform .25s ease,box-shadow .25s ease,background .25s ease;
-  }
-  .btn-gold{background:linear-gradient(135deg,var(--gold) 0%,#b08e3a 100%);color:#1c1505;box-shadow:0 12px 30px -12px rgba(194,161,77,.8);}
+  .btn{display:inline-flex;align-items:center;gap:.6rem;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:1rem;letter-spacing:.01em;padding:.95rem 2rem;border-radius:999px;transition:transform .25s,box-shadow .25s,background .25s;}
+  .btn-gold{background:linear-gradient(135deg,var(--gold),#b08e3a);color:#1c1505;box-shadow:0 12px 30px -12px rgba(194,161,77,.8);}
   .btn-gold:hover{transform:translateY(-2px);box-shadow:0 18px 38px -12px rgba(194,161,77,.9);}
   .btn-ghost{background:transparent;color:var(--sand-50);border:1.5px solid rgba(247,242,233,.5);}
   .btn-ghost:hover{background:rgba(247,242,233,.12);}
@@ -52,48 +33,32 @@
   .btn-outline:hover{background:var(--green-700);color:var(--sand-50);}
   .btn[disabled]{opacity:.4;cursor:not-allowed;transform:none;}
 
-  /* ---------- Decorative pattern ---------- */
-  .pattern-overlay{
-    position:absolute;inset:0;opacity:.10;pointer-events:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23f7f2e9' stroke-width='1'%3E%3Cpath d='M40 0 L80 40 L40 80 L0 40 Z'/%3E%3Cpath d='M40 18 L62 40 L40 62 L18 40 Z'/%3E%3Ccircle cx='40' cy='40' r='6'/%3E%3C/g%3E%3C/svg%3E");
-  }
+  .pattern-overlay{position:absolute;inset:0;opacity:.10;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23f7f2e9' stroke-width='1'%3E%3Cpath d='M40 0 L80 40 L40 80 L0 40 Z'/%3E%3Cpath d='M40 18 L62 40 L40 62 L18 40 Z'/%3E%3Ccircle cx='40' cy='40' r='6'/%3E%3C/g%3E%3C/svg%3E");}
 
-  /* ---------- Hero ---------- */
-  header.hero{
-    position:relative;min-height:100vh;display:flex;flex-direction:column;
-    color:var(--sand-50);overflow:hidden;
-    background:
-      radial-gradient(120% 80% at 50% 0%,rgba(29,110,79,.35),transparent 60%),
-      linear-gradient(160deg,var(--green-900) 0%,var(--green-800) 45%,#0a3326 100%);
-  }
+  /* Hero */
+  header.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;color:var(--sand-50);overflow:hidden;
+    background:radial-gradient(120% 80% at 50% 0%,rgba(29,110,79,.35),transparent 60%),linear-gradient(160deg,var(--green-900),var(--green-800) 45%,#0a3326);}
   nav{position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;padding:1.6rem 0;}
   .brand{display:flex;align-items:center;gap:.7rem;font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:700;letter-spacing:.02em;}
-  .brand .mark{
-    width:38px;height:38px;border-radius:50%;
-    background:radial-gradient(circle at 35% 30%,var(--gold-soft),var(--gold));
-    display:grid;place-items:center;color:#1c1505;font-size:1.1rem;box-shadow:0 0 0 4px rgba(194,161,77,.18);
-  }
+  .brand .mark{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--gold-soft),var(--gold));display:grid;place-items:center;color:#1c1505;font-size:1.1rem;box-shadow:0 0 0 4px rgba(194,161,77,.18);}
   nav .links{display:flex;gap:2rem;font-size:.95rem;font-weight:500;}
   nav .links a{color:rgba(247,242,233,.8);text-decoration:none;transition:color .2s;}
   nav .links a:hover{color:var(--gold-soft);}
   .hero-inner{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:3rem 0 5rem;}
-  .eyebrow{
-    text-transform:uppercase;letter-spacing:.35em;font-size:.72rem;font-weight:600;
-    color:var(--gold-soft);margin-bottom:1.4rem;display:flex;align-items:center;gap:1rem;
-  }
+  .eyebrow{text-transform:uppercase;letter-spacing:.35em;font-size:.72rem;font-weight:600;color:var(--gold-soft);margin-bottom:1.4rem;display:flex;align-items:center;gap:1rem;}
   .eyebrow::before,.eyebrow::after{content:"";width:34px;height:1px;background:var(--gold-soft);opacity:.6;}
   .hero h1{font-size:clamp(3rem,8vw,5.6rem);font-weight:600;letter-spacing:.01em;}
   .hero h1 .accent{color:var(--gold-soft);font-style:italic;}
   .hero .ar{font-size:clamp(1.4rem,4vw,2.1rem);color:rgba(247,242,233,.75);margin-top:.4rem;}
-  .hero p.lede{max-width:620px;margin:1.6rem auto 2.4rem;font-size:1.12rem;color:rgba(247,242,233,.82);font-weight:300;}
+  .hero p.lede{max-width:640px;margin:1.6rem auto 2.4rem;font-size:1.12rem;color:rgba(247,242,233,.82);font-weight:300;}
   .hero-cta{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
   .scroll-hint{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:2;color:rgba(247,242,233,.5);font-size:.8rem;letter-spacing:.2em;text-transform:uppercase;}
   .scroll-hint span{display:block;text-align:center;font-size:1.2rem;animation:bob 2s infinite;}
   @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
 
-  /* ---------- Section: how it works ---------- */
   section{padding:5.5rem 0;}
-  .section-head{text-align:center;max-width:640px;margin:0 auto 3rem;}
+  .section-head{text-align:center;max-width:660px;margin:0 auto 3rem;}
   .section-head .eyebrow{justify-content:center;color:var(--gold);}
   .section-head .eyebrow::before,.section-head .eyebrow::after{background:var(--gold);}
   .section-head h2{font-size:clamp(2rem,4.5vw,3rem);color:var(--green-800);}
@@ -101,46 +66,38 @@
 
   .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6rem;}
   .step{background:var(--white);border-radius:var(--radius);padding:2.2rem 1.8rem;box-shadow:var(--shadow);border:1px solid var(--sand-200);text-align:center;}
-  .step .num{
-    width:52px;height:52px;border-radius:50%;margin:0 auto 1.1rem;display:grid;place-items:center;
-    font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--green-800);
-    background:var(--sand-100);border:1.5px solid var(--gold-soft);
-  }
+  .step .num{width:52px;height:52px;border-radius:50%;margin:0 auto 1.1rem;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--green-800);background:var(--sand-100);border:1.5px solid var(--gold-soft);}
   .step h3{font-size:1.45rem;color:var(--green-700);margin-bottom:.5rem;}
   .step p{color:var(--ink-soft);font-size:.98rem;}
 
-  .musts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.2rem;margin-top:2.5rem;}
-  .must-card{position:relative;border-radius:var(--radius);padding:1.8rem;color:var(--sand-50);overflow:hidden;min-height:160px;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:var(--shadow);}
-  .must-card .pattern-overlay{opacity:.12;}
-  .must-card h3{font-size:1.5rem;}
-  .must-card p{font-size:.9rem;color:rgba(247,242,233,.8);}
-  .must-card.haram{background:linear-gradient(160deg,var(--green-700),var(--green-900));}
-  .must-card.quba{background:linear-gradient(160deg,#2a7d5c,#0e4733);}
-  .must-card .tag{position:absolute;top:1rem;right:1rem;font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;background:rgba(194,161,77,.9);color:#1c1505;padding:.25rem .6rem;border-radius:999px;font-weight:700;}
+  .gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.2rem;margin-top:2.5rem;}
+  .g-card{position:relative;border-radius:var(--radius);padding:1.6rem;color:var(--sand-50);overflow:hidden;min-height:170px;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:var(--shadow);}
+  .g-card .pattern-overlay{opacity:.12;}
+  .g-card h3{font-size:1.4rem;}
+  .g-card p{font-size:.86rem;color:rgba(247,242,233,.82);}
+  .g-card .tag{position:absolute;top:1rem;right:1rem;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;background:rgba(194,161,77,.92);color:#1c1505;padding:.25rem .6rem;border-radius:999px;font-weight:700;}
+  .g1{background:linear-gradient(160deg,var(--green-700),var(--green-900));}
+  .g2{background:linear-gradient(160deg,#2a7d5c,#0e4733);}
+  .g3{background:linear-gradient(160deg,#8a6d2f,#4a3a14);}
+  .g4{background:linear-gradient(160deg,#7a4a2e,#3a1f12);}
+  .g5{background:linear-gradient(160deg,#2f6d7a,#143a4a);}
 
-  /* ---------- Quiz ---------- */
+  /* Quiz */
   #quiz{background:linear-gradient(180deg,var(--sand-100),var(--sand-50));}
-  .quiz-card{
-    background:var(--white);border-radius:24px;box-shadow:var(--shadow);
-    border:1px solid var(--sand-200);max-width:760px;margin:0 auto;overflow:hidden;
-  }
+  .quiz-card{background:var(--white);border-radius:24px;box-shadow:var(--shadow);border:1px solid var(--sand-200);max-width:760px;margin:0 auto;overflow:hidden;}
   .quiz-top{padding:1.6rem 2rem 0;}
   .progress-track{height:7px;background:var(--sand-100);border-radius:999px;overflow:hidden;}
-  .progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--green-600));border-radius:999px;transition:width .4s ease;}
+  .progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--green-600));border-radius:999px;transition:width .4s;}
   .quiz-meta{display:flex;justify-content:space-between;align-items:center;margin-top:.9rem;font-size:.8rem;color:var(--ink-soft);letter-spacing:.05em;text-transform:uppercase;}
   .quiz-body{padding:1.4rem 2.4rem 2.4rem;min-height:340px;display:flex;flex-direction:column;justify-content:center;}
-  .q-step{animation:fade .45s ease;}
+  .q-step{animation:fade .45s;}
   @keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
   .q-title{font-size:clamp(1.7rem,3.5vw,2.3rem);color:var(--green-800);text-align:center;margin-bottom:.4rem;}
   .q-sub{text-align:center;color:var(--ink-soft);margin-bottom:1.8rem;font-size:.98rem;}
   .options{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}
   .options.cols-2{grid-template-columns:repeat(2,1fr);}
   .options.months{grid-template-columns:repeat(4,1fr);}
-  .opt{
-    background:var(--sand-50);border:1.5px solid var(--sand-200);border-radius:14px;
-    padding:1.05rem 1rem;cursor:pointer;text-align:center;transition:all .2s ease;
-    font-weight:500;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:.35rem;
-  }
+  .opt{background:var(--sand-50);border:1.5px solid var(--sand-200);border-radius:14px;padding:1.05rem 1rem;cursor:pointer;text-align:center;transition:all .2s;font-weight:500;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:.35rem;}
   .opt .emoji{font-size:1.5rem;}
   .opt small{color:var(--ink-soft);font-weight:400;font-size:.78rem;line-height:1.3;}
   .opt:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 10px 24px -16px rgba(10,58,42,.6);}
@@ -151,25 +108,24 @@
   .link-btn:hover{color:var(--green-700);}
   .link-btn[disabled]{opacity:.35;cursor:not-allowed;}
 
-  /* ---------- Result / Plan ---------- */
+  /* Result / plan */
   #result{display:none;background:linear-gradient(180deg,var(--sand-50),var(--sand-100));}
-  .plan-shell{max-width:880px;margin:0 auto;}
-  .plan-hero{
-    position:relative;border-radius:24px;overflow:hidden;color:var(--sand-50);padding:2.6rem 2.4rem;
-    background:linear-gradient(155deg,var(--green-800),var(--green-900));box-shadow:var(--shadow);margin-bottom:1.6rem;
-  }
+  .plan-shell{max-width:900px;margin:0 auto;}
+  .plan-hero{position:relative;border-radius:24px;overflow:hidden;color:var(--sand-50);padding:2.6rem 2.4rem;background:linear-gradient(155deg,var(--green-800),var(--green-900));box-shadow:var(--shadow);margin-bottom:1.6rem;}
   .plan-hero h2{font-size:clamp(2rem,4vw,2.8rem);}
   .plan-hero .ar{color:var(--gold-soft);font-size:1.3rem;}
-  .plan-hero p{color:rgba(247,242,233,.85);margin-top:.7rem;max-width:560px;}
+  .plan-hero p{color:rgba(247,242,233,.85);margin-top:.7rem;max-width:600px;}
   .chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.3rem;}
-  .chip{background:rgba(247,242,233,.12);border:1px solid rgba(247,242,233,.25);color:var(--sand-50);font-size:.78rem;padding:.35rem .8rem;border-radius:999px;letter-spacing:.02em;}
-  .weather-band{
-    display:flex;align-items:center;gap:1rem;background:var(--white);border:1px solid var(--sand-200);
-    border-left:5px solid var(--gold);border-radius:14px;padding:1.1rem 1.4rem;margin-bottom:1.6rem;box-shadow:var(--shadow);
-  }
+  .chip{background:rgba(247,242,233,.12);border:1px solid rgba(247,242,233,.25);color:var(--sand-50);font-size:.78rem;padding:.35rem .8rem;border-radius:999px;}
+  .weather-band{display:flex;align-items:center;gap:1rem;background:var(--white);border:1px solid var(--sand-200);border-left:5px solid var(--gold);border-radius:14px;padding:1.1rem 1.4rem;margin-bottom:1.6rem;box-shadow:var(--shadow);}
   .weather-band .ico{font-size:2rem;}
   .weather-band h4{font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--green-800);}
   .weather-band p{font-size:.9rem;color:var(--ink-soft);}
+
+  .map-wrap{background:var(--white);border:1px solid var(--sand-200);border-radius:18px;box-shadow:var(--shadow);padding:1.2rem;margin-bottom:1.6rem;}
+  .map-wrap h3{font-size:1.5rem;color:var(--green-800);margin:.2rem .3rem .9rem;display:flex;align-items:center;gap:.5rem;}
+  #planMap{height:380px;width:100%;border-radius:12px;z-index:0;}
+  .map-legend{font-size:.8rem;color:var(--ink-soft);margin:.7rem .3rem 0;}
 
   .day{background:var(--white);border:1px solid var(--sand-200);border-radius:18px;box-shadow:var(--shadow);margin-bottom:1.3rem;overflow:hidden;}
   .day-head{display:flex;align-items:center;gap:1rem;padding:1.2rem 1.6rem;background:var(--sand-100);border-bottom:1px solid var(--sand-200);}
@@ -178,28 +134,33 @@
   .day-head .dtheme{font-size:.82rem;color:var(--ink-soft);}
   .block{display:flex;gap:1.1rem;padding:1.1rem 1.6rem;border-bottom:1px dashed var(--sand-200);}
   .block:last-child{border-bottom:none;}
-  .block .time{flex-shrink:0;width:92px;font-size:.78rem;font-weight:600;color:var(--green-600);text-transform:uppercase;letter-spacing:.05em;padding-top:.15rem;}
-  .block .b-body h4{font-family:'Inter',sans-serif;font-size:1.02rem;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:.5rem;}
-  .block .b-body h4 .pin{color:var(--gold);}
-  .block .b-body p{font-size:.9rem;color:var(--ink-soft);margin-top:.2rem;}
-  .badge-must{font-size:.6rem;background:var(--gold);color:#1c1505;padding:.15rem .45rem;border-radius:6px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
-  .badge-ferrata{font-size:.6rem;background:#b5482e;color:#fff;padding:.15rem .45rem;border-radius:6px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+  .block .time{flex-shrink:0;width:96px;font-size:.78rem;font-weight:600;color:var(--green-600);text-transform:uppercase;letter-spacing:.04em;padding-top:.15rem;}
+  .block .b-body{flex:1;}
+  .block .b-body h4{font-family:'Inter',sans-serif;font-size:1.04rem;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
+  .block .b-body p{font-size:.9rem;color:var(--ink-soft);margin-top:.25rem;}
+  .badge{font-size:.6rem;padding:.15rem .45rem;border-radius:6px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+  .badge-must{background:var(--gold);color:#1c1505;}
+  .badge-ferrata{background:#b5482e;color:#fff;}
+  .act-links{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.7rem;}
+  .act-links a{display:inline-flex;align-items:center;gap:.35rem;font-size:.78rem;font-weight:600;text-decoration:none;padding:.35rem .75rem;border-radius:999px;border:1.4px solid var(--sand-200);color:var(--green-700);background:var(--sand-50);transition:all .18s;}
+  .act-links a:hover{border-color:var(--green-600);background:var(--green-700);color:var(--sand-50);}
+  .act-links a.book{border-color:var(--gold-soft);color:#8a6d2f;background:#fdf8ec;}
+  .act-links a.book:hover{background:var(--gold);color:#1c1505;border-color:var(--gold);}
 
   .tips{background:var(--white);border:1px solid var(--sand-200);border-radius:18px;padding:1.8rem 2rem;box-shadow:var(--shadow);margin-bottom:1.6rem;}
   .tips h3{font-size:1.6rem;color:var(--green-800);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
   .tips ul{list-style:none;display:grid;gap:.7rem;}
   .tips li{display:flex;gap:.7rem;font-size:.95rem;color:var(--ink-soft);}
   .tips li::before{content:"✦";color:var(--gold);flex-shrink:0;}
+  .src-note{font-size:.74rem;color:var(--ink-soft);text-align:center;margin:.4rem 0 0;opacity:.8;}
 
-  .plan-actions{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin:1rem 0 0;}
+  .plan-actions{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin:1.2rem 0 0;}
 
-  /* ---------- Footer ---------- */
   footer{background:var(--green-900);color:rgba(247,242,233,.7);text-align:center;padding:3rem 0;position:relative;overflow:hidden;}
   footer .brand{justify-content:center;color:var(--sand-50);margin-bottom:.8rem;}
-  footer p{font-size:.88rem;max-width:520px;margin:0 auto .4rem;}
+  footer p{font-size:.88rem;max-width:560px;margin:0 auto .4rem;}
   footer .small{font-size:.78rem;color:rgba(247,242,233,.45);margin-top:1rem;}
 
-  /* ---------- Responsive ---------- */
   @media(max-width:760px){
     nav .links{display:none;}
     .steps{grid-template-columns:1fr;}
@@ -207,25 +168,15 @@
     .quiz-body{padding:1.2rem 1.3rem 2rem;}
     .quiz-nav{padding:1rem 1.3rem 1.6rem;}
     .quiz-top{padding:1.3rem 1.3rem 0;}
-    .block .time{width:74px;}
+    .block{flex-direction:column;gap:.3rem;}
+    .block .time{width:auto;}
     .plan-hero,.tips{padding:1.8rem 1.4rem;}
-  }
-
-  /* ---------- Print ---------- */
-  @media print{
-    body{background:#fff;}
-    header.hero,#how,#quiz,footer,.plan-actions,nav,.scroll-hint{display:none !important;}
-    #result{display:block !important;padding:0;background:#fff;}
-    .plan-hero{background:#0e4733 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    .day,.tips,.weather-band{box-shadow:none;break-inside:avoid;}
-    .day-head .dnum,.badge-must,.badge-ferrata,.chip{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    section{padding:1rem 0;}
   }
 </style>
 </head>
 <body>
 
-<!-- ===================== HERO ===================== -->
+<!-- HERO -->
 <header class="hero">
   <div class="pattern-overlay"></div>
   <div class="wrap">
@@ -233,7 +184,7 @@
       <div class="brand"><span class="mark">۞</span> Map Peace</div>
       <div class="links">
         <a href="#how">How it works</a>
-        <a href="#musts">Must-visit</a>
+        <a href="#explore">Explore</a>
         <a href="#quiz">Build my plan</a>
       </div>
     </nav>
@@ -242,42 +193,45 @@
     <div class="eyebrow">Al-Madinah Al-Munawwarah</div>
     <h1>Find your <span class="accent">peace</span>.</h1>
     <div class="ar arabic">طَيْبَة الطَّيِّبَة</div>
-    <p class="lede">A gentle guide for visitors to the City of the Prophet ﷺ. Answer a few questions and receive a personal, day-by-day plan — from the Haram and Quba to date farms, valleys, and mountain adventures.</p>
+    <p class="lede">Your guide to where to go in the City of the Prophet ﷺ — from the Haram and Quba to date farms, the Magnetic Valley, mountain biking around Uhud, and Via Ferrata. Answer a few questions and get a personal plan with a live map and booking links.</p>
     <div class="hero-cta">
       <a href="#quiz" class="btn btn-gold">Begin your journey →</a>
-      <a href="#how" class="btn btn-ghost">How it works</a>
+      <a href="#explore" class="btn btn-ghost">See what's here</a>
     </div>
   </div>
   <div class="scroll-hint">Scroll<span>⌄</span></div>
 </header>
 
-<!-- ===================== HOW IT WORKS ===================== -->
+<!-- HOW -->
 <section id="how">
   <div class="wrap">
     <div class="section-head">
       <div class="eyebrow">The idea</div>
       <h2>Your visit, thoughtfully mapped</h2>
-      <p>Every traveller to Madinah is different — your age, your time, your company, and your reason for coming. Map Peace listens, then designs a journey that fits you.</p>
+      <p>Every traveller to Madinah is different — your age, your time, your company, and your reason for coming. Map Peace listens, then designs a journey that fits you, with real places, a live map, and the links you need to book.</p>
     </div>
     <div class="steps">
       <div class="step"><div class="num">1</div><h3>Answer</h3><p>A short set of friendly questions about your trip, season, company, and what you love.</p></div>
-      <div class="step"><div class="num">2</div><h3>Receive</h3><p>A complete, day-by-day plan built around worship, rest, weather, and adventure.</p></div>
-      <div class="step"><div class="num">3</div><h3>Keep it</h3><p>View it on screen, print it, or save it as a PDF to carry with you on your journey.</p></div>
+      <div class="step"><div class="num">2</div><h3>Receive</h3><p>A day-by-day plan with an interactive map and reservation links for every activity.</p></div>
+      <div class="step"><div class="num">3</div><h3>Keep it</h3><p>View it on screen and download it as a beautifully styled PDF to carry on your journey.</p></div>
     </div>
 
-    <div id="musts" class="section-head" style="margin-top:4.5rem;">
-      <div class="eyebrow">Always on every plan</div>
-      <h2>The two you must not miss</h2>
-      <p>No matter who you are or when you come, every Map Peace plan is anchored on these.</p>
+    <div id="explore" class="section-head" style="margin-top:4.5rem;">
+      <div class="eyebrow">Real places in Madinah</div>
+      <h2>So much more than one mosque</h2>
+      <p>The Haram and Quba anchor every plan — but Madinah is full of life. Here is a taste of what we map for you.</p>
     </div>
-    <div class="musts">
-      <div class="must-card haram"><div class="pattern-overlay"></div><span class="tag">A must</span><h3>Al-Masjid an-Nabawi</h3><p>The Prophet's Mosque ﷺ and the Rawdah — the heart of every day in Madinah.</p></div>
-      <div class="must-card quba"><div class="pattern-overlay"></div><span class="tag">A must</span><h3>Quba Mosque</h3><p>The first mosque in Islam. Two rak'ah here carry the reward of an Umrah.</p></div>
+    <div class="gallery">
+      <div class="g-card g1"><div class="pattern-overlay"></div><span class="tag">A must</span><h3>Al-Masjid an-Nabawi</h3><p>The Prophet's Mosque ﷺ & the Rawdah — the heart of the city.</p></div>
+      <div class="g-card g2"><div class="pattern-overlay"></div><span class="tag">A must</span><h3>Quba & its farms</h3><p>The first mosque in Islam, beside Al Marbad & Al-Aliya date farms.</p></div>
+      <div class="g-card g3"><div class="pattern-overlay"></div><span class="tag">Adventure</span><h3>Uhud E-Bike Trail</h3><p>Ride the historic battlefield: Archers' Hill, Al Fash Mosque & the Cave.</p></div>
+      <div class="g-card g4"><div class="pattern-overlay"></div><span class="tag">Thrill</span><h3>Via Ferrata</h3><p>An iron-path climb across Madinah's rugged peaks — cables & bridges.</p></div>
+      <div class="g-card g5"><div class="pattern-overlay"></div><span class="tag">Nature</span><h3>Wadi Al-Jinn</h3><p>The Magnetic Valley where cars roll uphill, ringed by black mountains.</p></div>
     </div>
   </div>
 </section>
 
-<!-- ===================== QUIZ ===================== -->
+<!-- QUIZ -->
 <section id="quiz">
   <div class="wrap">
     <div class="section-head">
@@ -290,7 +244,7 @@
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
         <div class="quiz-meta"><span id="qCounter">Question 1</span><span id="qPercent">0%</span></div>
       </div>
-      <div class="quiz-body" id="quizBody"><!-- dynamic --></div>
+      <div class="quiz-body" id="quizBody"></div>
       <div class="quiz-nav">
         <button class="link-btn" id="backBtn" disabled>← Back</button>
         <button class="link-btn" id="skipBtn">Skip</button>
@@ -299,445 +253,399 @@
   </div>
 </section>
 
-<!-- ===================== RESULT ===================== -->
+<!-- RESULT -->
 <section id="result">
-  <div class="wrap plan-shell" id="planShell"><!-- dynamic --></div>
+  <div class="wrap plan-shell" id="planShell"></div>
 </section>
 
-<!-- ===================== FOOTER ===================== -->
+<!-- FOOTER -->
 <footer>
   <div class="pattern-overlay"></div>
   <div class="wrap">
     <div class="brand"><span class="mark">۞</span> Map Peace</div>
     <p>A companion for visitors to Al-Madinah Al-Munawwarah — built with love and respect for the city of the Prophet ﷺ.</p>
-    <p class="small">Plans are friendly suggestions, not official timings. Always confirm prayer times, Rawdah & Nusuk reservations, and opening hours before you go. © <span id="year"></span> Map Peace.</p>
+    <p class="small">Plans are friendly suggestions, not official timings. Always confirm prayer times, Rawdah & Nusuk reservations, booking availability, and opening hours before you go. © <span id="year"></span> Map Peace.</p>
   </div>
 </footer>
 
-<script>
-/* =========================================================
-   MAP PEACE  —  questionnaire + personal plan generator
-   ========================================================= */
+<!-- libraries: map + PDF (graceful fallback if blocked) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+<script>
 document.getElementById('year').textContent = new Date().getFullYear();
 
-/* ---------------- Questions ---------------- */
+/* ===================== QUESTIONS ===================== */
 const QUESTIONS = [
   { id:'age', title:'How old are you?', sub:'This helps us match the pace and the adventures.',
-    options:[
-      {v:'under18',label:'Under 18',emoji:'🧒'},
-      {v:'18-25',label:'18 – 25',emoji:'🧑'},
-      {v:'26-40',label:'26 – 40',emoji:'🧑‍💼'},
-      {v:'41-60',label:'41 – 60',emoji:'🧓'},
-      {v:'60plus',label:'60+',emoji:'👴'},
-    ]},
+    options:[{v:'under18',label:'Under 18',emoji:'🧒'},{v:'18-25',label:'18 – 25',emoji:'🧑'},{v:'26-40',label:'26 – 40',emoji:'🧑‍💼'},{v:'41-60',label:'41 – 60',emoji:'🧓'},{v:'60plus',label:'60+',emoji:'👴'}]},
   { id:'month', title:'Which month will you visit?', sub:'So we can read the weather and the season for you.', layout:'months',
-    options:[
-      {v:'1',label:'January',emoji:'❄️'},{v:'2',label:'February',emoji:'🌤️'},
-      {v:'3',label:'March',emoji:'🌸'},{v:'4',label:'April',emoji:'🌼'},
-      {v:'5',label:'May',emoji:'☀️'},{v:'6',label:'June',emoji:'🔥'},
-      {v:'7',label:'July',emoji:'🔥'},{v:'8',label:'August',emoji:'🔥'},
-      {v:'9',label:'September',emoji:'🌅'},{v:'10',label:'October',emoji:'🍂'},
-      {v:'11',label:'November',emoji:'🌤️'},{v:'12',label:'December',emoji:'❄️'},
-    ]},
+    options:[{v:'1',label:'January',emoji:'❄️'},{v:'2',label:'February',emoji:'🌤️'},{v:'3',label:'March',emoji:'🌸'},{v:'4',label:'April',emoji:'🌼'},{v:'5',label:'May',emoji:'☀️'},{v:'6',label:'June',emoji:'🔥'},{v:'7',label:'July',emoji:'🔥'},{v:'8',label:'August',emoji:'🔥'},{v:'9',label:'September',emoji:'🌅'},{v:'10',label:'October',emoji:'🍂'},{v:'11',label:'November',emoji:'🌤️'},{v:'12',label:'December',emoji:'❄️'}]},
   { id:'ramadan', title:'Is your visit during Ramadan?', sub:'Ramadan reshapes the whole rhythm of the day and night.', layout:'cols-2',
-    options:[
-      {v:'yes',label:'Yes, during Ramadan',emoji:'🌙'},
-      {v:'no',label:'No',emoji:'🗓️'},
-    ]},
+    options:[{v:'yes',label:'Yes, during Ramadan',emoji:'🌙'},{v:'no',label:'No',emoji:'🗓️'}]},
   { id:'days', title:'How many days will you stay?', sub:'We will pace the plan to fit your time.',
-    options:[
-      {v:'1-2',label:'1 – 2 days',emoji:'🌗'},
-      {v:'3-4',label:'3 – 4 days',emoji:'🌓'},
-      {v:'5-6',label:'5 – 6 days',emoji:'🌔'},
-      {v:'7plus',label:'7+ days',emoji:'🌕'},
-    ]},
+    options:[{v:'1-2',label:'1 – 2 days',emoji:'🌗'},{v:'3-4',label:'3 – 4 days',emoji:'🌓'},{v:'5-6',label:'5 – 6 days',emoji:'🌔'},{v:'7plus',label:'7+ days',emoji:'🌕'}]},
   { id:'company', title:'Who is travelling with you?', sub:'',
-    options:[
-      {v:'solo',label:'Just me',emoji:'🧍'},
-      {v:'friends',label:'With friends',emoji:'👬'},
-      {v:'family',label:'With family',emoji:'👨‍👩‍👧'},
-    ]},
+    options:[{v:'solo',label:'Just me',emoji:'🧍'},{v:'friends',label:'With friends',emoji:'👬'},{v:'family',label:'With family',emoji:'👨‍👩‍👧'}]},
   { id:'goal', title:'What is the goal of your visit?', sub:'', layout:'cols-2',
-    options:[
-      {v:'religious',label:'Fully religious',emoji:'🕌',sub:'Worship & ziyarah'},
-      {v:'half',label:'Half religion, half leisure',emoji:'☯️',sub:'A balance of both'},
-      {v:'wedding',label:'A wedding in Madinah',emoji:'💍',sub:'Celebration + visit'},
-      {v:'tourist',label:'Fully tourist',emoji:'🧳',sub:'Explore & discover'},
-    ]},
+    options:[{v:'religious',label:'Fully religious',emoji:'🕌',sub:'Worship & ziyarah'},{v:'half',label:'Half religion, half leisure',emoji:'☯️',sub:'A balance of both'},{v:'wedding',label:'A wedding in Madinah',emoji:'💍',sub:'Celebration + visit'},{v:'tourist',label:'Fully tourist',emoji:'🧳',sub:'Explore & discover'}]},
   { id:'pace', title:'How much of your day shall we fill?', sub:'Some come to rest; some come to explore every hour.',
-    options:[
-      {v:'night',label:'Nights only',emoji:'🌃',sub:'Light & restful'},
-      {v:'half',label:'Half a day',emoji:'🌓',sub:'Balanced'},
-      {v:'full',label:'The full day',emoji:'🌞',sub:'Make the most of it'},
-    ]},
+    options:[{v:'night',label:'Nights only',emoji:'🌃',sub:'Light & restful'},{v:'half',label:'Half a day',emoji:'🌓',sub:'Balanced'},{v:'full',label:'The full day',emoji:'🌞',sub:'Make the most of it'}]},
   { id:'transport', title:'How will you get around?', sub:'', layout:'cols-2',
-    options:[
-      {v:'car',label:'I have a car',emoji:'🚗'},
-      {v:'taxi',label:'Taxi / ride-hailing',emoji:'🚕'},
-    ]},
+    options:[{v:'car',label:'I have a car',emoji:'🚗'},{v:'taxi',label:'Taxi / ride-hailing',emoji:'🚕'}]},
   { id:'outdoor', title:'Do you enjoy outdoor adventure?', sub:'Hiking, cycling, climbing, valleys…',
-    options:[
-      {v:'love',label:'Love it',emoji:'🧗'},
-      {v:'sometimes',label:'Sometimes',emoji:'🚶'},
-      {v:'no',label:'Not really',emoji:'🛋️'},
-    ]},
+    options:[{v:'love',label:'Love it',emoji:'🧗'},{v:'sometimes',label:'Sometimes',emoji:'🚶'},{v:'no',label:'Not really',emoji:'🛋️'}]},
   { id:'fitness', title:'How active are you?', sub:'This guides any hiking or climbing we suggest.',
-    options:[
-      {v:'high',label:'Very active',emoji:'💪'},
-      {v:'moderate',label:'Moderate',emoji:'🙂'},
-      {v:'low',label:'Prefer it easy',emoji:'🌿'},
-    ]},
+    options:[{v:'high',label:'Very active',emoji:'💪'},{v:'moderate',label:'Moderate',emoji:'🙂'},{v:'low',label:'Prefer it easy',emoji:'🌿'}]},
   { id:'budget', title:'What is your comfort level?', sub:'For farms, dining, and experiences.',
-    options:[
-      {v:'budget',label:'Budget-friendly',emoji:'🪙'},
-      {v:'mid',label:'Mid-range',emoji:'💳'},
-      {v:'premium',label:'Premium',emoji:'✨'},
-    ]},
+    options:[{v:'budget',label:'Budget-friendly',emoji:'🪙'},{v:'mid',label:'Mid-range',emoji:'💳'},{v:'premium',label:'Premium',emoji:'✨'}]},
   { id:'rawdah', title:'Shall we plan time for the Rawdah?', sub:'The Rawdah needs a free Nusuk reservation. We can build it in.', layout:'cols-2',
-    options:[
-      {v:'yes',label:'Yes, plan it for me',emoji:'🤲'},
-      {v:'no',label:'No need',emoji:'🚶'},
-    ]},
+    options:[{v:'yes',label:'Yes, plan it for me',emoji:'🤲'},{v:'no',label:'No need',emoji:'🚶'}]},
 ];
 
-/* ---------------- State ---------------- */
+/* ===================== STATE ===================== */
 const answers = {};
 let step = 0;
-
-const quizBody   = document.getElementById('quizBody');
-const progressEl = document.getElementById('progressFill');
-const counterEl  = document.getElementById('qCounter');
-const percentEl  = document.getElementById('qPercent');
-const backBtn    = document.getElementById('backBtn');
-const skipBtn    = document.getElementById('skipBtn');
+const quizBody=document.getElementById('quizBody'),progressEl=document.getElementById('progressFill'),
+counterEl=document.getElementById('qCounter'),percentEl=document.getElementById('qPercent'),
+backBtn=document.getElementById('backBtn'),skipBtn=document.getElementById('skipBtn');
 
 function renderStep(){
-  const q = QUESTIONS[step];
-  const layout = q.layout ? ' '+q.layout : '';
-  const opts = q.options.map(o=>{
-    const sel = answers[q.id]===o.v ? ' selected':'';
-    const small = o.sub ? `<small>${o.sub}</small>`:'';
-    return `<button class="opt${sel}" data-v="${o.v}">
-              <span class="emoji">${o.emoji||''}</span><span>${o.label}</span>${small}
-            </button>`;
+  const q=QUESTIONS[step];
+  const layout=q.layout?' '+q.layout:'';
+  const opts=q.options.map(o=>{
+    const sel=answers[q.id]===o.v?' selected':'';
+    const small=o.sub?`<small>${o.sub}</small>`:'';
+    return `<button class="opt${sel}" data-v="${o.v}"><span class="emoji">${o.emoji||''}</span><span>${o.label}</span>${small}</button>`;
   }).join('');
-  quizBody.innerHTML = `<div class="q-step">
-      <h3 class="q-title">${q.title}</h3>
-      ${q.sub?`<p class="q-sub">${q.sub}</p>`:''}
-      <div class="options${layout}">${opts}</div>
-    </div>`;
-
-  quizBody.querySelectorAll('.opt').forEach(b=>{
-    b.addEventListener('click',()=>{
-      answers[q.id]=b.dataset.v;
-      next();
-    });
-  });
-
-  const pct = Math.round((step)/QUESTIONS.length*100);
-  progressEl.style.width = pct+'%';
-  percentEl.textContent = pct+'%';
-  counterEl.textContent = `Question ${step+1} of ${QUESTIONS.length}`;
-  backBtn.disabled = step===0;
+  quizBody.innerHTML=`<div class="q-step"><h3 class="q-title">${q.title}</h3>${q.sub?`<p class="q-sub">${q.sub}</p>`:''}<div class="options${layout}">${opts}</div></div>`;
+  quizBody.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{answers[q.id]=b.dataset.v;next();}));
+  const pct=Math.round(step/QUESTIONS.length*100);
+  progressEl.style.width=pct+'%';percentEl.textContent=pct+'%';
+  counterEl.textContent=`Question ${step+1} of ${QUESTIONS.length}`;
+  backBtn.disabled=step===0;
 }
-
-function next(){
-  if(step < QUESTIONS.length-1){ step++; renderStep(); }
-  else { finish(); }
-}
-backBtn.addEventListener('click',()=>{ if(step>0){ step--; renderStep(); }});
-skipBtn.addEventListener('click',()=> next());
-
+function next(){ step<QUESTIONS.length-1 ? (step++,renderStep()) : finish(); }
+backBtn.addEventListener('click',()=>{if(step>0){step--;renderStep();}});
+skipBtn.addEventListener('click',()=>next());
 function finish(){
-  progressEl.style.width='100%';
-  percentEl.textContent='100%';
-  const plan = buildPlan(answers);
+  progressEl.style.width='100%';percentEl.textContent='100%';
+  const plan=buildPlan(answers);
   renderPlan(plan);
   document.getElementById('result').style.display='block';
   document.getElementById('result').scrollIntoView({behavior:'smooth'});
 }
-
 renderStep();
 
-/* =========================================================
-   PLAN ENGINE
-   ========================================================= */
-
+/* ===================== WEATHER ===================== */
 function weatherProfile(m){
-  m = parseInt(m,10);
-  if([12,1,2].includes(m)) return {ico:'❄️',label:'Cool & pleasant',temp:'12–24°C',outdoor:true,
-    note:'Beautiful weather — ideal for mountains, valleys, farms, and long walks. Bring a light jacket for the evenings.'};
-  if([3,4,11].includes(m)) return {ico:'🌤️',label:'Warm & comfortable',temp:'20–32°C',outdoor:true,
-    note:'Lovely conditions for the outdoors. Mornings and late afternoons are perfect for adventure.'};
-  if([10].includes(m)) return {ico:'🌅',label:'Warm, cooling down',temp:'26–35°C',outdoor:true,
-    note:'Still warm at midday but pleasant early and late. Plan outdoor activities for the morning or after Asr.'};
-  if([5].includes(m)) return {ico:'☀️',label:'Hot',temp:'30–40°C',outdoor:false,
-    note:'It gets hot by midday. Keep heavy activity to the early morning or evening, and stay hydrated.'};
-  return {ico:'🔥',label:'Very hot',temp:'38–45°C',outdoor:false,
-    note:'Peak summer heat. We will keep daytime light and shaded, and move the city to the cool of the night.'};
+  m=parseInt(m,10);
+  if([12,1,2].includes(m)) return {ico:'❄️',label:'Cool & pleasant',temp:'12–24°C',outdoor:true,note:'Beautiful weather — ideal for mountains, valleys, farms and long walks. Bring a light jacket for the evenings.'};
+  if([3,4,11].includes(m)) return {ico:'🌤️',label:'Warm & comfortable',temp:'20–32°C',outdoor:true,note:'Lovely conditions for the outdoors. Mornings and late afternoons are perfect for adventure.'};
+  if([10].includes(m)) return {ico:'🌅',label:'Warm, cooling down',temp:'26–35°C',outdoor:true,note:'Still warm at midday but pleasant early and late. Plan outdoor activities for the morning or after Asr.'};
+  if([5].includes(m)) return {ico:'☀️',label:'Hot',temp:'30–40°C',outdoor:false,note:'It gets hot by midday. Keep heavy activity to the early morning or evening, and stay hydrated.'};
+  return {ico:'🔥',label:'Very hot',temp:'38–45°C',outdoor:false,note:'Peak summer heat. We keep daytime light and shaded, and move the city to the cool of the night.'};
 }
 
+/* ===================== PLACE LIBRARY (real Madinah places) ===================== */
+const NUSUK='https://www.nusuk.sa/';
+const HALA='https://halayalla.com/sa-en/madina/experiences/c/adventures-and-activities';
+const VS_ADV='https://book.visitsaudi.com/sa-en/experiences/al-madinah-al-munawwarah';
+function gmaps(name){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(name+', Al Madinah, Saudi Arabia');}
+
+// each place: time,name,desc,lat,lng + flags(must,ferrata,far) + book{url,label} + info(url)
+const P = {
+  haram:(t)=>({time:t||'Maghrib & Isha',name:"Al-Masjid an-Nabawi (Prophet's Mosque ﷺ)",must:true,lat:24.4672,lng:39.6112,
+    desc:"Pray in the Prophet's Mosque and send your salah upon him ﷺ. A prayer here is worth a thousand elsewhere."}),
+  rawdah:()=>({time:'Pre-dawn',name:'Visit the Rawdah',must:true,lat:24.4672,lng:39.6112,
+    desc:'The garden of Paradise between the Prophet\'s pulpit and his chamber ﷺ. Reserve a free slot on the Nusuk app in advance.',book:{url:NUSUK,label:'Book on Nusuk'}}),
+  quba:()=>({time:'After Fajr',name:'Quba Mosque',must:true,lat:24.4393,lng:39.6171,
+    desc:'The first mosque in Islam. Make wudu at your hotel and pray two rak\'ah here — equal in reward to an Umrah.'}),
+  uhud:()=>({time:'Morning',name:'Mount Uhud & the Martyrs',lat:24.5085,lng:39.6140,
+    desc:'Stand where the Battle of Uhud took place and visit the resting place of Hamza (RA) and the martyrs.'}),
+  baqi:()=>({time:'After Fajr/Asr',name:'Jannat al-Baqi',lat:24.4666,lng:39.6147,
+    desc:'The blessed cemetery beside the mosque — resting place of many companions and family of the Prophet ﷺ. Open at set hours; check before you go.'}),
+  qiblatain:()=>({time:'Late morning',name:'Masjid al-Qiblatain & the Seven Mosques',lat:24.4843,lng:39.5876,
+    desc:'Where the qiblah turned toward Makkah, plus the historic Khandaq (Trench) mosques nearby.'}),
+  quran:()=>({time:'Morning',name:"King Fahd Qur'an Printing Complex",lat:24.4790,lng:39.5640,
+    desc:'See how millions of copies of the Qur\'an are printed and gifted to the world. A calm, inspiring visit (check visiting hours).',info:'https://www.visitsaudi.com/en/madinah'}),
+  darMuseum:()=>({time:'Afternoon',name:'Dar Al Madinah Museum',lat:24.4690,lng:39.5860,
+    desc:'A beautifully curated journey through the history, geography and heritage of the blessed city.',info:'https://www.visitsaudi.com/en/madinah'}),
+  hijaz:()=>({time:'Afternoon',name:'Hijaz Railway Museum',lat:24.4718,lng:39.6095,
+    desc:'The restored Ottoman railway station — locomotives, history and architecture of the famous Hijaz line.',info:'https://www.visitsaudi.com/en/madinah'}),
+  marbad:(t)=>({time:t||'Late afternoon',name:'Al Marbad Farm (مزرعة المربد)',lat:24.4310,lng:39.6240,
+    desc:'A stunning palm-grove destination minutes from Quba: open-air restaurants (Saraya Ward, Ajwatech, ROW), a bird sanctuary, zip wire, archery and kids\' rides. A perfect Madinah evening.',info:'https://welcomesaudi.com/activity/al-marbad-farm-madinah'}),
+  aliya:(t)=>({time:t||'Late afternoon',name:'Al-Aliya Date Farm (near Quba)',lat:24.4360,lng:39.6150,
+    desc:'Beside Quba and famous for premium Ajwa dates — sample many varieties, watch the harvest and buy fresh dates to take home.'}),
+  kfpark:()=>({time:'After 4 PM',name:'King Fahd Central Park',lat:24.4280,lng:39.5890,
+    desc:'A vast green park (open 4 PM–midnight) with lakes, fountains, play zones, camel & horse rides and picnic lawns — ideal for families.'}),
+  wadiJinn:()=>({time:'Half-day trip',name:'Wadi Al-Jinn (Magnetic Valley) & Wadi Al-Baida',lat:24.6170,lng:39.4330,
+    desc:'About 30 km NW: the famous valley where a car in neutral seems to roll uphill, ringed by dramatic black volcanic mountains. ATV, camel and horse rides on site. Best with a car.'}),
+  ebike:()=>({time:'Early morning',name:'Uhud History Trail — E-Bike Tour',lat:24.5040,lng:39.6080,
+    desc:'A guided e-bike ride through the Uhud battlefield: Archers\' Hill (Mount Al-Rumat), Al Fash Mosque and the Prophet\'s Cave, with expert commentary. Snacks & safety gear included.',book:{url:HALA,label:'Book on Hala Yalla'}}),
+  quad:()=>({time:'Morning',name:'Uhud Mountain Quad Bike / 4WD Adventure',lat:24.5120,lng:39.6200,
+    desc:'Conquer the trails around Uhud by quad bike or Jeep Wrangler — an off-road climb with sweeping views over the city.',book:{url:VS_ADV,label:'Book on Visit Saudi'}}),
+  ferrata:()=>({time:'Early morning',name:'Via Ferrata Mountain Climb',ferrata:true,lat:24.5300,lng:39.6400,
+    desc:'A guided iron-path climb across Madinah\'s rugged peaks — steel cables, ladders and a suspension bridge with breathtaking views. Wear closed sport shoes, go early, and book ahead.',book:{url:'https://sightscape.com/madinah/Mountain-Climbing',label:'Info & operators'}}),
+  hike:()=>({time:'Early morning',name:'Sunrise Hike on the Volcanic Trails',lat:24.5200,lng:39.6300,
+    desc:'Trek the black basalt hills around the city for golden-hour views over the valley. Carry water and start at dawn.'}),
+  dateMarket:()=>({time:'Afternoon',name:'Dates Market & Old Madinah',lat:24.4710,lng:39.6175,
+    desc:'Taste Ajwa and dozens of date varieties, pick up gifts, and wander the old city around the Haram.'}),
+  malls:()=>({time:'Evening',name:'Al Noor Mall / Al Rashid Mall',lat:24.4300,lng:39.5800,
+    desc:'Dining, coffee and shopping in air-conditioned comfort — a relaxed evening, especially in the hotter months.'}),
+  alula:()=>({time:'Full-day trip',name:'Day Trip to AlUla',far:true,lat:26.6087,lng:37.9216,
+    desc:'About 3 hours away: Hegra (Saudi\'s first UNESCO site), Nabataean tombs, Elephant Rock and the old town. An unforgettable add-on for longer trips.',book:{url:'https://book.visitsaudi.com',label:'Book a tour'}}),
+  ramadanNight:()=>({time:'Iftar → Taraweeh',name:'Iftar near the Haram + Taraweeh & Qiyam',must:true,lat:24.4672,lng:39.6112,
+    desc:'Break your fast in the mosque courtyards, then pray Taraweeh and Qiyam behind the imams of the Prophet\'s Mosque — a night you will never forget.'}),
+};
+
+/* ===================== PLAN ENGINE ===================== */
 function buildPlan(a){
-  const w = weatherProfile(a.month);
-  const monthName = QUESTIONS.find(q=>q.id==='month').options.find(o=>o.v===a.month)?.label || '';
-  const dayMap = {'1-2':2,'3-4':4,'5-6':6,'7plus':8};
-  const dayCount = dayMap[a.days] || 3;
-  const ramadan = a.ramadan==='yes';
-  const young = ['under18','18-25','26-40'].includes(a.age);
-  const fitOK = a.fitness!=='low';
-  const lovesOutdoor = a.outdoor==='love';
-  const someOutdoor = a.outdoor!=='no';
-  const hasCar = a.transport==='car';
+  const w=weatherProfile(a.month);
+  const monthName=QUESTIONS.find(q=>q.id==='month').options.find(o=>o.v===a.month)?.label||'';
+  const dayCount={'1-2':2,'3-4':4,'5-6':6,'7plus':8}[a.days]||3;
+  const ramadan=a.ramadan==='yes';
+  const young=['under18','18-25','26-40'].includes(a.age);
+  const fitOK=a.fitness!=='low';
+  const lovesOutdoor=a.outdoor==='love';
+  const someOutdoor=a.outdoor!=='no';
+  const hasCar=a.transport==='car';
+  const goal=a.goal;
+  const farmTime = w.outdoor ? 'Late afternoon' : 'After Asr (cool hours)';
 
-  // Via Ferrata eligibility — user's rule: young + with friends + loves outdoors, for half/tourist goals
-  const ferrataEligible = young && fitOK && lovesOutdoor &&
-        (a.company==='friends'||a.company==='solo') &&
-        (a.goal==='half'||a.goal==='tourist');
+  const ferrataEligible = young && fitOK && lovesOutdoor && (a.company==='friends'||a.company==='solo') && (goal==='half'||goal==='tourist');
 
-  // ---- Experience library ----
-  const E = {
-    haram: (t)=>({time:t||'Maghrib & Isha',name:"Al-Masjid an-Nabawi (Prophet's Mosque ﷺ)",must:true,
-      desc:'Pray in the Prophet\'s Mosque and send your salah upon him ﷺ. The spiritual anchor of every day in Madinah.'}),
-    rawdah:()=>({time:'Pre-dawn',name:'Visit the Rawdah',must:true,
-      desc:'Book your free Rawdah slot on the Nusuk app in advance. The pre-dawn slots are the calmest.'}),
-    quba:()=>({time:'After Fajr',name:'Quba Mosque',must:true,
-      desc:'The first mosque in Islam. Make wudu at your hotel and pray two rak\'ah here — the reward of an Umrah.'}),
-    uhud:()=>({time:'Morning',name:'Mount Uhud & the Martyrs',
-      desc:'Stand where the Battle of Uhud took place and visit the resting place of Hamza (RA) and the martyrs.'}),
-    baqi:()=>({time:'After Fajr/Asr',name:'Jannat al-Baqi',
-      desc:'The blessed cemetery beside the mosque, resting place of many companions and family of the Prophet ﷺ. (Open at set hours — check before you go.)'}),
-    qiblatain:()=>({time:'Late morning',name:'Masjid al-Qiblatain & the Seven Mosques',
-      desc:'Where the qiblah turned toward Makkah, plus the historic Khandaq (Trench) mosques nearby.'}),
-    quran:()=>({time:'Morning',name:'King Fahd Qur\'an Printing Complex',
-      desc:'See how millions of copies of the Qur\'an are printed and gifted to the world. A calm, inspiring visit.'}),
-    dateMarket:()=>({time:'Afternoon',name:'Dates Market & Old Madinah',
-      desc:'Taste Ajwa and dozens of date varieties, pick up gifts, and wander the old city around the Haram.'}),
-    museum:()=>({time:'Afternoon',name:'Dar Al Madinah Museum',
-      desc:'A beautifully curated journey through the history, geography, and heritage of the blessed city.'}),
-    farmCool:()=>({time:'Late afternoon',name:'Madinah Date Farm Visit',
-      desc:'Walk among the palms, learn how Ajwa is grown, and enjoy fresh dates and Arabic coffee in the shade. A peaceful Madinah classic.'}),
-    farmHot:()=>({time:'After Asr (cool hours)',name:'Evening Date Farm Experience',
-      desc:'Beat the heat with a late-afternoon farm visit — palm groves, fresh dates, and tea as the sun softens.'}),
-    farmPremium:()=>({time:'Late afternoon',name:'Private Farm Retreat (premium)',
-      desc:'Book a private estate farm with a majlis, a farm-to-table meal, and a guided walk through the groves.'}),
-    wadiJinn:()=>({time:'Half-day trip',name:'Wadi Al-Jinn (Magnetic Valley) & Wadi Al-Baida',
-      desc:'The famous valley where cars seem to roll uphill, surrounded by dramatic black volcanic mountains. Best with a car.'}),
-    ferrata:()=>({time:'Early morning',name:'Via Ferrata Mountain Climb',ferrata:true,
-      desc:'A guided iron-path climb across Madinah\'s rugged peaks — cables, ladders and a suspension bridge with sweeping views. Book ahead, wear closed shoes, and go early before the heat.'}),
-    hike:()=>({time:'Early morning',name:'Sunrise Hike on the Volcanic Trails',
-      desc:'Trek the black basalt hills around the city for golden-hour views over the valley. Carry water and start at dawn.'}),
-    cycle:()=>({time:'Early morning / evening',name:'Cycle the City',
-      desc:'Rent bikes and ride the wide, calm avenues and parks around the Haram district at a gentle hour.'}),
-    alula:()=>({time:'Full-day trip',name:'Day Trip to AlUla',
-      desc:'About 3 hours away: Hegra (Saudi\'s first UNESCO site), Nabataean tombs, Elephant Rock and the old town. An unforgettable add-on.'}),
-    corniche:()=>({time:'Evening',name:'Parks & Family Evening',
-      desc:'Relax at Madinah\'s landscaped parks and plazas — easy walking, fountains, and space for children to play.'}),
-    shopping:()=>({time:'Evening',name:'Malls & Modern Madinah',
-      desc:'Al Noor Mall or Al Rashid Mall for dining, coffee, and shopping in air-conditioned comfort.'}),
-    suhoorIftar:()=>({time:'Iftar → Taraweeh',name:'Iftar near the Haram + Taraweeh',
-      desc:'Share iftar in the mosque courtyards, then pray Taraweeh and Qiyam with the imams of the Prophet\'s Mosque — a night you will never forget.'}),
-  };
+  /* Build backlog of attractions ordered by this visitor's goal */
+  const backlog=[];
+  const add=(x)=>backlog.push(x);
 
-  // ---- Build a prioritized backlog of "main" experiences (excludes the daily Haram anchor) ----
-  const backlog = [];
-  backlog.push(E.quba());                                   // always early
-  if(a.rawdah==='yes') backlog.push(E.rawdah());
+  add(P.quba()); // always a must, early
+  if(a.rawdah==='yes' || goal==='religious') add(P.rawdah());
 
-  const relig = (a.goal==='religious'||a.goal==='half'||a.goal==='wedding');
-  if(relig){ backlog.push(E.uhud()); backlog.push(E.baqi()); backlog.push(E.qiblatain()); }
-  if(a.goal==='religious') backlog.push(E.quran());
+  if(goal==='religious'){
+    add(P.uhud()); add(P.baqi()); add(P.qiblatain()); add(P.quran());
+    add(P.marbad(farmTime)); add(P.dateMarket()); add(P.hijaz()); add(P.darMuseum());
+  } else if(goal==='half' || goal==='wedding'){
+    add(P.uhud()); add(P.baqi());
+    if(ferrataEligible) add(P.ferrata());
+    add(P.marbad(farmTime));
+    if(someOutdoor) add(P.ebike());
+    add(P.qiblatain());
+    if(someOutdoor && (hasCar||goal!=='wedding')) add(P.wadiJinn());
+    add(P.darMuseum()); add(P.dateMarket());
+    if(a.company==='family') add(P.kfpark());
+    if(a.budget!=='budget') add(P.aliya(farmTime));
+  } else { /* tourist — attraction-led */
+    add(P.marbad(farmTime));
+    if(someOutdoor) add(P.ebike());
+    if(ferrataEligible) add(P.ferrata());
+    if(someOutdoor) add(P.wadiJinn());
+    add(P.uhud());
+    if(lovesOutdoor && fitOK) add(P.quad());
+    add(P.kfpark());
+    add(P.aliya(farmTime));
+    add(P.darMuseum()); add(P.hijaz());
+    add(P.qiblatain());
+    if(lovesOutdoor && fitOK && w.outdoor) add(P.hike());
+    add(P.dateMarket()); add(P.malls());
+    if(dayCount>=6 && hasCar) add(P.alula());
+  }
+  if(dayCount>=6 && (goal==='half') && hasCar) add(P.alula());
 
-  // Farm — always recommend at least one, weather & budget aware
-  if(a.budget==='premium') backlog.push(E.farmPremium());
-  else backlog.push(w.outdoor ? E.farmCool() : E.farmHot());
+  /* Slots per day from pace */
+  const slots = a.pace==='night'?1 : a.pace==='half'?2 : 3;
 
-  // Via Ferrata for the right person
-  if(ferrataEligible) backlog.push(E.ferrata());
+  /* When do we anchor the Haram each day?  Religious & wedding: daily. Half: daily (lighter). Tourist: day 1 + last day only. */
+  const anchorDaily = goal!=='tourist';
 
-  // Outdoor extras
-  if(lovesOutdoor && fitOK && (a.goal!=='religious')) backlog.push(E.hike());
-  if(someOutdoor && (a.goal==='tourist'||a.goal==='half')) backlog.push(E.wadiJinn());
-  if(someOutdoor && w.outdoor && a.company!=='family') backlog.push(E.cycle());
-
-  // Cultural / tourist
-  if(a.goal==='tourist'||a.goal==='half') backlog.push(E.museum());
-  backlog.push(E.dateMarket());
-  if(a.company==='family') backlog.push(E.corniche());
-  if(a.goal==='tourist'||a.budget!=='budget') backlog.push(E.shopping());
-
-  // AlUla only for longer leisure trips with transport
-  if(dayCount>=6 && (a.goal==='tourist'||a.goal==='half')) backlog.push(E.alula());
-
-  // ---- Slots per day from pace ----
-  const extraSlots = a.pace==='night'?0 : a.pace==='half'?1 : 2;
-
-  // ---- Assemble days ----
-  const usedNames = new Set();
-  const days = [];
-  let bi = 0; // backlog index
-  const themes = ['Arrival & the Prophet\'s Mosque','Worship & heritage','Nature & discovery',
-                  'Adventure & farms','Explore at your pace','Reflection & gifts','A grand day out','Rest & farewell'];
+  const used=new Set();
+  const days=[];
+  let bi=0;
+  const themes=['Arrival & the Prophet\'s Mosque ﷺ','Worship & heritage','Nature & discovery','Adventure & farms','Explore at your pace','Reflection & gifts','A grand day out','Rest & farewell'];
 
   for(let d=0; d<dayCount; d++){
-    const blocks = [];
+    const blocks=[];
+    let fillSlots = slots;
 
-    // Morning/daytime main experiences (unless nights-only)
+    // reserve one slot for an evening Haram / Ramadan anchor if anchoring this day
+    const anchorToday = ramadan || anchorDaily || d===0 || d===dayCount-1;
+    if(anchorToday) fillSlots = Math.max(1, slots-1);
+
     if(a.pace!=='night'){
       let placed=0;
-      while(placed<extraSlots && bi<backlog.length){
-        const exp = backlog[bi++];
-        if(usedNames.has(exp.name)) continue;
-        // big trips (alula / wadi jinn) take the whole day — only one that day
-        usedNames.add(exp.name);
-        blocks.push(exp);
-        placed++;
-        if(/AlUla|Wadi Al-Jinn/.test(exp.name)) break;
+      while(placed<fillSlots && bi<backlog.length){
+        const exp=backlog[bi++];
+        if(used.has(exp.name)) continue;
+        used.add(exp.name); blocks.push(exp); placed++;
+        if(/AlUla|Wadi Al-Jinn/.test(exp.name)) break; // big trips fill the day
+      }
+    } else {
+      // nights-only: pull a light evening item occasionally (farm/market/mall)
+      if(d>0 && bi<backlog.length){
+        const exp=backlog[bi++];
+        if(!used.has(exp.name)){used.add(exp.name);blocks.push(exp);}
       }
     }
 
-    // Daily Haram anchor (evening) — and Ramadan night programme
-    if(ramadan){
-      blocks.push(E.suhoorIftar());
-    } else {
-      blocks.push(E.haram());
-    }
+    // evening anchor
+    if(ramadan) blocks.push(P.ramadanNight());
+    else if(anchorToday) blocks.push(P.haram());
 
-    // Day 1 special note
-    let theme = themes[d] || 'Explore at your pace';
-    if(d===0) theme = 'Arrival & the Prophet\'s Mosque ﷺ';
-
-    // sort blocks by a rough time order (mornings first, evening anchor last)
-    days.push({ n:d+1, theme, blocks });
+    let theme = d===0 ? themes[0] : (themes[d]||'Explore at your pace');
+    days.push({n:d+1, theme, blocks});
   }
 
-  // If nights-only and backlog has key items (Quba!), make sure Quba & farm still appear as evening/short notes
-  if(a.pace==='night'){
-    // Insert Quba into day 1 morning regardless (it's a must)
-    days[0].blocks.unshift(E.quba());
-    // a gentle evening farm/market on an early day
-    const farmEx = w.outdoor ? E.farmCool() : E.farmHot();
-    if(days[1]) days[1].blocks.unshift(farmEx); else days[0].blocks.unshift(farmEx);
-  }
+  // Guarantee Quba appears (it's a must) even if scheduling overflowed
+  const allNames=new Set(days.flatMap(dd=>dd.blocks.map(b=>b.name)));
+  if(!allNames.has('Quba Mosque')) days[0].blocks.unshift(P.quba());
 
-  // ---- Tips ----
-  const tips = [];
+  /* Tips */
+  const tips=[];
   tips.push('Pray every fard salah you can inside the Prophet\'s Mosque — a prayer here equals a thousand elsewhere.');
-  if(a.rawdah==='yes' || relig) tips.push('Reserve your Rawdah visit on the Nusuk app days in advance; slots open early and fill fast.');
-  tips.push('At Quba, make your wudu at the hotel and pray two rak\'ah — equal in reward to an Umrah.');
+  if(a.rawdah==='yes'||goal==='religious') tips.push('Reserve your Rawdah visit on the Nusuk app days in advance; slots open early and fill fast.');
+  tips.push('At Quba, make wudu at the hotel and pray two rak\'ah — equal in reward to an Umrah.');
+  if(goal==='tourist') tips.push('Even on a tourist trip, slip into the Haram for a prayer whenever you pass — it is the soul of Madinah.');
   if(!w.outdoor) tips.push('It will be hot — carry water, wear a cap, and keep outdoor plans to early morning or after Asr.');
   else tips.push('The weather is on your side — keep mornings free for the outdoors and evenings for the Haram.');
-  if(ramadan) tips.push('In Ramadan the city lives at night: rest in the day, break your fast near the Haram, and pray Taraweeh & Qiyam.');
-  if(ferrataEligible) tips.push('Book your Via Ferrata session ahead, wear closed sport shoes, and arrive early — it is the highlight for active groups.');
-  if(a.transport==='taxi') tips.push('Use Careem or Uber for getting around; for Quba, Uhud, and farms, agree a return trip or ask the driver to wait.');
-  else tips.push('With your own car, the farms, Quba and the valleys are easy — use Google Maps and avoid the Haram core at prayer times.');
-  if(a.company==='family') tips.push('Keep a relaxed pace with children: shaded parks, early nights, and the farm visit will be their favourites.');
-  if(a.goal==='wedding') tips.push('Around the wedding, we kept the days lighter — leave a flexible buffer for family gatherings and rest.');
-  tips.push('Dress modestly, lower your gaze, and keep your tongue busy with salah upon the Prophet ﷺ. This is a place of peace.');
+  if(ramadan) tips.push('In Ramadan the city lives at night: rest by day, break your fast near the Haram, then pray Taraweeh & Qiyam.');
+  if(ferrataEligible) tips.push('Book your Via Ferrata and Uhud e-bike sessions ahead, wear closed sport shoes, and go early — they are the highlights for active groups.');
+  tips.push(hasCar ? 'With your own car, Quba, the farms and Wadi Al-Jinn are easy — use Google Maps and avoid the Haram core at prayer times.' : 'Use Careem or Uber to get around; for Quba, Uhud, farms and the valley, agree a return trip or ask the driver to wait.');
+  if(a.company==='family') tips.push('Keep a relaxed pace with children: King Fahd Park, Al Marbad farm and early nights will be their favourites.');
+  if(goal==='wedding') tips.push('Around the wedding we kept the days lighter — leave a flexible buffer for family gatherings and rest.');
+  tips.push('Tap “Open in Maps” on any stop for directions, and “Reserve / Info” to book ahead where needed.');
 
-  // ---- Summary chips ----
-  const chips = [];
+  /* Chips */
+  const chips=[];
   chips.push(monthName+' • '+w.label);
   chips.push(dayCount+' days');
-  chips.push(({solo:'Solo',friends:'With friends',family:'With family'})[a.company]);
-  chips.push(({religious:'Religious',half:'Religion + leisure',wedding:'Wedding visit',tourist:'Tourist'})[a.goal]);
+  chips.push({solo:'Solo',friends:'With friends',family:'With family'}[a.company]);
+  chips.push({religious:'Religious',half:'Religion + leisure',wedding:'Wedding visit',tourist:'Tourist'}[goal]);
   if(ramadan) chips.push('Ramadan 🌙');
   if(ferrataEligible) chips.push('Via Ferrata included');
 
-  return { weather:w, monthName, dayCount, days, tips, chips, ramadan, goal:a.goal };
+  return {weather:w,monthName,dayCount,days,tips,chips,ramadan,goal};
 }
 
-/* =========================================================
-   RENDER PLAN
-   ========================================================= */
+/* ===================== RENDER ===================== */
+let planMap=null;
 function renderPlan(p){
-  const shell = document.getElementById('planShell');
+  const shell=document.getElementById('planShell');
+  const goalLine={religious:'A journey of worship and remembrance.',half:'A balance of worship, rest and discovery.',wedding:'Celebration in the blessed city, woven with worship.',tourist:'Discover Madinah — its faith, history and land.'}[p.goal]||'Your personal journey through the blessed city.';
 
-  const goalLine = {
-    religious:'A journey of worship and remembrance.',
-    half:'A balance of worship, rest, and discovery.',
-    wedding:'Celebration in the blessed city, woven with worship.',
-    tourist:'Discover Madinah — its faith, its history, and its land.'
-  }[p.goal] || 'Your personal journey through the blessed city.';
-
-  let html = `
-    <div class="plan-hero">
-      <div class="pattern-overlay"></div>
+  let html=`
+    <div class="plan-hero"><div class="pattern-overlay"></div>
       <div class="ar arabic">خِطَّتُك إلى طَيْبَة</div>
       <h2>Your Map of Peace</h2>
-      <p>${goalLine} Here is a ${p.dayCount}-day plan shaped around your answers — anchored, as always, on the Prophet's Mosque ﷺ and Quba.</p>
+      <p>${goalLine} A ${p.dayCount}-day plan shaped around your answers — anchored, as always, on the Prophet's Mosque ﷺ and Quba.</p>
       <div class="chips">${p.chips.map(c=>`<span class="chip">${c}</span>`).join('')}</div>
     </div>
+    <div class="weather-band"><div class="ico">${p.weather.ico}</div><div>
+      <h4>${p.monthName}: ${p.weather.label} <span style="font-weight:400;color:var(--ink-soft);font-size:.9rem;">(${p.weather.temp})</span></h4>
+      <p>${p.weather.note}</p></div></div>
 
-    <div class="weather-band">
-      <div class="ico">${p.weather.ico}</div>
-      <div>
-        <h4>${p.monthName}: ${p.weather.label} <span style="font-weight:400;color:var(--ink-soft);font-size:.9rem;">(${p.weather.temp})</span></h4>
-        <p>${p.weather.note}</p>
-      </div>
-    </div>
-  `;
+    <div class="map-wrap no-pdf" data-html2canvas-ignore="true">
+      <h3>🗺️ Your map of Madinah</h3>
+      <div id="planMap"></div>
+      <p class="map-legend">Every stop in your plan is pinned here. Click a pin for details and a “Open in Google Maps” link.</p>
+    </div>`;
 
   p.days.forEach(d=>{
-    html += `<div class="day">
-      <div class="day-head">
-        <div class="dnum">${d.n}</div>
-        <div><h3>Day ${d.n}</h3><div class="dtheme">${d.theme}</div></div>
-      </div>`;
+    html+=`<div class="day"><div class="day-head"><div class="dnum">${d.n}</div><div><h3>Day ${d.n}</h3><div class="dtheme">${d.theme}</div></div></div>`;
     d.blocks.forEach(b=>{
-      const badge = b.must?'<span class="badge-must">Must visit</span>':(b.ferrata?'<span class="badge-ferrata">Adventure</span>':'');
-      html += `<div class="block">
-          <div class="time">${b.time}</div>
-          <div class="b-body">
-            <h4><span class="pin">📍</span>${b.name} ${badge}</h4>
-            <p>${b.desc}</p>
-          </div>
-        </div>`;
+      const badge=b.must?'<span class="badge badge-must">Must visit</span>':(b.ferrata?'<span class="badge badge-ferrata">Adventure</span>':'');
+      let links=`<a href="${gmaps(b.name)}" target="_blank" rel="noopener">📍 Open in Maps</a>`;
+      if(b.book) links+=`<a class="book" href="${b.book.url}" target="_blank" rel="noopener">🎟 ${b.book.label}</a>`;
+      else if(b.info) links+=`<a href="${b.info}" target="_blank" rel="noopener">ℹ️ More info</a>`;
+      html+=`<div class="block"><div class="time">${b.time}</div><div class="b-body">
+          <h4><span style="color:var(--gold)">📍</span>${b.name} ${badge}</h4>
+          <p>${b.desc}</p><div class="act-links">${links}</div></div></div>`;
     });
-    html += `</div>`;
+    html+=`</div>`;
   });
 
-  html += `<div class="tips">
-      <h3>✦ Notes for your journey</h3>
-      <ul>${p.tips.map(t=>`<li>${t}</li>`).join('')}</ul>
-    </div>
-
-    <div class="plan-actions">
-      <button class="btn btn-gold" onclick="window.print()">⬇ Save / Print as PDF</button>
-      <button class="btn btn-outline" id="downloadHtml">Download plan (.html)</button>
+  html+=`<div class="tips"><h3>✦ Notes for your journey</h3><ul>${p.tips.map(t=>`<li>${t}</li>`).join('')}</ul></div>
+    <p class="src-note">Places &amp; activities sourced from Visit Saudi, Hala Yalla, Welcome Saudi &amp; local guides. Confirm hours, prices &amp; availability before you go.</p>
+    <div class="plan-actions no-pdf" data-html2canvas-ignore="true">
+      <button class="btn btn-gold" id="pdfBtn">⬇ Download styled PDF</button>
+      <button class="btn btn-outline" id="htmlBtn">Download (.html)</button>
       <button class="btn btn-outline" onclick="document.getElementById('quiz').scrollIntoView({behavior:'smooth'})">Start over</button>
     </div>`;
 
-  shell.innerHTML = html;
-
-  document.getElementById('downloadHtml').addEventListener('click',()=>downloadPlan(p));
+  shell.innerHTML=html;
+  document.getElementById('pdfBtn').addEventListener('click',()=>generatePDF(p));
+  document.getElementById('htmlBtn').addEventListener('click',()=>downloadHTML(p));
+  renderMap(p);
 }
 
-/* ---------- Download as a standalone HTML file ---------- */
-function downloadPlan(p){
-  const blocks = p.days.map(d=>{
-    const items = d.blocks.map(b=>`<div style="margin:10px 0;padding-left:14px;border-left:3px solid #c2a14d;">
-        <strong>${b.time}</strong> — ${b.name}${b.must?' (Must visit)':''}<br/>
-        <span style="color:#5a5f53;font-size:14px;">${b.desc}</span></div>`).join('');
+/* ----- interactive map ----- */
+function renderMap(p){
+  if(typeof L==='undefined'){document.getElementById('planMap').innerHTML='<p style="padding:1rem;color:#5a5f53">Map could not load (offline). All “Open in Maps” links still work.</p>';return;}
+  const pts=[];
+  const seen=new Set();
+  p.days.forEach(d=>d.blocks.forEach(b=>{
+    if(b.lat&&!b.far&&!seen.has(b.name)){seen.add(b.name);pts.push(b);}
+  }));
+  if(planMap){planMap.remove();planMap=null;}
+  planMap=L.map('planMap',{scrollWheelZoom:false}).setView([24.47,39.61],11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(planMap);
+  const group=[];
+  pts.forEach(b=>{
+    const m=L.marker([b.lat,b.lng]).addTo(planMap);
+    m.bindPopup(`<strong>${b.name}</strong><br/><a href="${gmaps(b.name)}" target="_blank" rel="noopener">Open in Google Maps →</a>`);
+    group.push([b.lat,b.lng]);
+  });
+  if(group.length) planMap.fitBounds(group,{padding:[40,40],maxZoom:13});
+  setTimeout(()=>planMap.invalidateSize(),300);
+}
+
+/* ----- styled PDF (html2canvas + jsPDF), print fallback ----- */
+async function generatePDF(p){
+  const btn=document.getElementById('pdfBtn');
+  if(typeof html2canvas==='undefined' || !(window.jspdf&&window.jspdf.jsPDF)){
+    window.print(); return;
+  }
+  btn.textContent='Preparing PDF…'; btn.disabled=true;
+  try{
+    const node=document.getElementById('planShell');
+    const canvas=await html2canvas(node,{scale:2,useCORS:true,backgroundColor:'#f7f2e9',
+      ignoreElements:el=>el.classList&&el.classList.contains('no-pdf')});
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF('p','mm','a4');
+    const pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight();
+    const imgW=pw, imgH=canvas.height*imgW/canvas.width;
+    let left=imgH, pos=0;
+    const img=canvas.toDataURL('image/jpeg',0.95);
+    pdf.addImage(img,'JPEG',0,pos,imgW,imgH);
+    left-=ph;
+    while(left>0){ pos=left-imgH; pdf.addPage(); pdf.addImage(img,'JPEG',0,pos,imgW,imgH); left-=ph; }
+    pdf.save('My-Map-Peace-Plan.pdf');
+  }catch(e){ console.error(e); window.print(); }
+  btn.textContent='⬇ Download styled PDF'; btn.disabled=false;
+}
+
+/* ----- standalone HTML download ----- */
+function downloadHTML(p){
+  const blocks=p.days.map(d=>{
+    const items=d.blocks.map(b=>{
+      const book=b.book?` — <a href="${b.book.url}">${b.book.label}</a>`:(b.info?` — <a href="${b.info}">info</a>`:'');
+      return `<div style="margin:10px 0;padding-left:14px;border-left:3px solid #c2a14d;"><strong>${b.time}</strong> — ${b.name}${b.must?' (Must visit)':''} · <a href="${gmaps(b.name)}">map</a>${book}<br/><span style="color:#5a5f53;font-size:14px;">${b.desc}</span></div>`;
+    }).join('');
     return `<h2 style="color:#0e4733;border-bottom:1px solid #e7dbc6;padding-bottom:6px;">Day ${d.n} — ${d.theme}</h2>${items}`;
   }).join('');
-  const tips = p.tips.map(t=>`<li style="margin:6px 0;">${t}</li>`).join('');
-  const doc = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>My Map Peace Plan — Al-Madinah</title>
-    <style>body{font-family:Georgia,serif;max-width:760px;margin:40px auto;padding:0 20px;color:#23271f;line-height:1.6;}
-    h1{color:#0e4733;}small{color:#5a5f53;}</style></head><body>
+  const tips=p.tips.map(t=>`<li style="margin:6px 0;">${t}</li>`).join('');
+  const doc=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>My Map Peace Plan — Al-Madinah</title>
+    <style>body{font-family:Georgia,serif;max-width:760px;margin:40px auto;padding:0 20px;color:#23271f;line-height:1.6;}h1{color:#0e4733;}small{color:#5a5f53;}a{color:#15583f;}</style></head><body>
     <h1>Map Peace — Your Plan for Al-Madinah</h1>
     <p><small>${p.monthName} • ${p.weather.label} (${p.weather.temp}) • ${p.dayCount} days</small></p>
-    <p>${p.weather.note}</p>
-    ${blocks}
+    <p>${p.weather.note}</p>${blocks}
     <h2 style="color:#0e4733;">Notes for your journey</h2><ul>${tips}</ul>
-    <p style="margin-top:30px;color:#888;font-size:13px;">Generated by Map Peace. Confirm prayer times, Rawdah/Nusuk reservations and opening hours before you go.</p>
+    <p style="margin-top:30px;color:#888;font-size:13px;">Generated by Map Peace. Confirm prayer times, Rawdah/Nusuk reservations, booking availability and opening hours before you go.</p>
     </body></html>`;
-  const blob = new Blob([doc],{type:'text/html'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'My-Map-Peace-Plan.html';
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
+  const blob=new Blob([doc],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='My-Map-Peace-Plan.html';
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
 }
 </script>
 </body>
