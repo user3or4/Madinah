@@ -135,6 +135,7 @@
   .block{display:flex;gap:1.1rem;padding:1.1rem 1.6rem;border-bottom:1px dashed var(--sand-200);}
   .block:last-child{border-bottom:none;}
   .block .time{flex-shrink:0;width:96px;font-size:.78rem;font-weight:600;color:var(--green-600);text-transform:uppercase;letter-spacing:.04em;padding-top:.15rem;}
+  .block .b-thumb{flex-shrink:0;width:108px;height:80px;border-radius:10px;background-size:cover;background-position:center;background-color:#15583f;box-shadow:0 6px 16px -10px rgba(10,58,42,.7);}
   .block .b-body{flex:1;}
   .block .b-body h4{font-family:'Inter',sans-serif;font-size:1.04rem;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
   .block .b-body p{font-size:.9rem;color:var(--ink-soft);margin-top:.25rem;}
@@ -154,6 +155,11 @@
   .tips li::before{content:"✦";color:var(--gold);flex-shrink:0;}
   .src-note{font-size:.74rem;color:var(--ink-soft);text-align:center;margin:.4rem 0 0;opacity:.8;}
 
+  .ai-zone{background:linear-gradient(155deg,#123e2d,#0a2c20);border:1px solid var(--green-600);border-radius:18px;padding:1.8rem 2rem;box-shadow:var(--shadow);margin-bottom:1.6rem;color:var(--sand-50);text-align:center;}
+  .ai-zone h3{font-size:1.6rem;color:var(--gold-soft);margin-bottom:.4rem;}
+  .ai-zone>p{color:rgba(247,242,233,.82);font-size:.95rem;max-width:560px;margin:0 auto 1.2rem;}
+  .ai-msg{color:rgba(247,242,233,.85);font-size:.9rem;margin-top:1rem;}
+  .ai-zone .day{color:var(--ink);text-align:left;}
   .plan-actions{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin:1.2rem 0 0;}
 
   footer{background:var(--green-900);color:rgba(247,242,233,.7);text-align:center;padding:3rem 0;position:relative;overflow:hidden;}
@@ -168,8 +174,9 @@
     .quiz-body{padding:1.2rem 1.3rem 2rem;}
     .quiz-nav{padding:1rem 1.3rem 1.6rem;}
     .quiz-top{padding:1.3rem 1.3rem 0;}
-    .block{flex-direction:column;gap:.3rem;}
+    .block{flex-direction:column;gap:.5rem;}
     .block .time{width:auto;}
+    .block .b-thumb{width:100%;height:150px;order:3;}
     .plan-hero,.tips{padding:1.8rem 1.4rem;}
   }
 </style>
@@ -222,11 +229,11 @@
       <p>The Haram and Quba anchor every plan — but Madinah is full of life. Here is a taste of what we map for you.</p>
     </div>
     <div class="gallery">
-      <div class="g-card g1"><div class="pattern-overlay"></div><span class="tag">A must</span><h3>Al-Masjid an-Nabawi</h3><p>The Prophet's Mosque ﷺ & the Rawdah — the heart of the city.</p></div>
-      <div class="g-card g2"><div class="pattern-overlay"></div><span class="tag">A must</span><h3>Quba & its farms</h3><p>The first mosque in Islam, beside Al Marbad & Al-Aliya date farms.</p></div>
-      <div class="g-card g3"><div class="pattern-overlay"></div><span class="tag">Adventure</span><h3>Uhud E-Bike Trail</h3><p>Ride the historic battlefield: Archers' Hill, Al Fash Mosque & the Cave.</p></div>
-      <div class="g-card g4"><div class="pattern-overlay"></div><span class="tag">Thrill</span><h3>Via Ferrata</h3><p>An iron-path climb across Madinah's rugged peaks — cables & bridges.</p></div>
-      <div class="g-card g5"><div class="pattern-overlay"></div><span class="tag">Nature</span><h3>Wadi Al-Jinn</h3><p>The Magnetic Valley where cars roll uphill, ringed by black mountains.</p></div>
+      <div class="g-card g1" style="background-image:linear-gradient(transparent,rgba(8,45,33,.9)),url('https://loremflickr.com/600/420/medina,prophet,mosque?lock=21');background-size:cover;background-position:center;"><span class="tag">A must</span><h3>Al-Masjid an-Nabawi</h3><p>The Prophet's Mosque ﷺ & the Rawdah — the heart of the city.</p></div>
+      <div class="g-card g2" style="background-image:linear-gradient(transparent,rgba(8,45,33,.9)),url('https://loremflickr.com/600/420/quba,mosque,medina?lock=22');background-size:cover;background-position:center;"><span class="tag">A must</span><h3>Quba & its farms</h3><p>The first mosque in Islam, beside Al Marbad & Al-Aliya date farms.</p></div>
+      <div class="g-card g3" style="background-image:linear-gradient(transparent,rgba(40,30,10,.9)),url('https://loremflickr.com/600/420/bicycle,trail,desert?lock=26');background-size:cover;background-position:center;"><span class="tag">Adventure</span><h3>Uhud E-Bike Trail</h3><p>Ride the historic battlefield: Archers' Hill, Al Fash Mosque & the Cave.</p></div>
+      <div class="g-card g4" style="background-image:linear-gradient(transparent,rgba(48,20,10,.9)),url('https://loremflickr.com/600/420/via,ferrata,climbing?lock=28');background-size:cover;background-position:center;"><span class="tag">Thrill</span><h3>Via Ferrata</h3><p>An iron-path climb across Madinah's rugged peaks — cables & bridges.</p></div>
+      <div class="g-card g5" style="background-image:linear-gradient(transparent,rgba(10,40,48,.9)),url('https://loremflickr.com/600/420/valley,desert,mountains?lock=35');background-size:cover;background-position:center;"><span class="tag">Nature</span><h3>Wadi Al-Jinn</h3><p>The Magnetic Valley where cars roll uphill, ringed by black mountains.</p></div>
     </div>
   </div>
 </section>
@@ -353,6 +360,31 @@ const NUSUK='https://www.nusuk.sa/';
 const HALA='https://halayalla.com/sa-en/madina/experiences/c/adventures-and-activities';
 const VS_ADV='https://book.visitsaudi.com/sa-en/experiences/al-madinah-al-munawwarah';
 function gmaps(name){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(name+', Al Madinah, Saudi Arabia');}
+// Real representative photos (Creative-Commons via LoremFlickr) with stable locks; falls back to a colour if offline.
+function flick(tags,lock){return 'https://loremflickr.com/360/240/'+tags+'?lock='+lock;}
+function placeImg(name){
+  const n=name.toLowerCase();
+  if(n.includes('nabawi')||n.includes('rawdah')||n.includes('taraweeh')) return flick('medina,prophet,mosque',21);
+  if(n.includes('quba')) return flick('quba,mosque,medina',22);
+  if(n.includes('marbad')) return flick('palm,farm,oasis',23);
+  if(n.includes('aliya')||n.includes('date')) return flick('dates,palm,harvest',24);
+  if(n.includes('park')) return flick('park,fountain,garden',25);
+  if(n.includes('e-bike')||n.includes('bike')) return flick('bicycle,trail,desert',26);
+  if(n.includes('quad')||n.includes('4wd')) return flick('quad,bike,offroad',27);
+  if(n.includes('ferrata')) return flick('via,ferrata,climbing',28);
+  if(n.includes('uhud')) return flick('mountain,medina,uhud',29);
+  if(n.includes('baqi')) return flick('medina,cemetery,islam',30);
+  if(n.includes('qiblatain')||n.includes('seven mosques')) return flick('mosque,medina,minaret',31);
+  if(n.includes("qur'an")||n.includes('quran')) return flick('quran,book,calligraphy',32);
+  if(n.includes('railway')) return flick('hijaz,railway,train',33);
+  if(n.includes('museum')) return flick('museum,heritage,arabia',34);
+  if(n.includes('jinn')||n.includes('magnetic')||n.includes('baida')) return flick('valley,desert,mountains',35);
+  if(n.includes('hike')||n.includes('volcanic')) return flick('hiking,volcanic,sunrise',36);
+  if(n.includes('market')||n.includes('old madinah')) return flick('dates,market,souq',37);
+  if(n.includes('mall')) return flick('mall,shopping,modern',38);
+  if(n.includes('alula')) return flick('alula,hegra,desert',39);
+  return flick('medina,saudi,arabia',40);
+}
 
 // each place: time,name,desc,lat,lng + flags(must,ferrata,far) + book{url,label} + info(url)
 const P = {
@@ -559,12 +591,20 @@ function renderPlan(p){
       else if(b.info) links+=`<a href="${b.info}" target="_blank" rel="noopener">ℹ️ More info</a>`;
       html+=`<div class="block"><div class="time">${b.time}</div><div class="b-body">
           <h4><span style="color:var(--gold)">📍</span>${b.name} ${badge}</h4>
-          <p>${b.desc}</p><div class="act-links">${links}</div></div></div>`;
+          <p>${b.desc}</p><div class="act-links">${links}</div></div>
+          <div class="b-thumb" style="background-image:url('${placeImg(b.name)}')"></div></div>`;
     });
     html+=`</div>`;
   });
 
-  html+=`<div class="tips"><h3>✦ Notes for your journey</h3><ul>${p.tips.map(t=>`<li>${t}</li>`).join('')}</ul></div>
+  html+=`<div class="ai-zone no-pdf" data-html2canvas-ignore="true">
+      <h3>✨ Discover more places with AI</h3>
+      <p>Ask our AI guide to find fresh, lesser-known spots in Madinah that match your trip — cafés, hidden farms, viewpoints and new openings.</p>
+      <button class="btn btn-gold" id="aiBtn">✨ Discover more for me</button>
+      <div id="aiResults"></div>
+    </div>
+
+    <div class="tips"><h3>✦ Notes for your journey</h3><ul>${p.tips.map(t=>`<li>${t}</li>`).join('')}</ul></div>
     <p class="src-note">Places &amp; activities sourced from Visit Saudi, Hala Yalla, Welcome Saudi &amp; local guides. Confirm hours, prices &amp; availability before you go.</p>
     <div class="plan-actions no-pdf" data-html2canvas-ignore="true">
       <button class="btn btn-gold" id="pdfBtn">⬇ Download styled PDF</button>
@@ -575,7 +615,41 @@ function renderPlan(p){
   shell.innerHTML=html;
   document.getElementById('pdfBtn').addEventListener('click',()=>generatePDF(p));
   document.getElementById('htmlBtn').addEventListener('click',()=>downloadHTML(p));
+  document.getElementById('aiBtn').addEventListener('click',()=>discoverMore(p));
   renderMap(p);
+}
+
+/* ----- AI "discover more" via serverless function ----- */
+let aiDone=false;
+async function discoverMore(p){
+  const btn=document.getElementById('aiBtn'), out=document.getElementById('aiResults');
+  const existing=[]; p.days.forEach(d=>d.blocks.forEach(b=>existing.push(b.name)));
+  btn.disabled=true; btn.textContent='✨ Searching Madinah…';
+  out.innerHTML='<p class="ai-msg">Asking the AI guide…</p>';
+  try{
+    const res=await fetch('/api/discover',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({answers,existing,context:{goal:p.goal,month:p.monthName,days:p.dayCount}})});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    const places=(data&&data.places)||[];
+    if(!places.length){ out.innerHTML='<p class="ai-msg">No new suggestions this time — try again shortly.</p>'; }
+    else{
+      out.innerHTML='<div class="day" style="margin-top:1.2rem"><div class="day-head"><div class="dnum">✦</div><div><h3>AI discoveries</h3><div class="dtheme">Fresh ideas tailored to your trip</div></div></div>'+
+        places.map(pl=>{
+          const nm=pl.name||'Place';
+          return `<div class="block"><div class="time">${pl.category||'Idea'}</div><div class="b-body">
+            <h4><span style="color:var(--gold)">📍</span>${nm}${pl.area?` <small style="color:#5a5f53;font-weight:400">· ${pl.area}</small>`:''}</h4>
+            <p>${pl.why||pl.description||''}</p>
+            <div class="act-links"><a href="${gmaps(pl.mapsQuery||nm)}" target="_blank" rel="noopener">📍 Open in Maps</a></div></div>
+            <div class="b-thumb" style="background-image:url('${placeImg(nm+' '+(pl.category||''))}')"></div></div>`;
+        }).join('')+'</div>';
+      btn.textContent='✨ Discover again';
+    }
+  }catch(e){
+    out.innerHTML=`<p class="ai-msg">The AI guide isn't connected yet. Deploy the included <code>/api/discover</code> function and set the <code>GEMINI_API_KEY</code> secret on your host to enable live suggestions. <span style="opacity:.7">(${e.message})</span></p>`;
+    btn.textContent='✨ Try again';
+  }
+  btn.disabled=false; aiDone=true;
 }
 
 /* ----- interactive map ----- */
