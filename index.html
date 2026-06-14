@@ -283,6 +283,20 @@
 <script>
 document.getElementById('year').textContent = new Date().getFullYear();
 
+/* =====================================================================
+   ⚠️  TEST ONLY — embedded Gemini key so the site works as a single
+   static file (AI calls go straight from the browser, no backend).
+   This key is visible to anyone who opens the page. Do NOT ship this
+   publicly. Set it back to "" and use /api/discover (functions/api or
+   api/) with a GEMINI_API_KEY secret for production. Rotate after use.
+   ===================================================================== */
+/* ↓↓↓ PASTE YOUR GEMINI KEY BETWEEN THE QUOTES TO TEST AS A SINGLE FILE ↓↓↓
+   e.g. const TEST_GEMINI_KEY = "AIza...";
+   GitHub blocks committing real keys, so this stays blank in the repo.
+   When blank, the AI button uses the /api/discover serverless function instead. */
+const TEST_GEMINI_KEY = "";
+const GEMINI_MODEL = "gemini-2.0-flash";
+
 /* ===================== QUESTIONS ===================== */
 const QUESTIONS = [
   { id:'age', title:'How old are you?', sub:'This helps us match the pace and the adventures.',
@@ -619,19 +633,50 @@ function renderPlan(p){
   renderMap(p);
 }
 
-/* ----- AI "discover more" via serverless function ----- */
+/* ----- AI "discover more": direct Gemini (test) or serverless backend ----- */
 let aiDone=false;
+function buildDiscoverPrompt(existing,ctx){
+  return [
+    "You are a friendly local guide to Al-Madinah Al-Munawwarah, Saudi Arabia.",
+    "Suggest 4 real, currently-open, lesser-known places or experiences in or near Madinah",
+    "that suit this visitor. Favour authentic, recently-popular spots (cafes, date farms,",
+    "viewpoints, heritage corners, family or adventure spots). Be respectful of the city's",
+    "spiritual character. Do NOT repeat any place already in their plan.",
+    "Visitor profile: "+JSON.stringify(answers),
+    "Trip context: "+JSON.stringify(ctx),
+    "Already in plan (avoid): "+JSON.stringify(existing),
+    'Return ONLY JSON: {"places":[{"name":"","area":"","category":"","why":"","mapsQuery":""}]}',
+    "category in: Cafe, Farm, Nature, Heritage, Family, Adventure, Food, Shopping.",
+    "mapsQuery is a precise Google Maps search string including 'Madinah'."
+  ].join("\n");
+}
+async function geminiDirect(prompt){
+  const url='https://generativelanguage.googleapis.com/v1beta/models/'+GEMINI_MODEL+':generateContent?key='+encodeURIComponent(TEST_GEMINI_KEY);
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.9,responseMimeType:'application/json'}})});
+  if(!r.ok) throw new Error('Gemini '+r.status+': '+(await r.text()).slice(0,160));
+  const data=await r.json();
+  let text=data&&data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts[0].text||'{}';
+  let parsed; try{parsed=JSON.parse(text);}catch(_){const m=text.match(/\{[\s\S]*\}/);parsed=m?JSON.parse(m[0]):{places:[]};}
+  return Array.isArray(parsed.places)?parsed.places.slice(0,6):[];
+}
 async function discoverMore(p){
   const btn=document.getElementById('aiBtn'), out=document.getElementById('aiResults');
   const existing=[]; p.days.forEach(d=>d.blocks.forEach(b=>existing.push(b.name)));
+  const ctx={goal:p.goal,month:p.monthName,days:p.dayCount};
   btn.disabled=true; btn.textContent='✨ Searching Madinah…';
   out.innerHTML='<p class="ai-msg">Asking the AI guide…</p>';
   try{
-    const res=await fetch('/api/discover',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({answers,existing,context:{goal:p.goal,month:p.monthName,days:p.dayCount}})});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    const places=(data&&data.places)||[];
+    let places;
+    if(TEST_GEMINI_KEY){
+      places = await geminiDirect(buildDiscoverPrompt(existing,ctx));
+    } else {
+      const res=await fetch('/api/discover',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({answers,existing,context:ctx})});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const data=await res.json();
+      places=(data&&data.places)||[];
+    }
     if(!places.length){ out.innerHTML='<p class="ai-msg">No new suggestions this time — try again shortly.</p>'; }
     else{
       out.innerHTML='<div class="day" style="margin-top:1.2rem"><div class="day-head"><div class="dnum">✦</div><div><h3>AI discoveries</h3><div class="dtheme">Fresh ideas tailored to your trip</div></div></div>'+
