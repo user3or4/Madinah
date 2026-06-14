@@ -57,6 +57,39 @@
   .scroll-hint span{display:block;text-align:center;font-size:1.2rem;animation:bob 2s infinite;}
   @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
 
+  /* Sticky top nav */
+  .topnav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:.85rem 5%;background:rgba(247,242,233,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--sand-200);}
+  .topnav .brand{color:var(--green-800);text-decoration:none;}
+  .topnav .brand .mark{box-shadow:none;}
+  .topnav .links{display:flex;gap:1.7rem;align-items:center;}
+  .topnav .links a{color:var(--ink);text-decoration:none;font-size:.92rem;font-weight:500;transition:color .2s;}
+  .topnav .links a:hover{color:var(--gold);}
+  .topnav .login{background:linear-gradient(135deg,var(--gold),#b08e3a);color:#1c1505;padding:.5rem 1.4rem;border-radius:999px;font-weight:600;}
+  .topnav .login:hover{color:#1c1505;filter:brightness(1.05);}
+  @media(max-width:880px){.topnav .links a:not(.login){display:none;}}
+
+  /* Photo hero */
+  header.hero{min-height:82vh;}
+  .hero.has-photo{background-size:cover;background-position:center;}
+  .hero::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(8,40,30,.30),rgba(8,40,30,.80));}
+  .hero .hero-inner{z-index:2;}
+  .hero .pattern-overlay{z-index:1;}
+
+  /* Full-width banner rows */
+  .banners{padding:0;}
+  .banner{position:relative;min-height:350px;display:flex;align-items:center;background-size:cover;background-position:center;background-color:var(--green-800);overflow:hidden;border-bottom:3px solid var(--sand-100);}
+  .banner::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,34,25,.88) 0%,rgba(6,34,25,.55) 48%,rgba(6,34,25,.12) 100%);}
+  .banner.right::before{background:linear-gradient(270deg,rgba(6,34,25,.88) 0%,rgba(6,34,25,.55) 48%,rgba(6,34,25,.12) 100%);}
+  .banner .b-inner{position:relative;z-index:2;width:min(1080px,92%);margin-inline:auto;color:var(--sand-50);}
+  .banner .b-text{max-width:470px;}
+  .banner.right .b-text{margin-left:auto;text-align:right;}
+  .banner .tagline{text-transform:uppercase;letter-spacing:.2em;font-size:.7rem;color:var(--gold-soft);font-weight:700;}
+  .banner h3{font-size:clamp(1.9rem,3.6vw,2.9rem);color:var(--sand-50);margin:.35rem 0 .7rem;}
+  .banner p{color:rgba(247,242,233,.9);font-size:1.02rem;margin-bottom:1.3rem;line-height:1.55;}
+  .banner .learn{display:inline-block;background:var(--gold);color:#1c1505;padding:.62rem 1.6rem;border-radius:999px;font-weight:600;text-decoration:none;font-size:.92rem;transition:transform .2s,box-shadow .2s;box-shadow:0 10px 24px -14px rgba(0,0,0,.6);}
+  .banner .learn:hover{transform:translateY(-2px);}
+  @media(max-width:640px){.banner .b-text,.banner.right .b-text{max-width:none;text-align:left;}.banner.right::before{background:linear-gradient(90deg,rgba(6,34,25,.88),rgba(6,34,25,.5) 60%,rgba(6,34,25,.2));}}
+
   section{padding:5.5rem 0;}
   .section-head{text-align:center;max-width:660px;margin:0 auto 3rem;}
   .section-head .eyebrow{justify-content:center;color:var(--gold);}
@@ -189,36 +222,76 @@
 <body>
 
 <!-- HERO -->
-<header class="hero">
-  <div class="pattern-overlay"></div>
-  <div class="wrap">
-    <nav>
-      <div class="brand"><span class="mark">۞</span> Map Peace</div>
-      <div class="links">
-        <a href="#how">How it works</a>
-        <a href="#explore">Explore</a>
-        <a href="#quiz">Build my plan</a>
-      </div>
-    </nav>
+<!-- NAV -->
+<nav class="topnav">
+  <a class="brand" href="#top"><span class="mark">۞</span> Map Peace</a>
+  <div class="links">
+    <a href="#how">Our Story</a>
+    <a href="#quiz">Itineraries</a>
+    <a href="#quiz">Your Journey</a>
+    <a href="#explore">Farms &amp; Activities</a>
+    <a href="#explore">Gallery</a>
+    <a href="#quiz" class="login">Login</a>
   </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero" id="top" data-q="Al-Masjid an-Nabawi Prophet Mosque Medina" data-wiki="Al-Masjid an-Nabawi">
+  <div class="pattern-overlay"></div>
   <div class="wrap hero-inner">
     <div class="eyebrow">Al-Madinah Al-Munawwarah</div>
     <h1>Find your <span class="accent">peace</span>.</h1>
     <div class="ar arabic">طَيْبَة الطَّيِّبَة</div>
-    <p class="lede">Your guide to where to go in the City of the Prophet ﷺ — from the Haram and Quba to date farms, the Magnetic Valley, mountain biking around Uhud, and Via Ferrata. Answer a few questions and get a personal plan with a live map and booking links.</p>
+    <p class="lede">Your guide to where to go in the City of the Prophet ﷺ — from the Haram and Quba to date farms, the Magnetic Valley, mountain biking around Uhud, and Via Ferrata.</p>
     <div class="hero-cta">
-      <a href="#quiz" class="btn btn-gold">Begin your journey →</a>
-      <a href="#explore" class="btn btn-ghost">See what's here</a>
+      <a href="#quiz" class="btn btn-gold">Plan my journey →</a>
+      <a href="#explore" class="btn btn-ghost">Farms &amp; activities</a>
     </div>
   </div>
   <div class="scroll-hint">Scroll<span>⌄</span></div>
 </header>
 
-<!-- HOW -->
+<!-- BANNERS -->
+<section id="explore" class="banners">
+  <div class="banner" data-q="Quba Mosque Medina white domes" data-wiki="Quba Mosque">
+    <div class="b-inner"><div class="b-text">
+      <div class="tagline">A must · first mosque in Islam</div>
+      <h3>Quba Mosque</h3>
+      <p>Begin where Islam's first mosque stands. Two rak'ah here carry the reward of an Umrah — and the date farms of Quba wait just beyond.</p>
+      <a class="learn" href="#quiz">Plan this →</a>
+    </div></div>
+  </div>
+  <div class="banner right" data-q="Madinah date palm farm oasis" data-wiki="Date palm">
+    <div class="b-inner"><div class="b-text">
+      <div class="tagline">Farms &amp; local life</div>
+      <h3>A Peaceful Farm &amp; Local Life</h3>
+      <p>Wander the palm groves of Al Marbad and Al Safiyah — fresh Ajwa dates, Arabic coffee, birdsong and the slow, generous rhythm of Madinah.</p>
+      <a class="learn" href="#quiz">Plan this →</a>
+    </div></div>
+  </div>
+  <div class="banner" data-q="via ferrata mountain climbing cliff" data-wiki="Via ferrata">
+    <div class="b-inner"><div class="b-text">
+      <div class="tagline">Adventure</div>
+      <h3>Via Ferrata Adventure</h3>
+      <p>For the young and active: scale Madinah's rugged peaks on an iron path of cables, ladders and a sky-high suspension bridge.</p>
+      <a class="learn" href="#quiz">Plan this →</a>
+    </div></div>
+  </div>
+  <div class="banner right" data-q="Wadi Al Jinn magnetic valley black volcanic mountains" data-wiki="Wadi al-Jinn">
+    <div class="b-inner"><div class="b-text">
+      <div class="tagline">Nature</div>
+      <h3>Wadi Al-Jinn — the Magnetic Valley</h3>
+      <p>Where a car in neutral seems to roll uphill, ringed by dramatic black volcanic mountains — one of Madinah's most mysterious escapes.</p>
+      <a class="learn" href="#quiz">Plan this →</a>
+    </div></div>
+  </div>
+</section>
+
+<!-- OUR STORY -->
 <section id="how">
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">The idea</div>
+      <div class="eyebrow">Our Story</div>
       <h2>Your visit, thoughtfully mapped</h2>
       <p>Every traveller to Madinah is different — your age, your time, your company, and your reason for coming. Map Peace listens, then designs a journey that fits you, with real places, a live map, and the links you need to book.</p>
     </div>
@@ -226,19 +299,6 @@
       <div class="step"><div class="num">1</div><h3>Answer</h3><p>A short set of friendly questions about your trip, season, company, and what you love.</p></div>
       <div class="step"><div class="num">2</div><h3>Receive</h3><p>A day-by-day plan with an interactive map and reservation links for every activity.</p></div>
       <div class="step"><div class="num">3</div><h3>Keep it</h3><p>View it on screen and download it as a beautifully styled PDF to carry on your journey.</p></div>
-    </div>
-
-    <div id="explore" class="section-head" style="margin-top:4.5rem;">
-      <div class="eyebrow">Real places in Madinah</div>
-      <h2>So much more than one mosque</h2>
-      <p>The Haram and Quba anchor every plan — but Madinah is full of life. Here is a taste of what we map for you.</p>
-    </div>
-    <div class="gallery">
-      <div class="g-card g1" style="background-image:linear-gradient(transparent,rgba(8,45,33,.9)),url('https://loremflickr.com/600/420/medina,prophet,mosque?lock=21');background-size:cover;background-position:center;"><span class="tag">A must</span><h3>Al-Masjid an-Nabawi</h3><p>The Prophet's Mosque ﷺ & the Rawdah — the heart of the city.</p></div>
-      <div class="g-card g2" style="background-image:linear-gradient(transparent,rgba(8,45,33,.9)),url('https://loremflickr.com/600/420/quba,mosque,medina?lock=22');background-size:cover;background-position:center;"><span class="tag">A must</span><h3>Quba & its farms</h3><p>The first mosque in Islam, beside Al Marbad & Al-Aliya date farms.</p></div>
-      <div class="g-card g3" style="background-image:linear-gradient(transparent,rgba(40,30,10,.9)),url('https://loremflickr.com/600/420/bicycle,trail,desert?lock=26');background-size:cover;background-position:center;"><span class="tag">Adventure</span><h3>Uhud E-Bike Trail</h3><p>Ride the historic battlefield: Archers' Hill, Al Fash Mosque & the Cave.</p></div>
-      <div class="g-card g4" style="background-image:linear-gradient(transparent,rgba(48,20,10,.9)),url('https://loremflickr.com/600/420/via,ferrata,climbing?lock=28');background-size:cover;background-position:center;"><span class="tag">Thrill</span><h3>Via Ferrata</h3><p>An iron-path climb across Madinah's rugged peaks — cables & bridges.</p></div>
-      <div class="g-card g5" style="background-image:linear-gradient(transparent,rgba(10,40,48,.9)),url('https://loremflickr.com/600/420/valley,desert,mountains?lock=35');background-size:cover;background-position:center;"><span class="tag">Nature</span><h3>Wadi Al-Jinn</h3><p>The Magnetic Valley where cars roll uphill, ringed by black mountains.</p></div>
     </div>
   </div>
 </section>
@@ -383,6 +443,7 @@ async function finish(){
   }
 }
 renderStep();
+hydrateMedia(document).catch(()=>{});  // load real photos for the hero & banners
 
 /* ===================== HELPERS ===================== */
 function gmaps(name){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(name+', Al Madinah, Saudi Arabia');}
@@ -423,7 +484,7 @@ function renderPlan(p){
       html+=`<div class="block"><div class="time">${b.time}</div><div class="b-body">
           <h4><span style="color:var(--gold)">${b.icon||'📍'}</span>${b.name} ${badge}</h4>
           <p>${b.desc}</p><div class="act-links">${links}</div></div>
-          <img class="b-thumb" loading="lazy" alt="" src="${primary}" onerror="this.onerror=null;this.src='${picsum(seed)}'"></div>`;
+          <img class="b-thumb" loading="lazy" alt="" src="${primary}" data-q="${escAttr(b.photoQuery||b.name)}" data-wiki="${escAttr(b.wiki||'')}" onerror="this.onerror=null;this.src='${picsum(seed)}'"></div>`;
     });
     html+=`</div>`;
   });
@@ -448,6 +509,7 @@ function renderPlan(p){
   document.getElementById('htmlBtn').addEventListener('click',()=>downloadHTML(p));
   document.getElementById('aiBtn').addEventListener('click',()=>discoverMore(p));
   renderMap(p);
+  hydrateMedia(shell);
 }
 
 /* =========================================================
@@ -524,6 +586,7 @@ function buildDayPrompt(a,dayCount,dayIndex,chosen,coffeesUsed){
     "",
     "RULES FOR THIS DAY:",
     "- Fill the WHOLE day with time blocks in chronological order, realistic clock times like '07:30 – 09:30'.",
+    "- Leave at least a 30-minute gap between the END of one block and the START of the next (for travel and rest).",
     "- Block count by pace: full-day ~7-9 blocks; half-day ~4-5; nights-only ~3-4. Do NOT leave the day half-empty.",
     "- Include prayers at Al-Masjid an-Nabawi (Prophet's Mosque) suited to the goal; mark mosque visits must=true."+(first?" This is Day 1, so ALSO include Quba Mosque (must=true).":""),
     "- Include exactly ONE specialty coffee today, different from those already used.",
@@ -546,16 +609,86 @@ const CAT_KIND={Cafe:'coffee',Tea:'tea',Restaurant:'food',Food:'food'};
 function flickFromWords(words,seed){const tags=encodeURIComponent(String(words||'madinah saudi arabia').trim().replace(/\s+/g,','));return 'https://loremflickr.com/360/240/'+tags+'?lock='+(60+(Math.abs(seed)%900));}
 // Always-fast, always-unique fallback photo when the keyword photo is slow/unavailable.
 function picsum(seed){return 'https://picsum.photos/seed/mp'+Math.abs(seed)+'/300/210';}
+function escAttr(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+/* ---- Real photos from the internet (no API key): Wikipedia + Openverse ---- */
+const _photoCache={};
+async function fetchWiki(title){
+  try{
+    const r=await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title));
+    if(!r.ok) return null;
+    const d=await r.json();
+    if(d.type==='disambiguation') return null;
+    return (d.thumbnail&&d.thumbnail.source)||(d.originalimage&&d.originalimage.source)||null;
+  }catch(_){return null;}
+}
+async function fetchOpenverse(q){
+  try{
+    const r=await fetch('https://api.openverse.org/v1/images/?q='+encodeURIComponent(q)+'&page_size=4&mature=false');
+    if(!r.ok) return null;
+    const d=await r.json();
+    const it=(d.results||[]).find(x=>x.thumbnail||x.url);
+    return it?(it.thumbnail||it.url):null;
+  }catch(_){return null;}
+}
+async function resolvePhoto(q,landmark){
+  const key=(landmark||'')+'|'+(q||'');
+  if(_photoCache[key]!==undefined) return _photoCache[key];
+  let url=null;
+  if(landmark) url=await fetchWiki(landmark);
+  if(!url && q) url=await fetchOpenverse(q+' Al Madinah Saudi Arabia');
+  if(!url && landmark) url=await fetchOpenverse(landmark);
+  _photoCache[key]=url;
+  return url;
+}
+// Upgrade every [data-q] element under root to a real photo (3 in parallel).
+async function hydrateMedia(root){
+  if(!root) return;
+  const els=Array.prototype.slice.call(root.querySelectorAll('[data-q]'));
+  let i=0;
+  const work=async()=>{
+    while(i<els.length){
+      const el=els[i++];
+      const url=await resolvePhoto(el.getAttribute('data-q'),el.getAttribute('data-wiki')||'');
+      if(!url) continue;
+      if(el.tagName==='IMG'){ el.src=url; }
+      else { el.style.backgroundImage="url('"+url+"')"; el.classList.add('has-photo'); }
+    }
+  };
+  await Promise.all([work(),work(),work()]);
+}
+
+/* ---- Keep a minimum 30-minute gap between consecutive timed activities ---- */
+function _toMin(t){const m=String(t).match(/(\d{1,2}):(\d{2})/);return m?(+m[1])*60+(+m[2]):null;}
+function _toHHMM(x){x=((x%1440)+1440)%1440;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');}
+function enforceGaps(blocks){
+  let prevEnd=null, prevRaw=null, dayOff=0;
+  (blocks||[]).forEach(b=>{
+    const parts=String(b&&b.time||'').split(/[–—-]/);
+    if(parts.length<2) return;
+    const rs=_toMin(parts[0]), re=_toMin(parts[1]);
+    if(rs==null||re==null) return;
+    if(prevRaw!=null && rs<prevRaw) dayOff++;     // raw time decreased → crossed midnight
+    let s=dayOff*1440+rs, e=dayOff*1440+re;
+    if(e<=s) e+=1440;                              // block itself spans midnight
+    if(prevEnd!=null && s<prevEnd+30){ const dur=e-s; s=prevEnd+30; e=s+dur; }
+    b.time=_toHHMM(s)+' – '+_toHHMM(e);
+    prevRaw=rs; prevEnd=e;
+  });
+  return blocks;
+}
 
 function normalizeAIPlan(ai,a,dayCount){
   const monthName=labelOf('month',a.month);
   const w=ai.weather||{};
+  const landmarkCats=['Mosque','Heritage','Nature','Museum','Park'];
   const days=(ai.days||[]).map((d,i)=>({
     n:i+1,
     theme:(d.title||('Day '+(i+1))).replace(/^\s*day\s*\d+\s*[—:\-]\s*/i,'').trim()||'Explore at your pace',
-    blocks:(d.blocks||[]).map((b,j)=>{
+    blocks:enforceGaps(d.blocks||[]).map((b,j)=>{
       const cat=b.category||'';
       const ferrata=/ferrata/i.test((b.name||'')+cat);
+      const isLandmark=!!b.must||landmarkCats.includes(cat);
       return {
         time:b.time||'', name:b.name||'Stop', desc:b.desc||'',
         must:!!b.must, ferrata,
@@ -564,6 +697,8 @@ function normalizeAIPlan(ai,a,dayCount){
         mapName:b.mapsQuery||b.name,
         icon:CAT_ICON[cat]|| (b.must?'🕌':'📍'),
         kind:CAT_KIND[cat]||'',
+        photoQuery:b.image||((b.name||'')+' '+cat),
+        wiki:isLandmark?(b.name||''):'',
         imgUrl:flickFromWords(b.image||(b.name+' '+cat), i*7+j*3),
         book:b.book?{url:b.book,label:'Reserve / Info'}:null
       };
@@ -646,8 +781,9 @@ async function discoverMore(p){
             <h4><span style="color:var(--gold)">📍</span>${nm}${pl.area?` <small style="color:#5a5f53;font-weight:400">· ${pl.area}</small>`:''}</h4>
             <p>${pl.why||pl.description||''}</p>
             <div class="act-links"><a href="${gmaps(pl.mapsQuery||nm)}" target="_blank" rel="noopener">📍 Open in Maps</a></div></div>
-            <img class="b-thumb" loading="lazy" alt="" src="${flickFromWords(pl.image||nm,k*5+3)}" onerror="this.onerror=null;this.src='${picsum(k*5+3)}'"></div>`;
+            <img class="b-thumb" loading="lazy" alt="" src="${flickFromWords(pl.image||nm,k*5+3)}" data-q="${escAttr(pl.image||nm)}" data-wiki="" onerror="this.onerror=null;this.src='${picsum(k*5+3)}'"></div>`;
         }).join('')+'</div>';
+      hydrateMedia(out);
       btn.textContent='✨ Discover again';
     }
   }catch(e){

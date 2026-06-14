@@ -33,8 +33,12 @@ suggestions**, and a **styled PDF** download.
 - **Interactive map** (Leaflet + OpenStreetMap, no key) pinning every stop, with
   **📍 Open in Maps** and **🎟 Reserve / Info** links per activity (Nusuk, Visit
   Saudi, Hala Yalla, Sightscape, Welcome Saudi).
-- **Real photos** for each place (the AI's photo query → Creative-Commons via
-  LoremFlickr) with a colour fallback so nothing ever looks broken.
+- **Real internet photos** for each place: the AI returns a photo query, which is
+  resolved live to a real image via **Wikipedia** (for landmarks) and **Openverse**
+  (Creative-Commons search) — no API key — with an instant placeholder fallback so
+  nothing ever looks broken.
+- **Banner-style landing** (full-bleed photo hero + full-width photo banners) and a
+  guaranteed **≥30-minute gap** between consecutive activities.
 - **✨ AI "Discover more places"** — a button to refresh with extra lesser-known spots.
 - **Output**: shown on the page, **styled PDF** (html2canvas + jsPDF; print
   fallback), and a standalone **.html** download.
