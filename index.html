@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Map Peace — Your Personal Guide to Al-Madinah</title>
+<meta name="description" content="Map Peace helps visitors to Al-Madinah Al-Munawwarah discover where to go — real places, an interactive map, booking links, and a personal day-by-day plan you can view and download as a styled PDF." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Amiri:ital@0;1&display=swap" rel="stylesheet" />
+<!-- Leaflet (interactive map, no API key) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  :root{
+    --green-900:#0a3a2a;--green-800:#0e4733;--green-700:#15583f;--green-600:#1d6e4f;
+    --sand-50:#f7f2e9;--sand-100:#f1e9da;--sand-200:#e7dbc6;
+    --gold:#c2a14d;--gold-soft:#d9c186;
+    --ink:#23271f;--ink-soft:#5a5f53;--white:#ffffff;
+    --shadow:0 18px 50px -25px rgba(10,58,42,.55);--radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--sand-50);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.serif{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;line-height:1.15;}
+  .arabic{font-family:'Amiri',serif;}
+  .wrap{width:min(1080px,92%);margin-inline:auto;}
+  .btn{display:inline-flex;align-items:center;gap:.6rem;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:1rem;letter-spacing:.01em;padding:.95rem 2rem;border-radius:999px;transition:transform .25s,box-shadow .25s,background .25s;}
+  .btn-gold{background:linear-gradient(135deg,var(--gold),#b08e3a);color:#1c1505;box-shadow:0 12px 30px -12px rgba(194,161,77,.8);}
+  .btn-gold:hover{transform:translateY(-2px);box-shadow:0 18px 38px -12px rgba(194,161,77,.9);}
+  .btn-ghost{background:transparent;color:var(--sand-50);border:1.5px solid rgba(247,242,233,.5);}
+  .btn-ghost:hover{background:rgba(247,242,233,.12);}
+  .btn-outline{background:transparent;color:var(--green-700);border:1.5px solid var(--green-600);}
+  .btn-outline:hover{background:var(--green-700);color:var(--sand-50);}
+  .btn[disabled]{opacity:.4;cursor:not-allowed;transform:none;}
+
+  .pattern-overlay{position:absolute;inset:0;opacity:.10;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23f7f2e9' stroke-width='1'%3E%3Cpath d='M40 0 L80 40 L40 80 L0 40 Z'/%3E%3Cpath d='M40 18 L62 40 L40 62 L18 40 Z'/%3E%3Ccircle cx='40' cy='40' r='6'/%3E%3C/g%3E%3C/svg%3E");}
+
+  /* Hero */
+  header.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;color:var(--sand-50);overflow:hidden;
+    background:radial-gradient(120% 80% at 50% 0%,rgba(29,110,79,.35),transparent 60%),linear-gradient(160deg,var(--green-900),var(--green-800) 45%,#0a3326);}
+  nav{position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;padding:1.6rem 0;}
+  .brand{display:flex;align-items:center;gap:.7rem;font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:700;letter-spacing:.02em;}
+  .brand .mark{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--gold-soft),var(--gold));display:grid;place-items:center;color:#1c1505;font-size:1.1rem;box-shadow:0 0 0 4px rgba(194,161,77,.18);}
+  nav .links{display:flex;gap:2rem;font-size:.95rem;font-weight:500;}
+  nav .links a{color:rgba(247,242,233,.8);text-decoration:none;transition:color .2s;}
+  nav .links a:hover{color:var(--gold-soft);}
+  .hero-inner{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:3rem 0 5rem;}
+  .eyebrow{text-transform:uppercase;letter-spacing:.35em;font-size:.72rem;font-weight:600;color:var(--gold-soft);margin-bottom:1.4rem;display:flex;align-items:center;gap:1rem;}
+  .eyebrow::before,.eyebrow::after{content:"";width:34px;height:1px;background:var(--gold-soft);opacity:.6;}
+  .hero h1{font-size:clamp(3rem,8vw,5.6rem);font-weight:600;letter-spacing:.01em;}
+  .hero h1 .accent{color:var(--gold-soft);font-style:italic;}
+  .hero .ar{font-size:clamp(1.4rem,4vw,2.1rem);color:rgba(247,242,233,.75);margin-top:.4rem;}
+  .hero p.lede{max-width:640px;margin:1.6rem auto 2.4rem;font-size:1.12rem;color:rgba(247,242,233,.82);font-weight:300;}
+  .hero-cta{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
+  .scroll-hint{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:2;color:rgba(247,242,233,.5);font-size:.8rem;letter-spacing:.2em;text-transform:uppercase;}
+  .scroll-hint span{display:block;text-align:center;font-size:1.2rem;animation:bob 2s infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+  /* Sticky top nav */
+  .topnav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:.85rem 5%;background:rgba(247,242,233,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--sand-200);}
+  .topnav .brand{color:var(--green-800);text-decoration:none;}
+  .topnav .brand .mark{box-shadow:none;}
+  .topnav .links{display:flex;gap:1.7rem;align-items:center;}
+  .topnav .links a{color:var(--ink);text-decoration:none;font-size:.92rem;font-weight:500;transition:color .2s;}
+  .topnav .links a:hover{color:var(--gold);}
+  .topnav .login{background:linear-gradient(135deg,var(--gold),#b08e3a);color:#1c1505;padding:.5rem 1.4rem;border-radius:999px;font-weight:600;}
+  .topnav .login:hover{color:#1c1505;filter:brightness(1.05);}
+  @media(max-width:880px){.topnav .links a:not(.login){display:none;}}
+
+  /* Photo hero */
+  header.hero{min-height:82vh;}
+  .hero.has-photo{background-size:cover;background-position:center;}
+  .hero::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(8,40,30,.30),rgba(8,40,30,.80));}
+  .hero .hero-inner{z-index:2;}
+  .hero .pattern-overlay{z-index:1;}
+
+  /* Full-width banner rows */
+  .banners{padding:0;}
+  .banner{position:relative;min-height:350px;display:flex;align-items:center;background-size:cover;background-position:center;background-color:var(--green-800);overflow:hidden;border-bottom:3px solid var(--sand-100);}
+  .banner::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,34,25,.88) 0%,rgba(6,34,25,.55) 48%,rgba(6,34,25,.12) 100%);}
+  .banner.right::before{background:linear-gradient(270deg,rgba(6,34,25,.88) 0%,rgba(6,34,25,.55) 48%,rgba(6,34,25,.12) 100%);}
+  .banner .b-inner{position:relative;z-index:2;width:min(1080px,92%);margin-inline:auto;color:var(--sand-50);}
+  .banner .b-text{max-width:470px;}
+  .banner.right .b-text{margin-left:auto;text-align:right;}
+  .banner .tagline{text-transform:uppercase;letter-spacing:.2em;font-size:.7rem;color:var(--gold-soft);font-weight:700;}
+  .banner h3{font-size:clamp(1.9rem,3.6vw,2.9rem);color:var(--sand-50);margin:.35rem 0 .7rem;}
+  .banner p{color:rgba(247,242,233,.9);font-size:1.02rem;margin-bottom:1.3rem;line-height:1.55;}
+  .banner .learn{display:inline-block;background:var(--gold);color:#1c1505;padding:.62rem 1.6rem;border-radius:999px;font-weight:600;text-decoration:none;font-size:.92rem;transition:transform .2s,box-shadow .2s;box-shadow:0 10px 24px -14px rgba(0,0,0,.6);}
+  .banner .learn:hover{transform:translateY(-2px);}
+  @media(max-width:640px){.banner .b-text,.banner.right .b-text{max-width:none;text-align:left;}.banner.right::before{background:linear-gradient(90deg,rgba(6,34,25,.88),rgba(6,34,25,.5) 60%,rgba(6,34,25,.2));}}
+
+  section{padding:5.5rem 0;}
+  .section-head{text-align:center;max-width:660px;margin:0 auto 3rem;}
+  .section-head .eyebrow{justify-content:center;color:var(--gold);}
+  .section-head .eyebrow::before,.section-head .eyebrow::after{background:var(--gold);}
+  .section-head h2{font-size:clamp(2rem,4.5vw,3rem);color:var(--green-800);}
+  .section-head p{color:var(--ink-soft);margin-top:.8rem;font-size:1.05rem;}
+
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6rem;}
+  .step{background:var(--white);border-radius:var(--radius);padding:2.2rem 1.8rem;box-shadow:var(--shadow);border:1px solid var(--sand-200);text-align:center;}
+  .step .num{width:52px;height:52px;border-radius:50%;margin:0 auto 1.1rem;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--green-800);background:var(--sand-100);border:1.5px solid var(--gold-soft);}
+  .step h3{font-size:1.45rem;color:var(--green-700);margin-bottom:.5rem;}
+  .step p{color:var(--ink-soft);font-size:.98rem;}
+
+  .gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.2rem;margin-top:2.5rem;}
+  .g-card{position:relative;border-radius:var(--radius);padding:1.6rem;color:var(--sand-50);overflow:hidden;min-height:170px;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:var(--shadow);}
+  .g-card .pattern-overlay{opacity:.12;}
+  .g-card h3{font-size:1.4rem;}
+  .g-card p{font-size:.86rem;color:rgba(247,242,233,.82);}
+  .g-card .tag{position:absolute;top:1rem;right:1rem;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;background:rgba(194,161,77,.92);color:#1c1505;padding:.25rem .6rem;border-radius:999px;font-weight:700;}
+  .g1{background:linear-gradient(160deg,var(--green-700),var(--green-900));}
+  .g2{background:linear-gradient(160deg,#2a7d5c,#0e4733);}
+  .g3{background:linear-gradient(160deg,#8a6d2f,#4a3a14);}
+  .g4{background:linear-gradient(160deg,#7a4a2e,#3a1f12);}
+  .g5{background:linear-gradient(160deg,#2f6d7a,#143a4a);}
+
+  /* Quiz */
+  #quiz{background:linear-gradient(180deg,var(--sand-100),var(--sand-50));}
+  .quiz-card{background:var(--white);border-radius:24px;box-shadow:var(--shadow);border:1px solid var(--sand-200);max-width:760px;margin:0 auto;overflow:hidden;}
+  .quiz-top{padding:1.6rem 2rem 0;}
+  .progress-track{height:7px;background:var(--sand-100);border-radius:999px;overflow:hidden;}
+  .progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--green-600));border-radius:999px;transition:width .4s;}
+  .quiz-meta{display:flex;justify-content:space-between;align-items:center;margin-top:.9rem;font-size:.8rem;color:var(--ink-soft);letter-spacing:.05em;text-transform:uppercase;}
+  .quiz-body{padding:1.4rem 2.4rem 2.4rem;min-height:340px;display:flex;flex-direction:column;justify-content:center;}
+  .q-step{animation:fade .45s;}
+  @keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .q-title{font-size:clamp(1.7rem,3.5vw,2.3rem);color:var(--green-800);text-align:center;margin-bottom:.4rem;}
+  .q-sub{text-align:center;color:var(--ink-soft);margin-bottom:1.8rem;font-size:.98rem;}
+  .options{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}
+  .options.cols-2{grid-template-columns:repeat(2,1fr);}
+  .options.months{grid-template-columns:repeat(4,1fr);}
+  .opt{background:var(--sand-50);border:1.5px solid var(--sand-200);border-radius:14px;padding:1.05rem 1rem;cursor:pointer;text-align:center;transition:all .2s;font-weight:500;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:.35rem;}
+  .opt .emoji{font-size:1.5rem;}
+  .opt small{color:var(--ink-soft);font-weight:400;font-size:.78rem;line-height:1.3;}
+  .opt:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 10px 24px -16px rgba(10,58,42,.6);}
+  .opt.selected{border-color:var(--green-600);background:var(--green-700);color:var(--sand-50);box-shadow:0 12px 26px -14px rgba(21,88,63,.8);}
+  .opt.selected small{color:rgba(247,242,233,.85);}
+  .quiz-nav{display:flex;justify-content:space-between;align-items:center;padding:1.2rem 2.4rem 2rem;border-top:1px solid var(--sand-100);}
+  .link-btn{background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:.95rem;font-weight:500;display:inline-flex;align-items:center;gap:.4rem;font-family:inherit;}
+  .link-btn:hover{color:var(--green-700);}
+  .link-btn[disabled]{opacity:.35;cursor:not-allowed;}
+
+  /* Result / plan */
+  #result{display:none;background:linear-gradient(180deg,var(--sand-50),var(--sand-100));}
+  .plan-shell{max-width:900px;margin:0 auto;}
+  .plan-hero{position:relative;border-radius:24px;overflow:hidden;color:var(--sand-50);padding:2.6rem 2.4rem;background:linear-gradient(155deg,var(--green-800),var(--green-900));box-shadow:var(--shadow);margin-bottom:1.6rem;}
+  .plan-hero h2{font-size:clamp(2rem,4vw,2.8rem);}
+  .plan-hero .ar{color:var(--gold-soft);font-size:1.3rem;}
+  .plan-hero p{color:rgba(247,242,233,.85);margin-top:.7rem;max-width:600px;}
+  .chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.3rem;}
+  .chip{background:rgba(247,242,233,.12);border:1px solid rgba(247,242,233,.25);color:var(--sand-50);font-size:.78rem;padding:.35rem .8rem;border-radius:999px;}
+  .weather-band{display:flex;align-items:center;gap:1rem;background:var(--white);border:1px solid var(--sand-200);border-left:5px solid var(--gold);border-radius:14px;padding:1.1rem 1.4rem;margin-bottom:1.6rem;box-shadow:var(--shadow);}
+  .weather-band .ico{font-size:2rem;}
+  .weather-band h4{font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--green-800);}
+  .weather-band p{font-size:.9rem;color:var(--ink-soft);}
+
+  .map-wrap{background:var(--white);border:1px solid var(--sand-200);border-radius:18px;box-shadow:var(--shadow);padding:1.2rem;margin-bottom:1.6rem;}
+  .map-wrap h3{font-size:1.5rem;color:var(--green-800);margin:.2rem .3rem .9rem;display:flex;align-items:center;gap:.5rem;}
+  #planMap{height:380px;width:100%;border-radius:12px;z-index:0;}
+  .map-legend{font-size:.8rem;color:var(--ink-soft);margin:.7rem .3rem 0;}
+
+  .day{background:var(--white);border:1px solid var(--sand-200);border-radius:18px;box-shadow:var(--shadow);margin-bottom:1.3rem;overflow:hidden;}
+  .day-head{display:flex;align-items:center;gap:1rem;padding:1.2rem 1.6rem;background:var(--sand-100);border-bottom:1px solid var(--sand-200);}
+  .day-head .dnum{width:44px;height:44px;border-radius:12px;background:var(--green-700);color:var(--sand-50);display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.2rem;flex-shrink:0;}
+  .day-head h3{font-size:1.4rem;color:var(--green-800);}
+  .day-head .dtheme{font-size:.82rem;color:var(--ink-soft);}
+  .block{display:flex;gap:1.1rem;padding:1.1rem 1.6rem;border-bottom:1px dashed var(--sand-200);}
+  .block:last-child{border-bottom:none;}
+  .block .time{flex-shrink:0;width:108px;font-size:.82rem;font-weight:700;color:var(--green-600);letter-spacing:.01em;padding-top:.15rem;font-variant-numeric:tabular-nums;}
+  .block .b-thumb{flex-shrink:0;width:108px;height:80px;border-radius:10px;object-fit:cover;display:block;background-color:#15583f;box-shadow:0 6px 16px -10px rgba(10,58,42,.7);}
+  .block .b-body{flex:1;}
+  .block .b-body h4{font-family:'Inter',sans-serif;font-size:1.04rem;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
+  .block .b-body p{font-size:.9rem;color:var(--ink-soft);margin-top:.25rem;}
+  .badge{font-size:.6rem;padding:.15rem .45rem;border-radius:6px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+  .badge-must{background:var(--gold);color:#1c1505;}
+  .badge-ferrata{background:#b5482e;color:#fff;}
+  .act-links{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.7rem;}
+  .act-links a{display:inline-flex;align-items:center;gap:.35rem;font-size:.78rem;font-weight:600;text-decoration:none;padding:.35rem .75rem;border-radius:999px;border:1.4px solid var(--sand-200);color:var(--green-700);background:var(--sand-50);transition:all .18s;}
+  .act-links a:hover{border-color:var(--green-600);background:var(--green-700);color:var(--sand-50);}
+  .act-links a.book{border-color:var(--gold-soft);color:#8a6d2f;background:#fdf8ec;}
+  .act-links a.book:hover{background:var(--gold);color:#1c1505;border-color:var(--gold);}
+
+  .tips{background:var(--white);border:1px solid var(--sand-200);border-radius:18px;padding:1.8rem 2rem;box-shadow:var(--shadow);margin-bottom:1.6rem;}
+  .tips h3{font-size:1.6rem;color:var(--green-800);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+  .tips ul{list-style:none;display:grid;gap:.7rem;}
+  .tips li{display:flex;gap:.7rem;font-size:.95rem;color:var(--ink-soft);}
+  .tips li::before{content:"✦";color:var(--gold);flex-shrink:0;}
+  .src-note{font-size:.74rem;color:var(--ink-soft);text-align:center;margin:.4rem 0 0;opacity:.8;}
+
+  .ai-zone{background:linear-gradient(155deg,#123e2d,#0a2c20);border:1px solid var(--green-600);border-radius:18px;padding:1.8rem 2rem;box-shadow:var(--shadow);margin-bottom:1.6rem;color:var(--sand-50);text-align:center;}
+  .ai-zone h3{font-size:1.6rem;color:var(--gold-soft);margin-bottom:.4rem;}
+  .ai-zone>p{color:rgba(247,242,233,.82);font-size:.95rem;max-width:560px;margin:0 auto 1.2rem;}
+  .ai-msg{color:rgba(247,242,233,.85);font-size:.9rem;margin-top:1rem;}
+  .ai-zone .day{color:var(--ink);text-align:left;}
+  .loading-card{background:var(--white);border:1px solid var(--sand-200);border-radius:24px;box-shadow:var(--shadow);padding:3.5rem 2rem;text-align:center;}
+  .loading-card h3{font-size:1.8rem;color:var(--green-800);margin:.4rem 0;}
+  .loading-card p{color:var(--ink-soft);max-width:460px;margin:0 auto;}
+  .spinner{width:46px;height:46px;border-radius:50%;border:4px solid var(--sand-200);border-top-color:var(--gold);margin:0 auto 1.2rem;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .plan-actions{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin:1.2rem 0 0;}
+
+  footer{background:var(--green-900);color:rgba(247,242,233,.7);text-align:center;padding:3rem 0;position:relative;overflow:hidden;}
+  footer .brand{justify-content:center;color:var(--sand-50);margin-bottom:.8rem;}
+  footer p{font-size:.88rem;max-width:560px;margin:0 auto .4rem;}
+  footer .small{font-size:.78rem;color:rgba(247,242,233,.45);margin-top:1rem;}
+
+  @media(max-width:760px){
+    nav .links{display:none;}
+    .steps{grid-template-columns:1fr;}
+    .options.months{grid-template-columns:repeat(3,1fr);}
+    .quiz-body{padding:1.2rem 1.3rem 2rem;}
+    .quiz-nav{padding:1rem 1.3rem 1.6rem;}
+    .quiz-top{padding:1.3rem 1.3rem 0;}
+    .block{flex-direction:column;gap:.5rem;}
+    .block .time{width:auto;}
+    .block .b-thumb{width:100%;height:150px;order:3;}
+    .plan-hero,.tips{padding:1.8rem 1.4rem;}
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<!-- NAV -->
+<nav class="topnav">
+  <a class="brand" href="#top"><span class="mark">۞</span> Map Peace</a>
+  <div class="links">
+    <a href="#how">Our Story</a>
+    <a href="#quiz">Itineraries</a>
+    <a href="#quiz">Your Journey</a>
+    <a href="#explore">Farms &amp; Activities</a>
+    <a href="#explore">Gallery</a>
+    <a href="#quiz" class="login">Login</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero" id="top" data-q="Al-Masjid an-Nabawi Prophet Mosque Medina" data-wiki="Al-Masjid an-Nabawi">
+  <div class="pattern-overlay"></div>
+  <div class="wrap hero-inner">
+    <div class="eyebrow">Al-Madinah Al-Munawwarah</div>
+    <h1>Find your <span class="accent">peace</span>.</h1>
+    <div class="ar arabic">طَيْبَة الطَّيِّبَة</div>
+    <p class="lede">Your guide to where to go in the City of the Prophet ﷺ — from the Haram and Quba to date farms, the Magnetic Valley, mountain biking around Uhud, and Via Ferrata.</p>
+    <div class="hero-cta">
+      <a href="#quiz" class="btn btn-gold">Plan my journey →</a>
+      <a href="#explore" class="btn btn-ghost">Farms &amp; activities</a>
+    </div>
+  </div>
+  <div class="scroll-hint">Scroll<span>⌄</span></div>
+</header>
+
+<!-- BANNERS -->
+<section id="explore" class="banners">
+  <div class="banner" data-q="Quba Mosque Medina white domes" data-wiki="Quba Mosque">
+    <div class="b-inner"><div class="b-text">
+      <div class="tagline">A must · first mosque in Islam</div>
+      <h3>Quba Mosque</h3>
+      <p>Begin where Islam's first mosque stands. Two rak'ah here carry the reward of an Umrah — and the date farms of Quba wait just beyond.</p>
+      <a class="learn" href="#quiz">Plan this →</a>
+    </div></div>
+  </div>
+  <div class="banner right" data-q="Madinah date palm farm oasis" data-wiki="Date palm">
+    <div class="b-inner"><div class="b-text">
+      <div class="tagline">Farms &amp; local life</div>
+      <h3>A Peaceful Farm &amp; Local Life</h3>
+      <p>Wander the palm groves of Al Marbad and Al Safiyah — fresh Ajwa dates, Arabic coffee, birdsong and the slow, generous rhythm of Madinah.</p>
+      <a class="learn" href="#quiz">Plan this →</a>
+    </div></div>
+  </div>
+  <div class="banner" data-q="via ferrata mountain climbing cliff" data-wiki="Via ferrata">
+    <div class="b-inner"><div class="b-text">
+      <div class="tagline">Adventure</div>
+      <h3>Via Ferrata Adventure</h3>
+      <p>For the young and active: scale Madinah's rugged peaks on an iron path of cables, ladders and a sky-high suspension bridge.</p>
+      <a class="learn" href="#quiz">Plan this →</a>
+    </div></div>
+  </div>
+  <div class="banner right" data-q="Wadi Al Jinn magnetic valley black volcanic mountains" data-wiki="Wadi al-Jinn">
+    <div class="b-inner"><div class="b-text">
+      <div class="tagline">Nature</div>
+      <h3>Wadi Al-Jinn — the Magnetic Valley</h3>
+      <p>Where a car in neutral seems to roll uphill, ringed by dramatic black volcanic mountains — one of Madinah's most mysterious escapes.</p>
+      <a class="learn" href="#quiz">Plan this →</a>
+    </div></div>
+  </div>
+</section>
+
+<!-- OUR STORY -->
+<section id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Our Story</div>
+      <h2>Your visit, thoughtfully mapped</h2>
+      <p>Every traveller to Madinah is different — your age, your time, your company, and your reason for coming. Map Peace listens, then designs a journey that fits you, with real places, a live map, and the links you need to book.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><h3>Answer</h3><p>A short set of friendly questions about your trip, season, company, and what you love.</p></div>
+      <div class="step"><div class="num">2</div><h3>Receive</h3><p>A day-by-day plan with an interactive map and reservation links for every activity.</p></div>
+      <div class="step"><div class="num">3</div><h3>Keep it</h3><p>View it on screen and download it as a beautifully styled PDF to carry on your journey.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Build my plan</div>
+      <h2>Tell us about your journey</h2>
+      <p>About a minute. Tap an answer to continue — you can go back anytime.</p>
+    </div>
+    <div class="quiz-card">
+      <div class="quiz-top">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="quiz-meta"><span id="qCounter">Question 1</span><span id="qPercent">0%</span></div>
+      </div>
+      <div class="quiz-body" id="quizBody"></div>
+      <div class="quiz-nav">
+        <button class="link-btn" id="backBtn" disabled>← Back</button>
+        <button class="link-btn" id="skipBtn">Skip</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULT -->
+<section id="result">
+  <div class="wrap plan-shell" id="planShell"></div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="pattern-overlay"></div>
+  <div class="wrap">
+    <div class="brand"><span class="mark">۞</span> Map Peace</div>
+    <p>A companion for visitors to Al-Madinah Al-Munawwarah — built with love and respect for the city of the Prophet ﷺ.</p>
+    <p class="small">Plans are friendly suggestions, not official timings. Always confirm prayer times, Rawdah & Nusuk reservations, booking availability, and opening hours before you go. © <span id="year"></span> Map Peace.</p>
+  </div>
+</footer>
+
+<!-- libraries: map + PDF (graceful fallback if blocked) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+/* =====================================================================
+   ⚠️  TEST ONLY — embedded Gemini key so the site works as a single
+   static file (AI calls go straight from the browser, no backend).
+   This key is visible to anyone who opens the page. Do NOT ship this
+   publicly. Set it back to "" and use /api/discover (functions/api or
+   api/) with a GEMINI_API_KEY secret for production. Rotate after use.
+   ===================================================================== */
+/* ↓↓↓ PASTE YOUR GEMINI KEY BETWEEN THE QUOTES TO TEST AS A SINGLE FILE ↓↓↓
+   e.g. const TEST_GEMINI_KEY = "AIza...";
+   GitHub blocks committing real keys, so this stays blank in the repo.
+   When blank, the AI button uses the /api/discover serverless function instead. */
+const TEST_GEMINI_KEY = "";
+const GEMINI_MODEL = "gemini-2.0-flash";
+
+/* ===================== QUESTIONS ===================== */
+const QUESTIONS = [
+  { id:'age', title:'How old are you?', sub:'This helps us match the pace and the adventures.',
+    options:[{v:'under18',label:'Under 18',emoji:'🧒'},{v:'18-25',label:'18 – 25',emoji:'🧑'},{v:'26-40',label:'26 – 40',emoji:'🧑‍💼'},{v:'41-60',label:'41 – 60',emoji:'🧓'},{v:'60plus',label:'60+',emoji:'👴'}]},
+  { id:'month', title:'Which month will you visit?', sub:'So we can read the weather and the season for you.', layout:'months',
+    options:[{v:'1',label:'January',emoji:'❄️'},{v:'2',label:'February',emoji:'🌤️'},{v:'3',label:'March',emoji:'🌸'},{v:'4',label:'April',emoji:'🌼'},{v:'5',label:'May',emoji:'☀️'},{v:'6',label:'June',emoji:'🔥'},{v:'7',label:'July',emoji:'🔥'},{v:'8',label:'August',emoji:'🔥'},{v:'9',label:'September',emoji:'🌅'},{v:'10',label:'October',emoji:'🍂'},{v:'11',label:'November',emoji:'🌤️'},{v:'12',label:'December',emoji:'❄️'}]},
+  { id:'ramadan', title:'Is your visit during Ramadan?', sub:'Ramadan reshapes the whole rhythm of the day and night.', layout:'cols-2',
+    options:[{v:'yes',label:'Yes, during Ramadan',emoji:'🌙'},{v:'no',label:'No',emoji:'🗓️'}]},
+  { id:'days', title:'How many days will you stay?', sub:'We will pace the plan to fit your time.',
+    options:[{v:'1-2',label:'1 – 2 days',emoji:'🌗'},{v:'3-4',label:'3 – 4 days',emoji:'🌓'},{v:'5-6',label:'5 – 6 days',emoji:'🌔'},{v:'7plus',label:'7+ days',emoji:'🌕'}]},
+  { id:'company', title:'Who is travelling with you?', sub:'',
+    options:[{v:'solo',label:'Just me',emoji:'🧍'},{v:'friends',label:'With friends',emoji:'👬'},{v:'family',label:'With family',emoji:'👨‍👩‍👧'}]},
+  { id:'goal', title:'What is the goal of your visit?', sub:'', layout:'cols-2',
+    options:[{v:'religious',label:'Fully religious',emoji:'🕌',sub:'Worship & ziyarah'},{v:'half',label:'Half religion, half leisure',emoji:'☯️',sub:'A balance of both'},{v:'wedding',label:'A wedding in Madinah',emoji:'💍',sub:'Celebration + visit'},{v:'tourist',label:'Fully tourist',emoji:'🧳',sub:'Explore & discover'}]},
+  { id:'pace', title:'How much of your day shall we fill?', sub:'Some come to rest; some come to explore every hour.',
+    options:[{v:'night',label:'Nights only',emoji:'🌃',sub:'Light & restful'},{v:'half',label:'Half a day',emoji:'🌓',sub:'Balanced'},{v:'full',label:'The full day',emoji:'🌞',sub:'Make the most of it'}]},
+  { id:'transport', title:'How will you get around?', sub:'', layout:'cols-2',
+    options:[{v:'car',label:'I have a car',emoji:'🚗'},{v:'taxi',label:'Taxi / ride-hailing',emoji:'🚕'}]},
+  { id:'outdoor', title:'Do you enjoy outdoor adventure?', sub:'Hiking, cycling, climbing, valleys…',
+    options:[{v:'love',label:'Love it',emoji:'🧗'},{v:'sometimes',label:'Sometimes',emoji:'🚶'},{v:'no',label:'Not really',emoji:'🛋️'}]},
+  { id:'fitness', title:'How active are you?', sub:'This guides any hiking or climbing we suggest.',
+    options:[{v:'high',label:'Very active',emoji:'💪'},{v:'moderate',label:'Moderate',emoji:'🙂'},{v:'low',label:'Prefer it easy',emoji:'🌿'}]},
+  { id:'budget', title:'What is your comfort level?', sub:'For farms, dining, and experiences.',
+    options:[{v:'budget',label:'Budget-friendly',emoji:'🪙'},{v:'mid',label:'Mid-range',emoji:'💳'},{v:'premium',label:'Premium',emoji:'✨'}]},
+  { id:'rawdah', title:'Shall we plan time for the Rawdah?', sub:'The Rawdah needs a free Nusuk reservation. We can build it in.', layout:'cols-2',
+    options:[{v:'yes',label:'Yes, plan it for me',emoji:'🤲'},{v:'no',label:'No need',emoji:'🚶'}]},
+];
+
+/* ===================== STATE ===================== */
+const answers = {};
+let step = 0;
+const quizBody=document.getElementById('quizBody'),progressEl=document.getElementById('progressFill'),
+counterEl=document.getElementById('qCounter'),percentEl=document.getElementById('qPercent'),
+backBtn=document.getElementById('backBtn'),skipBtn=document.getElementById('skipBtn');
+
+function renderStep(){
+  const q=QUESTIONS[step];
+  const layout=q.layout?' '+q.layout:'';
+  const opts=q.options.map(o=>{
+    const sel=answers[q.id]===o.v?' selected':'';
+    const small=o.sub?`<small>${o.sub}</small>`:'';
+    return `<button class="opt${sel}" data-v="${o.v}"><span class="emoji">${o.emoji||''}</span><span>${o.label}</span>${small}</button>`;
+  }).join('');
+  quizBody.innerHTML=`<div class="q-step"><h3 class="q-title">${q.title}</h3>${q.sub?`<p class="q-sub">${q.sub}</p>`:''}<div class="options${layout}">${opts}</div></div>`;
+  quizBody.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{answers[q.id]=b.dataset.v;next();}));
+  const pct=Math.round(step/QUESTIONS.length*100);
+  progressEl.style.width=pct+'%';percentEl.textContent=pct+'%';
+  counterEl.textContent=`Question ${step+1} of ${QUESTIONS.length}`;
+  backBtn.disabled=step===0;
+}
+function next(){ step<QUESTIONS.length-1 ? (step++,renderStep()) : finish(); }
+backBtn.addEventListener('click',()=>{if(step>0){step--;renderStep();}});
+skipBtn.addEventListener('click',()=>next());
+async function finish(){
+  progressEl.style.width='100%';percentEl.textContent='100%';
+  const result=document.getElementById('result');
+  const shell=document.getElementById('planShell');
+  result.style.display='block';
+  shell.innerHTML=
+    `<div class="loading-card"><div class="spinner"></div>
+       <h3>Crafting your journey…</h3>
+       <p>Our AI guide is mapping the best of Madinah for you — mosques, farms, cafés, food and adventures, hour by hour.</p></div>`;
+  result.scrollIntoView({behavior:'smooth'});
+  try{
+    const plan=await generateAIPlan(answers);
+    renderPlan(plan);
+  }catch(e){
+    shell.innerHTML=
+      `<div class="loading-card"><div style="font-size:2.6rem">🌙</div>
+         <h3>We couldn't reach the AI guide</h3>
+         <p>Map Peace builds every plan with AI. Paste your Gemini key into <code>TEST_GEMINI_KEY</code> for a quick test, or deploy <code>/api/gemini</code> with the <code>GEMINI_API_KEY</code> secret, then try again.</p>
+         <p style="color:var(--ink-soft);font-size:.85rem;margin-top:.6rem">(${e.message})</p>
+         <div class="plan-actions">
+           <button class="btn btn-gold" id="retryBtn">Try again</button>
+           <button class="btn btn-outline" onclick="document.getElementById('quiz').scrollIntoView({behavior:'smooth'})">Edit answers</button>
+         </div></div>`;
+    const rb=document.getElementById('retryBtn');
+    if(rb) rb.addEventListener('click',finish);
+  }
+}
+renderStep();
+hydrateMedia(document).catch(()=>{});  // load real photos for the hero & banners
+
+/* ===================== HELPERS ===================== */
+function gmaps(name){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(name+', Al Madinah, Saudi Arabia');}
+
+/* ===================== RENDER ===================== */
+let planMap=null;
+function renderPlan(p){
+  const shell=document.getElementById('planShell');
+  const goalLine={religious:'A journey of worship and remembrance.',half:'A balance of worship, rest and discovery.',wedding:'Celebration in the blessed city, woven with worship.',tourist:'Discover Madinah — its faith, history and land.'}[p.goal]||'Your personal journey through the blessed city.';
+
+  let html=`
+    <div class="plan-hero"><div class="pattern-overlay"></div>
+      <div class="ar arabic">خِطَّتُك إلى طَيْبَة</div>
+      <h2>Your Map of Peace</h2>
+      <p>${goalLine} A ${p.dayCount}-day plan shaped around your answers — anchored, as always, on the Prophet's Mosque ﷺ and Quba.${p._ai?' ✨ Crafted live by AI to include Madinah\'s newest places.':''}</p>
+      <div class="chips">${p.chips.map(c=>`<span class="chip">${c}</span>`).join('')}</div>
+    </div>
+    <div class="weather-band"><div class="ico">${p.weather.ico}</div><div>
+      <h4>${p.monthName}: ${p.weather.label} <span style="font-weight:400;color:var(--ink-soft);font-size:.9rem;">(${p.weather.temp})</span></h4>
+      <p>${p.weather.note}</p></div></div>
+
+    <div class="map-wrap no-pdf" data-html2canvas-ignore="true">
+      <h3>🗺️ Your map of Madinah</h3>
+      <div id="planMap"></div>
+      <p class="map-legend">Every stop in your plan is pinned here. Click a pin for details and a “Open in Google Maps” link.</p>
+    </div>`;
+
+  p.days.forEach(d=>{
+    html+=`<div class="day"><div class="day-head"><div class="dnum">${d.n}</div><div><h3>Day ${d.n}</h3><div class="dtheme">${d.theme}</div></div></div>`;
+    d.blocks.forEach((b,idx)=>{
+      const badge=b.must?'<span class="badge badge-must">Must visit</span>':(b.ferrata?'<span class="badge badge-ferrata">Adventure</span>':'');
+      const mq=b.mapName||b.name;
+      let links=`<a href="${gmaps(mq)}" target="_blank" rel="noopener">📍 Open in Maps</a>`;
+      if(b.book) links+=`<a class="book" href="${b.book.url}" target="_blank" rel="noopener">🎟 ${b.book.label}</a>`;
+      else if(b.info) links+=`<a href="${b.info}" target="_blank" rel="noopener">ℹ️ More info</a>`;
+      const seed=d.n*13+idx;
+      const primary=b.imgUrl||flickFromWords((b.name||'madinah')+' '+(b.kind||''),seed);
+      html+=`<div class="block"><div class="time">${b.time}</div><div class="b-body">
+          <h4><span style="color:var(--gold)">${b.icon||'📍'}</span>${b.name} ${badge}</h4>
+          <p>${b.desc}</p><div class="act-links">${links}</div></div>
+          <img class="b-thumb" loading="lazy" alt="" src="${primary}" data-q="${escAttr(b.photoQuery||b.name)}" data-wiki="${escAttr(b.wiki||'')}" onerror="this.onerror=null;this.src='${picsum(seed)}'"></div>`;
+    });
+    html+=`</div>`;
+  });
+
+  html+=`<div class="ai-zone no-pdf" data-html2canvas-ignore="true">
+      <h3>✨ Discover more places with AI</h3>
+      <p>Ask our AI guide to find fresh, lesser-known spots in Madinah that match your trip — cafés, hidden farms, viewpoints and new openings.</p>
+      <button class="btn btn-gold" id="aiBtn">✨ Discover more for me</button>
+      <div id="aiResults"></div>
+    </div>
+
+    <div class="tips"><h3>✦ Notes for your journey</h3><ul>${p.tips.map(t=>`<li>${t}</li>`).join('')}</ul></div>
+    <p class="src-note">Places, cafés &amp; restaurants sourced from Visit Saudi, Hala Yalla, Welcome Saudi, Wanderlog, Tripadvisor &amp; local guides. Confirm hours, prices &amp; availability before you go.</p>
+    <div class="plan-actions no-pdf" data-html2canvas-ignore="true">
+      <button class="btn btn-gold" id="pdfBtn">⬇ Download styled PDF</button>
+      <button class="btn btn-outline" id="htmlBtn">Download (.html)</button>
+      <button class="btn btn-outline" onclick="document.getElementById('quiz').scrollIntoView({behavior:'smooth'})">Start over</button>
+    </div>`;
+
+  shell.innerHTML=html;
+  document.getElementById('pdfBtn').addEventListener('click',()=>generatePDF(p));
+  document.getElementById('htmlBtn').addEventListener('click',()=>downloadHTML(p));
+  document.getElementById('aiBtn').addEventListener('click',()=>discoverMore(p));
+  renderMap(p);
+  hydrateMedia(shell);
+}
+
+/* =========================================================
+   AI ENGINE — Gemini builds the whole plan (test key direct,
+   or /api/gemini proxy). Falls back to the built-in engine.
+   ========================================================= */
+function parseJSON(t){
+  if(!t) return null;
+  t=String(t).replace(/```json/gi,'').replace(/```/g,'').trim();
+  const s=t.indexOf('{'), e=t.lastIndexOf('}');
+  if(s>=0&&e>s) t=t.slice(s,e+1);
+  try{return JSON.parse(t);}catch(_){}
+  // common model slips: trailing commas, missing commas between objects/arrays
+  let r=t.replace(/,\s*([}\]])/g,'$1').replace(/}\s*{/g,'},{').replace(/]\s*\[/g,'],[');
+  try{return JSON.parse(r);}catch(_){}
+  // salvage a truncated response: cut to the last complete object and close brackets
+  try{
+    let x=r.slice(0,r.lastIndexOf('}')+1);
+    const openB=(x.match(/\[/g)||[]).length, closeB=(x.match(/]/g)||[]).length;
+    const openC=(x.match(/{/g)||[]).length, closeC=(x.match(/}/g)||[]).length;
+    x+=']'.repeat(Math.max(0,openB-closeB))+'}'.repeat(Math.max(0,openC-closeC));
+    return JSON.parse(x);
+  }catch(_){}
+  return null;
+}
+function setPlanLoading(title,sub){
+  const shell=document.getElementById('planShell');
+  if(shell) shell.innerHTML=`<div class="loading-card"><div class="spinner"></div><h3>${title}</h3><p>${sub||''}</p></div>`;
+}
+
+async function geminiText(prompt,maxTokens,timeoutMs){
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),timeoutMs||120000);
+  try{
+    if(TEST_GEMINI_KEY){
+      const url='https://generativelanguage.googleapis.com/v1beta/models/'+GEMINI_MODEL+':generateContent?key='+encodeURIComponent(TEST_GEMINI_KEY);
+      const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.7,responseMimeType:'application/json',maxOutputTokens:maxTokens||4096}})});
+      if(!r.ok) throw new Error('Gemini '+r.status+': '+(await r.text()).slice(0,160));
+      const data=await r.json();
+      return (data&&data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts[0].text)||'';
+    }
+    const res=await fetch('/api/gemini',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({prompt,maxTokens:maxTokens||4096})});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const d=await res.json();
+    if(d.error) throw new Error(d.error);
+    return d.text||'';
+  } finally { clearTimeout(timer); }
+}
+
+const DAYMAP={'1-2':2,'3-4':4,'5-6':6,'7plus':8};
+function labelOf(id,v){const q=QUESTIONS.find(q=>q.id===id);const o=q&&q.options.find(o=>o.v===v);return o?o.label:v;}
+
+function visitorProfile(a,dayCount){
+  return {
+    age:labelOf('age',a.age), month:labelOf('month',a.month), ramadan:a.ramadan,
+    totalDays:dayCount, company:labelOf('company',a.company), goal:labelOf('goal',a.goal),
+    dailyPace:labelOf('pace',a.pace), transport:labelOf('transport',a.transport),
+    outdoor:labelOf('outdoor',a.outdoor), fitness:labelOf('fitness',a.fitness),
+    budget:labelOf('budget',a.budget), rawdah:a.rawdah
+  };
+}
+// Generate ONE complete day at a time — keeps each response small/reliable for long trips,
+// fills every day fully, and avoids repeating places/coffees across days.
+function buildDayPrompt(a,dayCount,dayIndex,chosen,coffeesUsed){
+  const first=dayIndex===1;
+  const blockShape='{"time":"07:30 – 09:30","name":"","category":"Mosque|Cafe|Tea|Restaurant|Farm|Nature|Adventure|Museum|Heritage|Park|Market|Shopping","desc":"one short sentence","mapsQuery":"precise Google Maps query incl. Madinah","lat":24.47,"lng":39.61,"must":false,"image":"3-5 vivid photo keywords","book":""}';
+  return [
+    "You are an expert local guide to Al-Madinah Al-Munawwarah, Saudi Arabia, who keeps up with the city's newest cafés, farms and attractions.",
+    "Plan ONE FULL DAY — Day "+dayIndex+" of "+dayCount+" — for this exact visitor, as STRICT JSON.",
+    "Visitor profile: "+JSON.stringify(visitorProfile(a,dayCount)),
+    "Places already used on earlier days (DO NOT repeat any of these): "+JSON.stringify(chosen),
+    "Specialty coffees already used (choose a DIFFERENT one today): "+JSON.stringify(coffeesUsed),
+    "",
+    "RULES FOR THIS DAY:",
+    "- Fill the WHOLE day with time blocks in chronological order, realistic clock times like '07:30 – 09:30'.",
+    "- Leave at least a 30-minute gap between the END of one block and the START of the next (for travel and rest).",
+    "- Block count by pace: full-day ~7-9 blocks; half-day ~4-5; nights-only ~3-4. Do NOT leave the day half-empty.",
+    "- Include prayers at Al-Masjid an-Nabawi (Prophet's Mosque) suited to the goal; mark mosque visits must=true."+(first?" This is Day 1, so ALSO include Quba Mosque (must=true).":""),
+    "- Include exactly ONE specialty coffee today, different from those already used.",
+    "- Meals by pace: full-day = 3 varied meals (breakfast, lunch, dinner) of different cuisines; half-day ~2; nights-only at least dinner. Add a heritage tea place on some days.",
+    "- Prefer authentic, currently-popular and NEW Madinah spots (e.g. Alhay, Tommah, Jadat Quba, Al Marbad Farm, Al Safiyah, Serah Museum) plus classics (date farms, Wadi Al-Jinn, Uhud e-bike trail, King Fahd Central Park, museums, dates market).",
+    "- If the visitor is young, with friends, loves the outdoors and the goal is leisure/tourist, include a Via Ferrata climb on ONE day only (skip if already used).",
+    "- During Ramadan use the night rhythm: suhoor & tahajjud, Fajr, light afternoon ziyarah, iftar by the Haram, Taraweeh & Qiyam, then late dinner and coffee.",
+    "- Adapt to the month's weather. Keep each desc to one short sentence.",
+    "",
+    "OUTPUT: return ONLY valid minified JSON — double quotes everywhere, escape any quote inside text, commas between every array element, no trailing commas, no comments, no markdown.",
+    "Use this exact shape:",
+    first
+      ? '{"weather":{"label":"","temp":"","note":""},"summary":"one warm sentence","tips":["short tip","short tip","short tip"],"title":"Day 1 — theme","blocks":['+blockShape+']}'
+      : '{"title":"Day '+dayIndex+' — theme","blocks":['+blockShape+']}'
+  ].join("\n");
+}
+
+const CAT_ICON={Mosque:'🕌',Cafe:'☕',Tea:'🫖',Restaurant:'🍽️',Food:'🍽️',Farm:'🌴',Nature:'🏜️',Adventure:'🧗',Museum:'🏛️',Heritage:'🏺',Park:'🌳',Market:'🛍️',Shopping:'🛍️'};
+const CAT_KIND={Cafe:'coffee',Tea:'tea',Restaurant:'food',Food:'food'};
+function flickFromWords(words,seed){const tags=encodeURIComponent(String(words||'madinah saudi arabia').trim().replace(/\s+/g,','));return 'https://loremflickr.com/360/240/'+tags+'?lock='+(60+(Math.abs(seed)%900));}
+// Always-fast, always-unique fallback photo when the keyword photo is slow/unavailable.
+function picsum(seed){return 'https://picsum.photos/seed/mp'+Math.abs(seed)+'/300/210';}
+function escAttr(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+/* ---- Real photos from the internet (no API key): Wikipedia + Openverse ---- */
+const _photoCache={};
+async function fetchWiki(title){
+  try{
+    const r=await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title));
+    if(!r.ok) return null;
+    const d=await r.json();
+    if(d.type==='disambiguation') return null;
+    return (d.thumbnail&&d.thumbnail.source)||(d.originalimage&&d.originalimage.source)||null;
+  }catch(_){return null;}
+}
+async function fetchOpenverse(q){
+  try{
+    const r=await fetch('https://api.openverse.org/v1/images/?q='+encodeURIComponent(q)+'&page_size=4&mature=false');
+    if(!r.ok) return null;
+    const d=await r.json();
+    const it=(d.results||[]).find(x=>x.thumbnail||x.url);
+    return it?(it.thumbnail||it.url):null;
+  }catch(_){return null;}
+}
+async function resolvePhoto(q,landmark){
+  const key=(landmark||'')+'|'+(q||'');
+  if(_photoCache[key]!==undefined) return _photoCache[key];
+  let url=null;
+  if(landmark) url=await fetchWiki(landmark);
+  if(!url && q) url=await fetchOpenverse(q+' Al Madinah Saudi Arabia');
+  if(!url && landmark) url=await fetchOpenverse(landmark);
+  _photoCache[key]=url;
+  return url;
+}
+// Upgrade every [data-q] element under root to a real photo (3 in parallel).
+async function hydrateMedia(root){
+  if(!root) return;
+  const els=Array.prototype.slice.call(root.querySelectorAll('[data-q]'));
+  let i=0;
+  const work=async()=>{
+    while(i<els.length){
+      const el=els[i++];
+      const url=await resolvePhoto(el.getAttribute('data-q'),el.getAttribute('data-wiki')||'');
+      if(!url) continue;
+      if(el.tagName==='IMG'){ el.src=url; }
+      else { el.style.backgroundImage="url('"+url+"')"; el.classList.add('has-photo'); }
+    }
+  };
+  await Promise.all([work(),work(),work()]);
+}
+
+/* ---- Keep a minimum 30-minute gap between consecutive timed activities ---- */
+function _toMin(t){const m=String(t).match(/(\d{1,2}):(\d{2})/);return m?(+m[1])*60+(+m[2]):null;}
+function _toHHMM(x){x=((x%1440)+1440)%1440;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');}
+function enforceGaps(blocks){
+  let prevEnd=null, prevRaw=null, dayOff=0;
+  (blocks||[]).forEach(b=>{
+    const parts=String(b&&b.time||'').split(/[–—-]/);
+    if(parts.length<2) return;
+    const rs=_toMin(parts[0]), re=_toMin(parts[1]);
+    if(rs==null||re==null) return;
+    if(prevRaw!=null && rs<prevRaw) dayOff++;     // raw time decreased → crossed midnight
+    let s=dayOff*1440+rs, e=dayOff*1440+re;
+    if(e<=s) e+=1440;                              // block itself spans midnight
+    if(prevEnd!=null && s<prevEnd+30){ const dur=e-s; s=prevEnd+30; e=s+dur; }
+    b.time=_toHHMM(s)+' – '+_toHHMM(e);
+    prevRaw=rs; prevEnd=e;
+  });
+  return blocks;
+}
+
+function normalizeAIPlan(ai,a,dayCount){
+  const monthName=labelOf('month',a.month);
+  const w=ai.weather||{};
+  const landmarkCats=['Mosque','Heritage','Nature','Museum','Park'];
+  const days=(ai.days||[]).map((d,i)=>({
+    n:i+1,
+    theme:(d.title||('Day '+(i+1))).replace(/^\s*day\s*\d+\s*[—:\-]\s*/i,'').trim()||'Explore at your pace',
+    blocks:enforceGaps(d.blocks||[]).map((b,j)=>{
+      const cat=b.category||'';
+      const ferrata=/ferrata/i.test((b.name||'')+cat);
+      const isLandmark=!!b.must||landmarkCats.includes(cat);
+      return {
+        time:b.time||'', name:b.name||'Stop', desc:b.desc||'',
+        must:!!b.must, ferrata,
+        lat:(typeof b.lat==='number'?b.lat:parseFloat(b.lat))||null,
+        lng:(typeof b.lng==='number'?b.lng:parseFloat(b.lng))||null,
+        mapName:b.mapsQuery||b.name,
+        icon:CAT_ICON[cat]|| (b.must?'🕌':'📍'),
+        kind:CAT_KIND[cat]||'',
+        photoQuery:b.image||((b.name||'')+' '+cat),
+        wiki:isLandmark?(b.name||''):'',
+        imgUrl:flickFromWords(b.image||(b.name+' '+cat), i*7+j*3),
+        book:b.book?{url:b.book,label:'Reserve / Info'}:null
+      };
+    })
+  }));
+  const ferrataIncluded=days.some(d=>d.blocks.some(b=>b.ferrata));
+  const chips=[];
+  chips.push(monthName+(w.label?' • '+w.label:''));
+  chips.push(dayCount+' days');
+  chips.push(labelOf('company',a.company));
+  chips.push(labelOf('goal',a.goal));
+  if(a.ramadan==='yes') chips.push('Ramadan 🌙');
+  if(ferrataIncluded) chips.push('Via Ferrata included');
+  chips.push('Daily specialty coffee ☕');
+  chips.push('AI-crafted ✨');
+  return {
+    weather:{ico:'🗓️',label:w.label||'',temp:w.temp||'',note:w.note||ai.summary||''},
+    monthName, dayCount, days,
+    tips:Array.isArray(ai.tips)&&ai.tips.length?ai.tips:['Confirm prayer times, Rawdah/Nusuk reservations and opening hours before you go.'],
+    chips, goal:a.goal, _ai:true
+  };
+}
+
+async function generateAIPlan(a){
+  const dayCount=DAYMAP[a.days]||3;
+  const deadline=Date.now()+5*60*1000;            // total budget: 5 minutes
+  const chosen=[], coffeesUsed=[], days=[];
+  let weather={}, summary='', tips=null;
+  for(let d=1; d<=dayCount; d++){
+    setPlanLoading(`Crafting day ${d} of ${dayCount}…`,'Mapping mosques, farms, cafés, food and adventures — hour by hour.');
+    let obj=null, blocks=null;
+    for(let attempt=0; attempt<2 && !blocks; attempt++){
+      const remaining=deadline-Date.now();
+      if(remaining<=3000) throw new Error('This is taking too long. Please try again.');
+      try{
+        const text=await geminiText(buildDayPrompt(a,dayCount,d,chosen,coffeesUsed),4096,Math.min(remaining,120000));
+        obj=parseJSON(text);
+        const b=obj && (Array.isArray(obj.blocks)?obj.blocks:(obj.days&&obj.days[0]&&obj.days[0].blocks));
+        if(Array.isArray(b)&&b.length) blocks=b;
+      }catch(err){
+        if(err&&err.name==='AbortError') throw new Error('The AI guide took too long to respond. Please try again.');
+        if(attempt===1) throw err;   // give up after a retry
+      }
+    }
+    if(!blocks) throw new Error('The AI returned an incomplete day. Please try again.');
+    if(d===1){ weather=obj.weather||{}; summary=obj.summary||''; tips=obj.tips; }
+    days.push({title:obj.title||('Day '+d), blocks});
+    blocks.forEach(b=>{ if(b&&b.name){ chosen.push(b.name); if(String(b.category||'').toLowerCase()==='cafe') coffeesUsed.push(b.name); } });
+  }
+  return normalizeAIPlan({weather,summary,days,tips}, a, dayCount);
+}
+
+/* ----- "Discover more" refresh button (also via Gemini) ----- */
+function buildDiscoverPrompt(existing,ctx){
+  return [
+    "You are a local guide to Al-Madinah Al-Munawwarah. Suggest 4 real, currently-open, lesser-known places",
+    "or experiences (cafés, hidden farms, viewpoints, heritage corners, family or adventure spots) that suit this visitor.",
+    "Favour authentic, recently-popular and NEW openings. Do NOT repeat any place already in their plan. Respect the city's spiritual character.",
+    "Visitor profile: "+JSON.stringify(answers),
+    "Trip context: "+JSON.stringify(ctx),
+    "Already in plan (avoid): "+JSON.stringify(existing),
+    'Return ONLY JSON: {"places":[{"name":"","area":"","category":"","why":"","mapsQuery":"","image":"photo keywords"}]}'
+  ].join("\n");
+}
+async function discoverMore(p){
+  const btn=document.getElementById('aiBtn'), out=document.getElementById('aiResults');
+  const existing=[]; p.days.forEach(d=>d.blocks.forEach(b=>existing.push(b.name)));
+  const ctx={goal:p.goal,month:p.monthName,days:p.dayCount};
+  btn.disabled=true; btn.textContent='✨ Searching Madinah…';
+  out.innerHTML='<p class="ai-msg">Asking the AI guide…</p>';
+  try{
+    const text=await geminiText(buildDiscoverPrompt(existing,ctx),2048);
+    const places=(parseJSON(text)||{}).places||[];
+    if(!places.length){ out.innerHTML='<p class="ai-msg">No new suggestions this time — try again shortly.</p>'; }
+    else{
+      out.innerHTML='<div class="day" style="margin-top:1.2rem"><div class="day-head"><div class="dnum">✦</div><div><h3>AI discoveries</h3><div class="dtheme">Fresh ideas tailored to your trip</div></div></div>'+
+        places.map((pl,k)=>{
+          const nm=pl.name||'Place';
+          return `<div class="block"><div class="time">${pl.category||'Idea'}</div><div class="b-body">
+            <h4><span style="color:var(--gold)">📍</span>${nm}${pl.area?` <small style="color:#5a5f53;font-weight:400">· ${pl.area}</small>`:''}</h4>
+            <p>${pl.why||pl.description||''}</p>
+            <div class="act-links"><a href="${gmaps(pl.mapsQuery||nm)}" target="_blank" rel="noopener">📍 Open in Maps</a></div></div>
+            <img class="b-thumb" loading="lazy" alt="" src="${flickFromWords(pl.image||nm,k*5+3)}" data-q="${escAttr(pl.image||nm)}" data-wiki="" onerror="this.onerror=null;this.src='${picsum(k*5+3)}'"></div>`;
+        }).join('')+'</div>';
+      hydrateMedia(out);
+      btn.textContent='✨ Discover again';
+    }
+  }catch(e){
+    out.innerHTML=`<p class="ai-msg">The AI guide isn't connected. Paste your key into <code>TEST_GEMINI_KEY</code> to test as a single file, or deploy <code>/api/gemini</code> with the <code>GEMINI_API_KEY</code> secret. <span style="opacity:.7">(${e.message})</span></p>`;
+    btn.textContent='✨ Try again';
+  }
+  btn.disabled=false;
+}
+
+/* ----- interactive map ----- */
+function renderMap(p){
+  if(typeof L==='undefined'){document.getElementById('planMap').innerHTML='<p style="padding:1rem;color:#5a5f53">Map could not load (offline). All “Open in Maps” links still work.</p>';return;}
+  const pts=[];
+  const seen=new Set();
+  p.days.forEach(d=>d.blocks.forEach(b=>{
+    if(b.lat&&!b.far&&!seen.has(b.name)){seen.add(b.name);pts.push(b);}
+  }));
+  if(planMap){planMap.remove();planMap=null;}
+  planMap=L.map('planMap',{scrollWheelZoom:false}).setView([24.47,39.61],11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(planMap);
+  const group=[];
+  pts.forEach(b=>{
+    const m=L.marker([b.lat,b.lng]).addTo(planMap);
+    m.bindPopup(`<strong>${(b.icon||'')} ${b.name}</strong><br/><a href="${gmaps(b.mapName||b.name)}" target="_blank" rel="noopener">Open in Google Maps →</a>`);
+    group.push([b.lat,b.lng]);
+  });
+  if(group.length) planMap.fitBounds(group,{padding:[40,40],maxZoom:13});
+  setTimeout(()=>planMap.invalidateSize(),300);
+}
+
+/* ----- styled PDF (html2canvas + jsPDF), print fallback ----- */
+async function generatePDF(p){
+  const btn=document.getElementById('pdfBtn');
+  if(typeof html2canvas==='undefined' || !(window.jspdf&&window.jspdf.jsPDF)){
+    window.print(); return;
+  }
+  btn.textContent='Preparing PDF…'; btn.disabled=true;
+  try{
+    const node=document.getElementById('planShell');
+    const canvas=await html2canvas(node,{scale:2,useCORS:true,backgroundColor:'#f7f2e9',
+      ignoreElements:el=>el.classList&&el.classList.contains('no-pdf')});
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF('p','mm','a4');
+    const pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight();
+    const imgW=pw, imgH=canvas.height*imgW/canvas.width;
+    let left=imgH, pos=0;
+    const img=canvas.toDataURL('image/jpeg',0.95);
+    pdf.addImage(img,'JPEG',0,pos,imgW,imgH);
+    left-=ph;
+    while(left>0){ pos=left-imgH; pdf.addPage(); pdf.addImage(img,'JPEG',0,pos,imgW,imgH); left-=ph; }
+    pdf.save('My-Map-Peace-Plan.pdf');
+  }catch(e){ console.error(e); window.print(); }
+  btn.textContent='⬇ Download styled PDF'; btn.disabled=false;
+}
+
+/* ----- standalone HTML download ----- */
+function downloadHTML(p){
+  const blocks=p.days.map(d=>{
+    const items=d.blocks.map(b=>{
+      const book=b.book?` — <a href="${b.book.url}">${b.book.label}</a>`:(b.info?` — <a href="${b.info}">info</a>`:'');
+      return `<div style="margin:10px 0;padding-left:14px;border-left:3px solid #c2a14d;"><strong>${b.time}</strong> — ${b.name}${b.must?' (Must visit)':''} · <a href="${gmaps(b.name)}">map</a>${book}<br/><span style="color:#5a5f53;font-size:14px;">${b.desc}</span></div>`;
+    }).join('');
+    return `<h2 style="color:#0e4733;border-bottom:1px solid #e7dbc6;padding-bottom:6px;">Day ${d.n} — ${d.theme}</h2>${items}`;
+  }).join('');
+  const tips=p.tips.map(t=>`<li style="margin:6px 0;">${t}</li>`).join('');
+  const doc=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>My Map Peace Plan — Al-Madinah</title>
+    <style>body{font-family:Georgia,serif;max-width:760px;margin:40px auto;padding:0 20px;color:#23271f;line-height:1.6;}h1{color:#0e4733;}small{color:#5a5f53;}a{color:#15583f;}</style></head><body>
+    <h1>Map Peace — Your Plan for Al-Madinah</h1>
+    <p><small>${p.monthName} • ${p.weather.label} (${p.weather.temp}) • ${p.dayCount} days</small></p>
+    <p>${p.weather.note}</p>${blocks}
+    <h2 style="color:#0e4733;">Notes for your journey</h2><ul>${tips}</ul>
+    <p style="margin-top:30px;color:#888;font-size:13px;">Generated by Map Peace. Confirm prayer times, Rawdah/Nusuk reservations, booking availability and opening hours before you go.</p>
+    </body></html>`;
+  const blob=new Blob([doc],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='My-Map-Peace-Plan.html';
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
