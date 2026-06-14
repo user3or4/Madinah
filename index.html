@@ -454,7 +454,25 @@ function renderPlan(p){
    AI ENGINE — Gemini builds the whole plan (test key direct,
    or /api/gemini proxy). Falls back to the built-in engine.
    ========================================================= */
-function parseJSON(t){ if(!t) return null; try{return JSON.parse(t);}catch(_){const m=t.match(/\{[\s\S]*\}/);return m?JSON.parse(m[0]):null;} }
+function parseJSON(t){
+  if(!t) return null;
+  t=String(t).replace(/```json/gi,'').replace(/```/g,'').trim();
+  const s=t.indexOf('{'), e=t.lastIndexOf('}');
+  if(s>=0&&e>s) t=t.slice(s,e+1);
+  try{return JSON.parse(t);}catch(_){}
+  // common model slips: trailing commas, missing commas between objects/arrays
+  let r=t.replace(/,\s*([}\]])/g,'$1').replace(/}\s*{/g,'},{').replace(/]\s*\[/g,'],[');
+  try{return JSON.parse(r);}catch(_){}
+  // salvage a truncated response: cut to the last complete object and close brackets
+  try{
+    let x=r.slice(0,r.lastIndexOf('}')+1);
+    const openB=(x.match(/\[/g)||[]).length, closeB=(x.match(/]/g)||[]).length;
+    const openC=(x.match(/{/g)||[]).length, closeC=(x.match(/}/g)||[]).length;
+    x+=']'.repeat(Math.max(0,openB-closeB))+'}'.repeat(Math.max(0,openC-closeC));
+    return JSON.parse(x);
+  }catch(_){}
+  return null;
+}
 function setPlanLoading(title,sub){
   const shell=document.getElementById('planShell');
   if(shell) shell.innerHTML=`<div class="loading-card"><div class="spinner"></div><h3>${title}</h3><p>${sub||''}</p></div>`;
@@ -467,7 +485,7 @@ async function geminiText(prompt,maxTokens,timeoutMs){
     if(TEST_GEMINI_KEY){
       const url='https://generativelanguage.googleapis.com/v1beta/models/'+GEMINI_MODEL+':generateContent?key='+encodeURIComponent(TEST_GEMINI_KEY);
       const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
-        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.85,responseMimeType:'application/json',maxOutputTokens:maxTokens||4096}})});
+        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.7,responseMimeType:'application/json',maxOutputTokens:maxTokens||4096}})});
       if(!r.ok) throw new Error('Gemini '+r.status+': '+(await r.text()).slice(0,160));
       const data=await r.json();
       return (data&&data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts[0].text)||'';
@@ -515,7 +533,8 @@ function buildDayPrompt(a,dayCount,dayIndex,chosen,coffeesUsed){
     "- During Ramadan use the night rhythm: suhoor & tahajjud, Fajr, light afternoon ziyarah, iftar by the Haram, Taraweeh & Qiyam, then late dinner and coffee.",
     "- Adapt to the month's weather. Keep each desc to one short sentence.",
     "",
-    "Return ONLY JSON of this exact shape:",
+    "OUTPUT: return ONLY valid minified JSON — double quotes everywhere, escape any quote inside text, commas between every array element, no trailing commas, no comments, no markdown.",
+    "Use this exact shape:",
     first
       ? '{"weather":{"label":"","temp":"","note":""},"summary":"one warm sentence","tips":["short tip","short tip","short tip"],"title":"Day 1 — theme","blocks":['+blockShape+']}'
       : '{"title":"Day '+dayIndex+' — theme","blocks":['+blockShape+']}'
@@ -575,18 +594,21 @@ async function generateAIPlan(a){
   let weather={}, summary='', tips=null;
   for(let d=1; d<=dayCount; d++){
     setPlanLoading(`Crafting day ${d} of ${dayCount}…`,'Mapping mosques, farms, cafés, food and adventures — hour by hour.');
-    const remaining=deadline-Date.now();
-    if(remaining<=3000) throw new Error('This is taking too long. Please try again.');
-    let obj;
-    try{
-      const text=await geminiText(buildDayPrompt(a,dayCount,d,chosen,coffeesUsed),3072,Math.min(remaining,120000));
-      obj=parseJSON(text);
-    }catch(err){
-      if(err&&err.name==='AbortError') throw new Error('The AI guide took too long to respond. Please try again.');
-      throw err;
+    let obj=null, blocks=null;
+    for(let attempt=0; attempt<2 && !blocks; attempt++){
+      const remaining=deadline-Date.now();
+      if(remaining<=3000) throw new Error('This is taking too long. Please try again.');
+      try{
+        const text=await geminiText(buildDayPrompt(a,dayCount,d,chosen,coffeesUsed),4096,Math.min(remaining,120000));
+        obj=parseJSON(text);
+        const b=obj && (Array.isArray(obj.blocks)?obj.blocks:(obj.days&&obj.days[0]&&obj.days[0].blocks));
+        if(Array.isArray(b)&&b.length) blocks=b;
+      }catch(err){
+        if(err&&err.name==='AbortError') throw new Error('The AI guide took too long to respond. Please try again.');
+        if(attempt===1) throw err;   // give up after a retry
+      }
     }
-    const blocks = obj && (Array.isArray(obj.blocks)?obj.blocks:(obj.days&&obj.days[0]&&obj.days[0].blocks));
-    if(!Array.isArray(blocks)||!blocks.length) throw new Error('The AI returned an incomplete day. Please try again.');
+    if(!blocks) throw new Error('The AI returned an incomplete day. Please try again.');
     if(d===1){ weather=obj.weather||{}; summary=obj.summary||''; tips=obj.tips; }
     days.push({title:obj.title||('Day '+d), blocks});
     blocks.forEach(b=>{ if(b&&b.name){ chosen.push(b.name); if(String(b.category||'').toLowerCase()==='cafe') coffeesUsed.push(b.name); } });
