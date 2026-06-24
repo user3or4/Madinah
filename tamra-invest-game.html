@@ -6,37 +6,21 @@
 <title>Tamra Capital — Road to Mercedes | الطريق إلى مرسيدس</title>
 <style>
   :root{
-    --navy:#27357E;       /* brand blue */
-    --navy-d:#1B2560;
-    --navy-l:#3A4BA0;
-    --teal:#34B6A7;       /* brand teal (CTA) */
-    --teal-d:#2A9C8F;
-    --teal-l:#62D2C5;
-    --ink:#222a5c;        /* headings/text */
-    --muted:#7C82A0;
-    --line:#E7EAF3;
-    --bg:#F4F6FB;
-    --white:#fff;
-    --red:#E2674A;
+    --navy:#27357E; --navy-d:#1B2560; --navy-l:#3A4BA0;
+    --teal:#34B6A7; --teal-d:#2A9C8F; --teal-l:#62D2C5;
+    --ink:#222a5c; --muted:#7C82A0; --line:#E7EAF3;
+    --bg:#F4F6FB; --white:#fff; --red:#E2674A; --amber:#E0A93B;
     --shadow:0 24px 60px rgba(20,30,80,.30);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{
     font-family:"Segoe UI",Tahoma,"Helvetica Neue",Arial,sans-serif;
-    color:var(--ink);
-    min-height:100%;
+    color:var(--ink);min-height:100%;
     display:flex;align-items:center;justify-content:center;
-    padding:18px;overflow-x:hidden;
-    background:var(--navy);
-    position:relative;
+    padding:18px;overflow-x:hidden;background:var(--navy);position:relative;
   }
-  /* brand angular geometry in the page background */
-  body::before,body::after{
-    content:"";position:fixed;z-index:0;pointer-events:none;
-  }
-  body::before{
-    inset:0;
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
     background:
       linear-gradient(135deg,transparent 55%,rgba(58,75,160,.55) 55%,rgba(58,75,160,.55) 70%,transparent 70%),
       linear-gradient(135deg,transparent 72%,rgba(52,182,167,.30) 72%,rgba(52,182,167,.30) 80%,transparent 80%),
@@ -44,28 +28,17 @@
       radial-gradient(800px 500px at -10% 120%,var(--navy-d),transparent 55%),
       var(--navy);
   }
-  .app{
-    position:relative;z-index:1;
-    width:100%;max-width:760px;
-    background:var(--white);
-    border-radius:26px;
-    box-shadow:var(--shadow);
-    overflow:hidden;
-  }
-  /* Top bar */
-  .top{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:16px 20px;border-bottom:1px solid var(--line);
-  }
+  .app{position:relative;z-index:1;width:100%;max-width:760px;background:var(--white);
+    border-radius:26px;box-shadow:var(--shadow);overflow:hidden}
+  .top{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line)}
   .brand{display:flex;align-items:center;gap:11px}
   .brand .mark{width:38px;height:34px;position:relative;flex:none}
-  .brand .mark i{position:absolute;left:0;width:26px;height:11px;border-radius:2px;
-    transform:skewX(-28deg);transform-origin:left;}
-  .brand .mark i:nth-child(1){top:0;  left:8px; background:var(--teal-l)}
-  .brand .mark i:nth-child(2){top:10px;left:4px; background:var(--teal)}
-  .brand .mark i:nth-child(3){top:20px;left:0;   background:var(--navy)}
+  .brand .mark i{position:absolute;left:0;width:26px;height:11px;border-radius:2px;transform:skewX(-28deg);transform-origin:left}
+  .brand .mark i:nth-child(1){top:0;left:8px;background:var(--teal-l)}
+  .brand .mark i:nth-child(2){top:10px;left:4px;background:var(--teal)}
+  .brand .mark i:nth-child(3){top:20px;left:0;background:var(--navy)}
   .brand .name{font-weight:800;line-height:1.05;color:var(--ink)}
-  .brand .name small{display:block;font-weight:500;color:var(--muted);font-size:11px;letter-spacing:0}
+  .brand .name small{display:block;font-weight:500;color:var(--muted);font-size:11px}
   .lang{cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--navy);
     padding:7px 14px;border-radius:999px;font-weight:800;font-size:13px;transition:.2s}
   .lang:hover{background:#eef1f8}
@@ -79,18 +52,15 @@
   p.lead{color:#4a4f70;font-size:15px;line-height:1.55;margin-bottom:18px}
   .hero-emoji{font-size:64px;text-align:center;margin:6px 0 4px;filter:drop-shadow(0 10px 16px rgba(20,30,80,.18))}
 
-  .btn{cursor:pointer;border:none;border-radius:14px;font-weight:800;font-size:16px;
-    padding:15px 22px;width:100%;transition:.18s;font-family:inherit}
+  .btn{cursor:pointer;border:none;border-radius:14px;font-weight:800;font-size:16px;padding:15px 22px;width:100%;transition:.18s;font-family:inherit}
   .btn:active{transform:translateY(1px)}
-  .btn.teal{background:linear-gradient(180deg,var(--teal-l),var(--teal));color:#08332d;
-    box-shadow:0 10px 22px rgba(52,182,167,.4)}
+  .btn.teal{background:linear-gradient(180deg,var(--teal-l),var(--teal));color:#08332d;box-shadow:0 10px 22px rgba(52,182,167,.4)}
   .btn.teal:hover{filter:brightness(1.05)}
 
   .card{background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px}
-  .pill{display:inline-block;background:rgba(52,182,167,.14);color:var(--teal-d);
-    padding:5px 12px;border-radius:999px;font-size:12px;font-weight:800;margin-bottom:10px;letter-spacing:.4px}
-  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media(max-width:560px){.twocol{grid-template-columns:1fr}}
+  .pill{display:inline-block;background:rgba(52,182,167,.14);color:var(--teal-d);padding:5px 12px;border-radius:999px;font-size:12px;font-weight:800;margin-bottom:10px;letter-spacing:.4px}
+  .threecol{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(max-width:560px){.threecol{grid-template-columns:1fr}}
 
   .demo-out{font-size:30px;font-weight:900;color:var(--teal-d);text-align:center;margin:6px 0}
   .demo-sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:12px}
@@ -110,26 +80,30 @@
   .fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--teal-l));border-radius:999px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
 
   .price{font-size:14px;color:var(--muted);margin-bottom:4px}
-  .item-emoji{font-size:56px;margin:4px 0}
+  .item-emoji{font-size:54px;margin:4px 0}
   .grow-note{font-size:13px;color:var(--teal-d);min-height:18px;margin:8px 0 14px;font-weight:700}
-  .choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
-  @media(max-width:520px){.choice-grid{grid-template-columns:1fr}}
-  .choice{cursor:pointer;border-radius:16px;padding:16px 14px;text-align:center;transition:.18s;border:2px solid}
+  .choice{cursor:pointer;border-radius:16px;padding:14px 10px;text-align:center;transition:.18s;border:2px solid}
+  .choice.save{background:rgba(224,169,59,.10);border-color:var(--amber)}
   .choice.invest{background:rgba(52,182,167,.10);border-color:var(--teal)}
-  .choice.spend{background:rgba(226,103,74,.08);border-color:rgba(226,103,74,.55)}
+  .choice.buy{background:rgba(226,103,74,.08);border-color:rgba(226,103,74,.55)}
   .choice:hover{transform:translateY(-3px);filter:brightness(1.03)}
-  .choice .big{font-size:30px}
-  .choice .t{font-weight:800;margin-top:4px}
-  .choice .s{font-size:12px;color:var(--muted);margin-top:2px}
-  .choice.invest .t{color:var(--teal-d)} .choice.spend .t{color:var(--red)}
+  .choice .big{font-size:28px}
+  .choice .t{font-weight:800;margin-top:4px;font-size:14px}
+  .choice .s{font-size:11px;color:var(--muted);margin-top:2px}
+  .choice.save .t{color:#b9852a}.choice.invest .t{color:var(--teal-d)}.choice.buy .t{color:var(--red)}
   .toast{font-size:14px;text-align:center;min-height:22px;margin-top:14px;font-weight:800}
 
   .result-num{font-size:40px;font-weight:900;color:var(--teal-d);text-align:center;margin:6px 0}
   .verdict{text-align:center;font-size:20px;font-weight:900;margin-bottom:14px}
-  .win{color:var(--teal-d)} .lose{color:var(--red)}
-  .compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
-  .compare .c{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
-  .compare .c b{display:block;font-size:20px;margin-top:4px}
+  .win{color:var(--teal-d)}.lose{color:var(--red)}
+  .ledger{margin:8px 0 4px}
+  .ledger .row{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-radius:12px;margin-bottom:8px;font-weight:700;font-size:14px}
+  .ledger .row.paid{background:#fff;border:1px solid var(--line)}
+  .ledger .row.ret{background:rgba(52,182,167,.12);color:var(--teal-d);font-weight:800}
+  .ledger .row.sav{background:rgba(224,169,59,.10);color:#b9852a}
+  .ledger .row.tot{background:var(--navy);color:#fff;font-weight:900;font-size:16px}
+  .ledger .row b{font-size:15px}
+  .bench{background:rgba(52,182,167,.08);border:1px dashed var(--teal);border-radius:12px;padding:10px 14px;text-align:center;font-size:13px;color:var(--teal-d);font-weight:700;margin-top:6px}
 
   .foot{text-align:center;font-size:12px;color:var(--muted);padding:14px;border-top:1px solid var(--line)}
   .center{text-align:center}.mt{margin-top:12px}
@@ -161,20 +135,21 @@
     <button class="btn teal" onclick="go('learn1')" data-t="startBtn"></button>
   </section>
 
-  <!-- 2. LEARN: investment -->
+  <!-- 2. LEARN: 3 paths -->
   <section class="screen" id="s-learn1">
     <span class="pill" data-t="learnTag1"></span>
     <h2 data-t="invTitle"></h2>
     <p class="lead" data-t="invBody"></p>
-    <div class="twocol">
-      <div class="card"><div style="font-size:30px">🛒</div><b data-t="invSpendT"></b><p style="color:var(--muted);font-size:13px;margin-top:4px" data-t="invSpendB"></p></div>
-      <div class="card"><div style="font-size:30px">🌱</div><b data-t="invGrowT"></b><p style="color:var(--muted);font-size:13px;margin-top:4px" data-t="invGrowB"></p></div>
+    <div class="threecol">
+      <div class="card center"><div style="font-size:28px">🛍️</div><b style="color:var(--red);font-size:14px" data-t="p1T"></b><p style="color:var(--muted);font-size:12px;margin-top:4px" data-t="p1B"></p></div>
+      <div class="card center"><div style="font-size:28px">🏦</div><b style="color:#b9852a;font-size:14px" data-t="p2T"></b><p style="color:var(--muted);font-size:12px;margin-top:4px" data-t="p2B"></p></div>
+      <div class="card center"><div style="font-size:28px">🌱</div><b style="color:var(--teal-d);font-size:14px" data-t="p3T"></b><p style="color:var(--muted);font-size:12px;margin-top:4px" data-t="p3B"></p></div>
     </div>
     <button class="btn teal mt" onclick="go('learn2')" data-t="nextBtn"></button>
     <div class="stepdots"><i class="on"></i><i></i></div>
   </section>
 
-  <!-- 3. LEARN: compound interest demo -->
+  <!-- 3. LEARN: compound demo -->
   <section class="screen" id="s-learn2">
     <span class="pill" data-t="learnTag2"></span>
     <h2 data-t="cmpTitle"></h2>
@@ -207,16 +182,15 @@
       <div style="font-weight:800;font-size:17px;color:var(--navy)" id="itemName"></div>
       <div class="price" id="itemPrice"></div>
       <div class="grow-note" id="growNote"></div>
-      <div class="choice-grid">
-        <div class="choice spend" onclick="choose('spend')">
-          <div class="big">💸</div>
-          <div class="t" data-t="spendT"></div>
-          <div class="s" data-t="spendS"></div>
+      <div class="threecol">
+        <div class="choice buy" onclick="choose('buy')">
+          <div class="big">🛍️</div><div class="t" data-t="cBuyT"></div><div class="s" data-t="cBuyS"></div>
+        </div>
+        <div class="choice save" onclick="choose('save')">
+          <div class="big">🏦</div><div class="t" data-t="cSaveT"></div><div class="s" data-t="cSaveS"></div>
         </div>
         <div class="choice invest" onclick="choose('invest')">
-          <div class="big">📈</div>
-          <div class="t" data-t="investT"></div>
-          <div class="s" data-t="investS"></div>
+          <div class="big">📈</div><div class="t" data-t="cInvestT"></div><div class="s" data-t="cInvestS"></div>
         </div>
       </div>
       <div class="toast" id="toast"></div>
@@ -228,14 +202,17 @@
     <div class="hero-emoji" id="resEmoji">🏁</div>
     <div class="verdict" id="verdict"></div>
     <div class="card">
-      <div class="center" style="color:var(--muted);font-size:13px" data-t="resYourPort"></div>
+      <div class="center" style="color:var(--muted);font-size:13px" data-t="resTotal"></div>
       <div class="result-num" id="resPort">0</div>
       <div class="progwrap"><div class="track"><div class="fill" id="resFill"></div></div></div>
-      <div class="compare">
-        <div class="c"><span style="font-size:12px;color:var(--muted)" data-t="resAllInv"></span><b class="win" id="resAll">0</b></div>
-        <div class="c"><span style="font-size:12px;color:var(--muted)" data-t="resNever"></span><b class="lose" id="resNone">0</b></div>
+      <div class="ledger">
+        <div class="row paid"><span data-t="resPaidIn"></span><b id="resPrincipal">0</b></div>
+        <div class="row ret"><span data-t="resReturn"></span><b id="resGain">0</b></div>
+        <div class="row sav"><span data-t="resSaved"></span><b id="resSavedV">0</b></div>
+        <div class="row tot"><span data-t="resTotalRow"></span><b id="resTotalV">0</b></div>
       </div>
-      <p class="lead" id="resLesson" style="margin:6px 0 0"></p>
+      <div class="bench" id="resBench"></div>
+      <p class="lead" id="resLesson" style="margin:12px 0 0"></p>
     </div>
     <div class="card center" style="background:linear-gradient(120deg,rgba(52,182,167,.12),rgba(39,53,126,.06))">
       <b style="color:var(--navy)" data-t="ctaTitle"></b>
@@ -248,102 +225,114 @@
 </div>
 
 <script>
-/* ---------------- i18n ---------------- */
-const T = {
+const T={
   ar:{
     brandName:"تمرة المالية", brandSub:"استثمر. انمُ. امتلك حلمك.",
     introTitle:"الطريق إلى المرسيدس 🏆",
-    introLead:"15 سنة. قرار واحد كل سنة. هل ستملك سيارة أحلامك؟ كل ريال تستثمره اليوم يكبر… والوقت هو سلاحك السري.",
+    introLead:"15 سنة. قرار واحد كل سنة: تشتري، تدّخر، أو تستثمر؟ هل ستملك سيارة أحلامك؟ الوقت هو سلاحك السري.",
     goalLine:"الهدف: مرسيدس بعد 15 سنة",
-    goalSub:"السعر: 200,000 ريال",
+    goalSub:"السعر: 250,000 ريال",
     startBtn:"يلا نبدأ ▶",
-    learnTag1:"الدرس ١", invTitle:"ما هو الاستثمار؟",
-    invBody:"الاستثمار = تشغّل فلوسك لتعمل لك وتكبر مع الوقت، بدل ما تنام في الدرج.",
-    invSpendT:"تصرف 🛒", invSpendB:"تشتري شيء، تستمتع لحظة، وتنتهي الفلوس.",
-    invGrowT:"تستثمر 🌱", invGrowB:"تزرع فلوسك، فتكبر سنة بعد سنة وتصير شجرة.",
+    learnTag1:"الدرس ١", invTitle:"ثلاث طرق لفلوسك",
+    invBody:"كل سنة تختار: تشتري وتنتهي الفلوس، أو تدّخر بدون نمو، أو تستثمر فتكبر مع الوقت.",
+    p1T:"تشتري", p1B:"تستمتع لحظة، وتختفي الفلوس.",
+    p2T:"تدّخر", p2B:"تحفظها بأمان، لكن لا تكبر.",
+    p3T:"تستثمر", p3B:"تشتغل لك وتكبر كل سنة.",
     nextBtn:"التالي ◀",
     learnTag2:"الدرس ٢", cmpTitle:"الفائدة المركبة ✨",
-    cmpBody:"أرباحك تربح أرباحاً! حرّك المؤشر وشوف كيف 1,000 ريال تكبر مع الوقت بعائد 10٪ سنوياً.",
+    cmpBody:"أرباحك تربح أرباحاً! حرّك المؤشر وشوف كيف 1,000 ريال تكبر بعائد 10٪ سنوياً.",
     cmpAfter:"بعد", cmpYears:"سنة", cmpYr:"سنة",
     cmpHint:"السر: ابدأ مبكراً. الوقت يصنع الفرق العجيب.",
     playBtn:"ابدأ اللعبة 🎮",
-    hudYear:"السنة", hudAge:"العمر", hudPort:"محفظتك",
+    hudYear:"السنة", hudAge:"العمر", hudPort:"ثروتك",
     progLabel:"التقدّم نحو المرسيدس", thisYear:"مدخول هذي السنة:", sar:"ريال",
-    spendT:"اصرفها", spendS:"اشترِ المنتج الآن", investT:"استثمرها", investS:"+10٪ كل سنة",
-    resYourPort:"محفظتك النهائية",
-    resAllInv:"لو استثمرت دائماً", resNever:"لو صرفت كل شي",
+    cBuyT:"أشتريها", cBuyS:"تروح الفلوس",
+    cSaveT:"أدّخرها", cSaveS:"بدون نمو",
+    cInvestT:"أستثمرها", cInvestS:"+10٪ كل سنة",
+    resTotal:"إجمالي ثروتك",
+    resPaidIn:"المبلغ الذي استثمرته (رأس المال)",
+    resReturn:"الأرباح التي ربحتها (العائد) ✨",
+    resSaved:"ما ادّخرته (بدون نمو)",
+    resTotalRow:"الإجمالي",
+    resBench:"لو استثمرت كل شيء → 320,000 ريال",
     ctaTitle:"الأثرياء لا يدّخرون فقط… يستثمرون 🌴",
     ctaBody:"تمرة المالية تساعدك تبدأ رحلة استثمارك مبكراً وبخطوات بسيطة.",
     againBtn:"العب مرة ثانية 🔁",
     footer:"© تمرة المالية — لعبة تعليمية. الأرقام للتوضيح فقط وليست نصيحة استثمارية.",
-    boughtMsg:"استمتعت بـ", investedMsg:"استثمرت ونمت محفظتك!",
-    winV:"مبروك! امتلكت المرسيدس 🎉🚗", loseV:"لم تصل هالمرة… جرّب تستثمر أكثر 💪",
-    lessonWin:"شفت؟ الانضباط + الفائدة المركبة = ثروة. كل سنة استثمرت قرّبتك للحلم.",
-    lessonLose:"كل مرة صرفت فيها، خسرت نمو السنين القادمة. الوقت لا يعود — استثمر مبكراً."
+    savedMsg:"احتفظت بفلوسك (بدون نمو)", investedMsg:"استثمرت ونمت محفظتك!", boughtMsg:"اشتريت",
+    winV:"مبروك! امتلكت المرسيدس 🎉🚗", loseV:"لم تصل هالمرة… استثمر أكثر 💪",
+    lessonWin:"شفت؟ المبلغ الذي استثمرته أعطاك أرباحاً إضافية مجاناً بفضل الفائدة المركبة. هذي طريقة الأثرياء.",
+    lessonLose:"الادّخار وحده لا يكفي، والشراء يضيّع فلوسك. الاستثمار المبكر هو الطريق — والوقت لا يعود."
   },
   en:{
     brandName:"tamra capital", brandSub:"Invest. Grow. Own your dream.",
     introTitle:"Road to Mercedes 🏆",
-    introLead:"15 years. One choice each year. Will you own your dream car? Every riyal you invest today grows… and time is your secret weapon.",
+    introLead:"15 years. One choice each year: buy, save, or invest? Will you own your dream car? Time is your secret weapon.",
     goalLine:"Goal: a Mercedes in 15 years",
-    goalSub:"Price: SAR 200,000",
+    goalSub:"Price: SAR 250,000",
     startBtn:"Let's start ▶",
-    learnTag1:"LESSON 1", invTitle:"What is investing?",
-    invBody:"Investing = put your money to work so it grows over time, instead of sleeping in a drawer.",
-    invSpendT:"Spend 🛒", invSpendB:"Buy something, enjoy a moment, money is gone.",
-    invGrowT:"Invest 🌱", invGrowB:"Plant your money, it grows year after year into a tree.",
+    learnTag1:"LESSON 1", invTitle:"Three paths for your money",
+    invBody:"Each year you pick: buy it (money gone), save it (no growth), or invest it (grows over time).",
+    p1T:"Buy it", p1B:"Enjoy a moment, money is gone.",
+    p2T:"Save it", p2B:"Kept safe, but it doesn't grow.",
+    p3T:"Invest it", p3B:"Works for you, grows every year.",
     nextBtn:"Next ▶",
     learnTag2:"LESSON 2", cmpTitle:"Compound interest ✨",
     cmpBody:"Your profits earn profits! Drag the slider and watch SAR 1,000 grow at 10% per year.",
     cmpAfter:"After", cmpYears:"years", cmpYr:"yr",
     cmpHint:"The secret: start early. Time does the magic.",
     playBtn:"Play the game 🎮",
-    hudYear:"Year", hudAge:"Age", hudPort:"Portfolio",
+    hudYear:"Year", hudAge:"Age", hudPort:"Wealth",
     progLabel:"Progress to Mercedes", thisYear:"Income this year:", sar:"SAR",
-    spendT:"Spend it", spendS:"Buy the item now", investT:"Invest it", investS:"+10% every year",
-    resYourPort:"Your final portfolio",
-    resAllInv:"If you always invested", resNever:"If you spent it all",
+    cBuyT:"Buy it", cBuyS:"Money gone",
+    cSaveT:"Save it", cSaveS:"No growth",
+    cInvestT:"Invest it", cInvestS:"+10% / year",
+    resTotal:"Your total wealth",
+    resPaidIn:"What you paid into investing (principal)",
+    resReturn:"The return you earned (benefit) ✨",
+    resSaved:"What you saved (no growth)",
+    resTotalRow:"Total",
+    resBench:"If you invested everything → SAR 320,000",
     ctaTitle:"Wealthy people don't just save… they invest 🌴",
     ctaBody:"Tamra Capital helps you start your investing journey early, in simple steps.",
     againBtn:"Play again 🔁",
     footer:"© Tamra Capital — Educational game. Numbers are illustrative, not investment advice.",
-    boughtMsg:"You enjoyed", investedMsg:"Invested — your portfolio grew!",
-    winV:"Congrats! You own the Mercedes 🎉🚗", loseV:"Not this time… try investing more 💪",
-    lessonWin:"See? Discipline + compound interest = wealth. Every year you invested pushed you closer.",
-    lessonLose:"Every time you spent, you lost future years of growth. Time never returns — invest early."
+    savedMsg:"You kept your money (no growth)", investedMsg:"Invested — your portfolio grew!", boughtMsg:"You bought",
+    winV:"Congrats! You own the Mercedes 🎉🚗", loseV:"Not this time… invest more 💪",
+    lessonWin:"See? The money you invested earned extra profit for free, thanks to compound interest. That's how the wealthy do it.",
+    lessonLose:"Saving alone isn't enough, and buying drains your money. Investing early is the way — and time never returns."
   }
 };
 
 let lang="ar";
-const RATE=0.10, TARGET=200000;
+const RATE=0.10, TARGET=250000;
 
 const YEARS=[
-  {age:11, cash:2000,  e:"🎮", ar:"جهاز ألعاب", en:"Game console"},
-  {age:12, cash:2500,  e:"👟", ar:"حذاء رياضي", en:"Sneakers"},
-  {age:13, cash:3000,  e:"📱", ar:"جوال جديد", en:"New phone"},
-  {age:14, cash:4000,  e:"🎧", ar:"سماعات", en:"Headphones"},
-  {age:15, cash:5000,  e:"⌚", ar:"ساعة ذكية", en:"Smartwatch"},
-  {age:16, cash:6000,  e:"🚲", ar:"دراجة فخمة", en:"Premium bike"},
-  {age:17, cash:7000,  e:"💻", ar:"لابتوب", en:"Laptop"},
-  {age:18, cash:8000,  e:"📷", ar:"كاميرا", en:"Camera"},
-  {age:19, cash:9000,  e:"✈️", ar:"رحلة سفر", en:"A trip abroad"},
-  {age:20, cash:10000, e:"👜", ar:"حقيبة ماركة", en:"Designer bag"},
-  {age:21, cash:12000, e:"🕹️", ar:"حاسب ألعاب", en:"Gaming PC"},
-  {age:22, cash:14000, e:"🛵", ar:"دراجة نارية", en:"Scooter"},
-  {age:23, cash:16000, e:"⌚", ar:"ساعة فاخرة", en:"Luxury watch"},
-  {age:24, cash:18000, e:"🛋️", ar:"أثاث غرفة", en:"Room makeover"},
-  {age:25, cash:20000, e:"🏝️", ar:"إجازة فاخرة", en:"Luxury vacation"}
+  {age:11, cash:3000,  e:"🎮", ar:"جهاز ألعاب", en:"Game console"},
+  {age:12, cash:4000,  e:"👟", ar:"حذاء رياضي", en:"Sneakers"},
+  {age:13, cash:5000,  e:"📱", ar:"جوال جديد", en:"New phone"},
+  {age:14, cash:6000,  e:"🎧", ar:"سماعات", en:"Headphones"},
+  {age:15, cash:7000,  e:"⌚", ar:"ساعة ذكية", en:"Smartwatch"},
+  {age:16, cash:8000,  e:"🚲", ar:"دراجة فخمة", en:"Premium bike"},
+  {age:17, cash:9000,  e:"💻", ar:"لابتوب", en:"Laptop"},
+  {age:18, cash:10000, e:"📷", ar:"كاميرا", en:"Camera"},
+  {age:19, cash:12000, e:"✈️", ar:"رحلة سفر", en:"A trip abroad"},
+  {age:20, cash:14000, e:"👜", ar:"حقيبة ماركة", en:"Designer bag"},
+  {age:21, cash:16000, e:"🕹️", ar:"حاسب ألعاب", en:"Gaming PC"},
+  {age:22, cash:18000, e:"🛵", ar:"دراجة نارية", en:"Scooter"},
+  {age:23, cash:20000, e:"⌚", ar:"ساعة فاخرة", en:"Luxury watch"},
+  {age:24, cash:28000, e:"🛋️", ar:"أثاث غرفة", en:"Room makeover"},
+  {age:25, cash:40000, e:"🏝️", ar:"إجازة فاخرة", en:"Luxury vacation"}
 ];
 
-let idx=0, port=0, allInvest=0;
+let idx=0, invested=0, principal=0, saved=0, allInvest=0;
 
 function applyLang(){
   const d=T[lang];
   document.documentElement.lang=lang;
   document.documentElement.dir=(lang==="ar")?"rtl":"ltr";
   document.querySelectorAll("[data-t]").forEach(el=>{
-    const k=el.getAttribute("data-t");
-    if(d[k]!==undefined) el.textContent=d[k];
+    const k=el.getAttribute("data-t"); if(d[k]!==undefined) el.textContent=d[k];
   });
   document.getElementById("brandName").textContent=d.brandName;
   document.getElementById("brandSub").textContent=d.brandSub;
@@ -351,7 +340,6 @@ function applyLang(){
   renderDemo();
   if(document.getElementById("s-game").classList.contains("active")) renderYear();
 }
-
 document.getElementById("langBtn").onclick=()=>{ lang=(lang==="ar")?"en":"ar"; applyLang(); };
 
 function go(id){
@@ -377,9 +365,11 @@ function renderDemo(){
   }
 }
 
+function totalWealth(){ return invested+saved; }
+
 function startGame(){
-  idx=0; port=0; allInvest=0;
-  YEARS.forEach(y=>{ allInvest=allInvest*(1+RATE)+y.cash; });
+  idx=0; invested=0; principal=0; saved=0;
+  allInvest=0; YEARS.forEach(y=>{ allInvest=allInvest*(1+RATE)+y.cash; });
   go("game"); renderYear();
 }
 
@@ -387,7 +377,7 @@ function renderYear(){
   const d=T[lang], y=YEARS[idx];
   document.getElementById("hYear").textContent=(idx+1);
   document.getElementById("hAge").textContent=y.age;
-  document.getElementById("hPort").textContent=fmt(port);
+  document.getElementById("hPort").textContent=fmt(totalWealth());
   document.getElementById("yearCash").textContent=fmt(y.cash);
   document.getElementById("itemEmoji").textContent=y.e;
   document.getElementById("itemName").textContent=(lang==="ar")?y.ar:y.en;
@@ -402,37 +392,44 @@ function renderYear(){
 }
 
 function updateProg(){
-  const pct=Math.min(100,Math.round(port/TARGET*100));
+  const pct=Math.min(100,Math.round(totalWealth()/TARGET*100));
   document.getElementById("progFill").style.width=pct+"%";
   document.getElementById("progTxt").textContent=pct+"%";
 }
 
 function choose(kind){
   const d=T[lang], y=YEARS[idx];
-  port=port*(1+RATE);
+  invested=invested*(1+RATE);                 // existing investments grow each year
   const toast=document.getElementById("toast");
   if(kind==="invest"){
-    port+=y.cash;
+    invested+=y.cash; principal+=y.cash;
     toast.textContent="✅ "+d.investedMsg; toast.style.color="var(--teal-d)";
+  }else if(kind==="save"){
+    saved+=y.cash;
+    toast.textContent="🏦 "+d.savedMsg; toast.style.color="#b9852a";
   }else{
     toast.textContent="🛍️ "+d.boughtMsg+" "+((lang==="ar")?y.ar:y.en); toast.style.color="var(--red)";
   }
-  document.getElementById("hPort").textContent=fmt(port);
+  document.getElementById("hPort").textContent=fmt(totalWealth());
   updateProg();
   idx++;
   setTimeout(()=>{ if(idx>=YEARS.length) showResult(); else renderYear(); },650);
 }
 
 function showResult(){
-  const d=T[lang], won=port>=TARGET;
+  const d=T[lang];
+  const total=totalWealth(), gain=invested-principal, won=total>=TARGET;
   document.getElementById("resEmoji").textContent=won?"🏆🚗":"🏁";
   const v=document.getElementById("verdict");
   v.textContent=won?d.winV:d.loseV; v.className="verdict "+(won?"win":"lose");
-  document.getElementById("resPort").textContent=fmt(port)+" "+d.sar;
-  document.getElementById("resAll").textContent=fmt(allInvest);
-  document.getElementById("resNone").textContent="0";
+  document.getElementById("resPort").textContent=fmt(total)+" "+d.sar;
+  document.getElementById("resPrincipal").textContent=fmt(principal);
+  document.getElementById("resGain").textContent="+"+fmt(gain);
+  document.getElementById("resSavedV").textContent=fmt(saved);
+  document.getElementById("resTotalV").textContent=fmt(total);
+  document.getElementById("resBench").textContent=d.resBench;
   document.getElementById("resLesson").textContent=won?d.lessonWin:d.lessonLose;
-  const pct=Math.min(100,Math.round(port/TARGET*100));
+  const pct=Math.min(100,Math.round(total/TARGET*100));
   go("result");
   setTimeout(()=>{document.getElementById("resFill").style.width=pct+"%";},120);
 }
