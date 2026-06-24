@@ -66,7 +66,6 @@
   .threecol{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   @media(max-width:560px){.threecol{grid-template-columns:1fr}}
 
-  /* goal picker */
   .goalcard{cursor:pointer;background:var(--bg);border:2px solid var(--line);border-radius:16px;padding:16px 10px;text-align:center;transition:.18s}
   .goalcard:hover{transform:translateY(-4px);border-color:var(--teal);box-shadow:0 12px 24px rgba(52,182,167,.18)}
   .goalcard .ge{font-size:40px}
@@ -74,9 +73,11 @@
   .goalcard .gp{font-size:12px;color:var(--muted);margin-top:2px}
 
   .demo-out{font-size:30px;font-weight:900;color:var(--teal-d);text-align:center;margin:6px 0}
-  .demo-sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:12px}
+  .demo-sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:8px}
+  .ctrl{margin:10px 0}
+  .ctrl .lab{display:flex;justify-content:space-between;font-size:13px;color:var(--ink);font-weight:700;margin-bottom:4px}
   input[type=range]{width:100%;accent-color:var(--teal)}
-  .bars{display:flex;align-items:flex-end;gap:6px;height:120px;margin:14px 0 4px}
+  .bars{display:flex;align-items:flex-end;gap:6px;height:120px;margin:6px 0 4px}
   .bar{flex:1;background:linear-gradient(180deg,var(--teal-l),var(--teal));border-radius:6px 6px 0 0;min-height:4px;transition:height .25s}
   .bar.now{background:linear-gradient(180deg,var(--navy-l),var(--navy));box-shadow:0 6px 14px rgba(39,53,126,.35)}
 
@@ -90,22 +91,25 @@
   .track{height:16px;background:#e6e9f2;border-radius:999px;overflow:hidden}
   .fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--teal-l));border-radius:999px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
 
-  .budget-line{font-size:14px;color:var(--muted);margin-bottom:8px}
+  .budget-line{font-size:14px;color:var(--muted);margin-bottom:6px;text-align:center}
   .budget-line b{color:var(--ink)}
-  .bundle{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0 4px}
-  .bitem{background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px 11px;font-size:13px;font-weight:700;color:var(--ink)}
-  .bitem .bp{color:var(--muted);font-weight:600;margin-inline-start:5px}
-  .grow-note{font-size:13px;color:var(--teal-d);min-height:18px;margin:10px 0 14px;font-weight:700}
-  .choice{cursor:pointer;border-radius:16px;padding:14px 10px;text-align:center;transition:.18s;border:2px solid}
-  .choice.save{background:rgba(224,169,59,.10);border-color:var(--amber)}
-  .choice.invest{background:rgba(52,182,167,.10);border-color:var(--teal)}
-  .choice.buy{background:rgba(226,103,74,.08);border-color:rgba(226,103,74,.55)}
-  .choice:hover{transform:translateY(-3px);filter:brightness(1.03)}
-  .choice .big{font-size:28px}
-  .choice .t{font-weight:800;margin-top:4px;font-size:14px}
-  .choice .s{font-size:11px;color:var(--muted);margin-top:2px}
-  .choice.save .t{color:#b9852a}.choice.invest .t{color:var(--teal-d)}.choice.buy .t{color:var(--red)}
-  .toast{font-size:14px;text-align:center;min-height:22px;margin-top:14px;font-weight:800}
+  .hint{font-size:12px;color:var(--muted);text-align:center;margin-bottom:10px}
+
+  /* per-item rows */
+  .item-row{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:8px}
+  .item-row .lbl{flex:1;text-align:start;font-weight:700;font-size:13px;color:var(--ink)}
+  .item-row .lbl .pr{display:block;color:var(--muted);font-weight:600;font-size:12px;margin-top:1px}
+  .opt{display:flex;gap:4px;flex:none}
+  .opt button{border:1px solid var(--line);background:var(--bg);border-radius:9px;width:38px;height:36px;font-size:16px;cursor:pointer;transition:.15s;padding:0;line-height:1}
+  .opt button:hover{filter:brightness(1.05)}
+  .opt button.sel.buy{background:rgba(226,103,74,.16);border-color:var(--red)}
+  .opt button.sel.save{background:rgba(224,169,59,.20);border-color:var(--amber)}
+  .opt button.sel.invest{background:rgba(52,182,167,.20);border-color:var(--teal)}
+
+  .sumbar{display:flex;justify-content:space-around;gap:6px;font-size:12.5px;font-weight:800;margin:10px 0 4px;flex-wrap:wrap}
+  .sumbar .s1{color:var(--red)}.sumbar .s2{color:#b9852a}.sumbar .s3{color:var(--teal-d)}
+  .grow-note{font-size:13px;color:var(--teal-d);min-height:18px;margin:8px 0 12px;font-weight:700;text-align:center}
+  .toast{font-size:14px;text-align:center;min-height:20px;margin-top:10px;font-weight:800}
 
   .result-num{font-size:40px;font-weight:900;color:var(--teal-d);text-align:center;margin:6px 0}
   .verdict{text-align:center;font-size:20px;font-weight:900;margin-bottom:14px}
@@ -161,16 +165,23 @@
     <div class="stepdots"><i class="on"></i><i></i></div>
   </section>
 
-  <!-- 3. LEARN: compound demo -->
+  <!-- 3. LEARN: compound demo + rate control -->
   <section class="screen" id="s-learn2">
     <span class="pill" data-t="learnTag2"></span>
     <h2 data-t="cmpTitle"></h2>
     <p class="lead" data-t="cmpBody"></p>
     <div class="card">
-      <div class="demo-out" id="demoOut">1,000</div>
-      <div class="demo-sub"><span data-t="cmpAfter"></span> <b id="demoYears">0</b> <span data-t="cmpYears"></span> · 10%/<span data-t="cmpYr"></span></div>
+      <div class="demo-out" id="demoOut">10,000</div>
+      <div class="demo-sub"><span data-t="cmpAfter"></span> <b id="demoYears">0</b> <span data-t="cmpYears"></span></div>
       <div class="bars" id="demoBars"></div>
-      <input type="range" id="demoSlider" min="0" max="30" value="0" />
+      <div class="ctrl">
+        <div class="lab"><span data-t="cmpYearsLab"></span><b id="demoYears2">0</b></div>
+        <input type="range" id="demoSlider" min="0" max="30" value="0" />
+      </div>
+      <div class="ctrl">
+        <div class="lab"><span data-t="ratePrompt"></span><b id="rateVal">10%</b></div>
+        <input type="range" id="rateSlider" min="1" max="20" value="10" />
+      </div>
       <div class="demo-sub mt" data-t="cmpHint"></div>
     </div>
     <button class="btn teal" onclick="startGame()" data-t="playBtn"></button>
@@ -181,28 +192,24 @@
   <section class="screen" id="s-game">
     <div class="hud">
       <div class="box"><b id="hYear">1/16</b><span data-t="hudYear"></span></div>
-      <div class="box"><b>10,000</b><span data-t="hudBudget"></span></div>
+      <div class="box"><b id="hRate">10%</b><span data-t="hudRate"></span></div>
       <div class="box"><b id="hPort">0</b><span data-t="hudPort"></span></div>
     </div>
     <div class="progwrap">
       <div class="labels"><span id="progLabel"></span><span id="progTxt">0%</span></div>
       <div class="track"><div class="fill" id="progFill"></div></div>
     </div>
-    <div class="card center">
-      <div class="budget-line"><span data-t="thisYear"></span> <b>10,000</b> <span data-t="sar"></span></div>
-      <div class="bundle" id="bundle"></div>
-      <div class="grow-note" id="growNote"></div>
-      <div class="threecol">
-        <div class="choice buy" onclick="choose('buy')">
-          <div class="big">🛍️</div><div class="t" data-t="cBuyT"></div><div class="s" data-t="cBuyS"></div>
-        </div>
-        <div class="choice save" onclick="choose('save')">
-          <div class="big">🏦</div><div class="t" data-t="cSaveT"></div><div class="s" data-t="cSaveS"></div>
-        </div>
-        <div class="choice invest" onclick="choose('invest')">
-          <div class="big">📈</div><div class="t" data-t="cInvestT"></div><div class="s" data-t="cInvestS"></div>
-        </div>
+    <div class="card">
+      <div class="budget-line"><span data-t="thisYear"></span> <b id="yearBudget">10,000</b> <span data-t="sar"></span></div>
+      <div class="hint" data-t="gameHint"></div>
+      <div id="itemList"></div>
+      <div class="sumbar">
+        <span class="s1">🛍️ <span data-t="sumBuy"></span> <b id="sumBuy">0</b></span>
+        <span class="s2">🏦 <span data-t="sumSave"></span> <b id="sumSave">0</b></span>
+        <span class="s3">📈 <span data-t="sumInvest"></span> <b id="sumInvest">0</b></span>
       </div>
+      <div class="grow-note" id="growNote"></div>
+      <button class="btn teal" id="confirmBtn" onclick="commitYear()" data-t="confirmBtn"></button>
       <div class="toast" id="toast"></div>
     </div>
   </section>
@@ -242,21 +249,21 @@ const T={
     introTitle:"اختر حلمك 🎯",
     introLead:"بعد 16 سنة، أي حلم تبي تملكه؟ اختر هدفك وابدأ الرحلة.",
     learnTag1:"الدرس ١", invTitle:"ثلاث طرق لفلوسك",
-    invBody:"كل سنة عندك 10,000 ريال. إما تشتري وتنتهي الفلوس، أو تدّخر بدون نمو، أو تستثمر فتكبر مع الوقت.",
+    invBody:"كل سنة عندك ميزانية. كل غرض تقرر فيه: تشتريه، تدّخره، أو تستثمر مبلغه فيكبر مع الوقت.",
     p1T:"تشتري", p1B:"تستمتع لحظة، وتختفي الفلوس.",
     p2T:"تدّخر", p2B:"تحفظها بأمان، لكن لا تكبر.",
     p3T:"تستثمر", p3B:"تشتغل لك وتكبر كل سنة.",
     nextBtn:"التالي ◀",
     learnTag2:"الدرس ٢", cmpTitle:"الفائدة المركبة ✨",
-    cmpBody:"أرباحك تربح أرباحاً! حرّك المؤشر وشوف كيف 1,000 ريال تكبر بعائد 10٪ سنوياً.",
-    cmpAfter:"بعد", cmpYears:"سنة", cmpYr:"سنة",
-    cmpHint:"السر: ابدأ مبكراً. الوقت يصنع الفرق العجيب.",
+    cmpBody:"أرباحك تربح أرباحاً! غيّر عدد السنوات والعائد وشوف كيف 10,000 ريال تكبر.",
+    cmpAfter:"بعد", cmpYears:"سنة", cmpYearsLab:"عدد السنوات", ratePrompt:"العائد السنوي",
+    cmpHint:"السر: ابدأ مبكراً، وكل ما زاد العائد والوقت، زادت ثروتك.",
     playBtn:"ابدأ اللعبة 🎮",
-    hudYear:"السنة", hudBudget:"ميزانية/سنة", hudPort:"ثروتك",
+    hudYear:"السنة", hudRate:"العائد", hudPort:"ثروتك",
     thisYear:"ميزانية هذي السنة:", sar:"ريال",
-    cBuyT:"أشتريه", cBuyS:"تروح الـ10,000",
-    cSaveT:"أدّخره", cSaveS:"بدون نمو",
-    cInvestT:"أستثمره", cInvestS:"+10٪ كل سنة",
+    gameHint:"اختر لكل غرض: 🛍️ شراء · 🏦 ادّخار · 📈 استثمار",
+    sumBuy:"تشتري:", sumSave:"تدّخر:", sumInvest:"تستثمر:",
+    confirmBtn:"تأكيد والسنة التالية ▶",
     resTotal:"إجمالي ثروتك",
     resPaidIn:"المبلغ الذي استثمرته (رأس المال)",
     resReturn:"الأرباح التي ربحتها (العائد) ✨",
@@ -266,12 +273,12 @@ const T={
     ctaBody:"تمرة المالية تساعدك تبدأ رحلة استثمارك مبكراً وبخطوات بسيطة.",
     againBtn:"العب مرة ثانية 🔁",
     footer:"© تمرة المالية — لعبة تعليمية. الأرقام للتوضيح فقط وليست نصيحة استثمارية.",
-    savedMsg:"احتفظت بفلوسك (بدون نمو)", investedMsg:"استثمرت ونمت محفظتك!", boughtMsg:"اشتريت أغراض هذي السنة",
+    investedMsg:"استثمرت ونمت محفظتك!",
     progTo:"التقدّم نحو ",
     winV:"مبروك! امتلكت ", loseV:"لم تصل لـ",
     lessonWin:"شفت؟ المبلغ الذي استثمرته أعطاك أرباحاً إضافية مجاناً بفضل الفائدة المركبة. هذي طريقة الأثرياء.",
     lessonLose:"الادّخار وحده لا يكفي، والشراء يضيّع فلوسك. الاستثمار المبكر هو الطريق — والوقت لا يعود.",
-    benchTxt:"لو استثمرت كل سنة → ",
+    benchTxt:"لو استثمرت كل شيء كل سنة → ",
     goalPrice:"250,000 ريال"
   },
   en:{
@@ -279,21 +286,21 @@ const T={
     introTitle:"Choose your dream 🎯",
     introLead:"In 16 years, which dream do you want to own? Pick your goal and start the journey.",
     learnTag1:"LESSON 1", invTitle:"Three paths for your money",
-    invBody:"Each year you have SAR 10,000. Buy it (money gone), save it (no growth), or invest it (grows over time).",
+    invBody:"Each year you get a budget. For every item you decide: buy it, save it, or invest its amount so it grows.",
     p1T:"Buy it", p1B:"Enjoy a moment, money is gone.",
     p2T:"Save it", p2B:"Kept safe, but it doesn't grow.",
     p3T:"Invest it", p3B:"Works for you, grows every year.",
     nextBtn:"Next ▶",
     learnTag2:"LESSON 2", cmpTitle:"Compound interest ✨",
-    cmpBody:"Your profits earn profits! Drag the slider and watch SAR 1,000 grow at 10% per year.",
-    cmpAfter:"After", cmpYears:"years", cmpYr:"yr",
-    cmpHint:"The secret: start early. Time does the magic.",
+    cmpBody:"Your profits earn profits! Change the years and the return, and watch SAR 10,000 grow.",
+    cmpAfter:"After", cmpYears:"years", cmpYearsLab:"Number of years", ratePrompt:"Annual return",
+    cmpHint:"The secret: start early — the higher the return and the longer the time, the bigger your wealth.",
     playBtn:"Play the game 🎮",
-    hudYear:"Year", hudBudget:"Budget/yr", hudPort:"Wealth",
+    hudYear:"Year", hudRate:"Return", hudPort:"Wealth",
     thisYear:"This year's budget:", sar:"SAR",
-    cBuyT:"Buy it", cBuyS:"10,000 gone",
-    cSaveT:"Save it", cSaveS:"No growth",
-    cInvestT:"Invest it", cInvestS:"+10% / year",
+    gameHint:"For each item choose: 🛍️ Buy · 🏦 Save · 📈 Invest",
+    sumBuy:"Buy:", sumSave:"Save:", sumInvest:"Invest:",
+    confirmBtn:"Confirm & next year ▶",
     resTotal:"Your total wealth",
     resPaidIn:"What you paid into investing (principal)",
     resReturn:"The return you earned (benefit) ✨",
@@ -303,18 +310,19 @@ const T={
     ctaBody:"Tamra Capital helps you start your investing journey early, in simple steps.",
     againBtn:"Play again 🔁",
     footer:"© Tamra Capital — Educational game. Numbers are illustrative, not investment advice.",
-    savedMsg:"You kept your money (no growth)", investedMsg:"Invested — your portfolio grew!", boughtMsg:"You bought this year's stuff",
+    investedMsg:"Invested — your portfolio grew!",
     progTo:"Progress to ",
     winV:"Congrats! You own ", loseV:"You didn't reach ",
     lessonWin:"See? The money you invested earned extra profit for free, thanks to compound interest. That's how the wealthy do it.",
     lessonLose:"Saving alone isn't enough, and buying drains your money. Investing early is the way — and time never returns.",
-    benchTxt:"If you invested every year → ",
+    benchTxt:"If you invested everything every year → ",
     goalPrice:"SAR 250,000"
   }
 };
 
 let lang="ar";
-const RATE=0.10, TARGET=250000, BUDGET=10000;
+const TARGET=250000;
+let rate=0.10;                 // changeable by the player
 
 const GOALS=[
   {e:"🚗", ar:"مرسيدس", en:"a Mercedes"},
@@ -323,7 +331,7 @@ const GOALS=[
 ];
 let goal=0;
 
-/* 16 years — each year's tempting wishlist (totals 10,000) */
+/* 16 years — each year's items (totals 10,000) */
 const YEARS=[
   [{e:"👟",ar:"حذاء",en:"Shoes",p:3000},{e:"🎮",ar:"جهاز ألعاب",en:"Console",p:4000},{e:"🍔",ar:"وجبات",en:"Eating out",p:3000}],
   [{e:"📱",ar:"جوال",en:"Phone",p:6000},{e:"🎧",ar:"سماعات",en:"Headphones",p:4000}],
@@ -344,11 +352,12 @@ const YEARS=[
 ];
 
 let idx=0, invested=0, principal=0, saved=0, allInvest=0;
+let choices=[];   // per-item disposition for the current year: 'buy' | 'save' | 'invest'
 
 /* ---------------- background music (Web Audio) ---------------- */
 let actx=null, master=null, musicOn=true, musicTimer=null, mstep=0;
 const MEL=[523.25,659.25,783.99,659.25, 440,523.25,659.25,523.25, 440,587.33,698.46,587.33, 392,493.88,587.33,493.88];
-const BASS=[130.81,110.00,87.31,98.00]; // C2 A2 F2 G2
+const BASS=[130.81,110.00,87.31,98.00];
 function noteOn(freq,dur,type,vol){
   if(!actx) return;
   const o=actx.createOscillator(), g=actx.createGain();
@@ -360,7 +369,7 @@ function noteOn(freq,dur,type,vol){
   o.connect(g); g.connect(master);
   o.start(t); o.stop(t+dur+0.05);
 }
-function tick(){
+function musicStep(){
   const i=mstep%16;
   noteOn(MEL[i],0.45,"triangle",0.5);
   if(i%4===0) noteOn(BASS[(mstep/4)%4 |0],1.0,"sine",0.9);
@@ -373,9 +382,9 @@ function initAudio(){
     master=actx.createGain();
     master.gain.value=musicOn?0.16:0;
     master.connect(actx.destination);
-    musicTimer=setInterval(tick,260);
-    tick();
-  }catch(e){ /* audio not supported */ }
+    musicTimer=setInterval(musicStep,260);
+    musicStep();
+  }catch(e){}
 }
 function setMusic(on){
   musicOn=on;
@@ -383,12 +392,10 @@ function setMusic(on){
   if(master) master.gain.value=on?0.16:0;
 }
 document.getElementById("musicBtn").onclick=()=>{ initAudio(); if(actx&&actx.state==="suspended")actx.resume(); setMusic(!musicOn); };
-/* start on first interaction anywhere (autoplay policy) */
 window.addEventListener("pointerdown",()=>{ initAudio(); if(actx&&actx.state==="suspended")actx.resume(); },{once:true});
 
 /* ---------------- i18n render ---------------- */
 function goalName(){ return lang==="ar"?GOALS[goal].ar:GOALS[goal].en; }
-
 function applyLang(){
   const d=T[lang];
   document.documentElement.lang=lang;
@@ -422,16 +429,21 @@ function go(id){
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
+/* ---------------- compound demo + rate ---------------- */
 const slider=document.getElementById("demoSlider");
+const rateSlider=document.getElementById("rateSlider");
 slider.addEventListener("input",renderDemo);
+rateSlider.addEventListener("input",()=>{ rate=(+rateSlider.value)/100; renderDemo(); });
 function renderDemo(){
   const yrs=+slider.value;
-  document.getElementById("demoOut").textContent=fmt(1000*Math.pow(1+RATE,yrs));
+  document.getElementById("demoOut").textContent=fmt(10000*Math.pow(1+rate,yrs));
   document.getElementById("demoYears").textContent=yrs;
+  document.getElementById("demoYears2").textContent=yrs;
+  document.getElementById("rateVal").textContent=Math.round(rate*100)+"%";
   const bars=document.getElementById("demoBars"); bars.innerHTML="";
-  const show=Math.max(yrs,1), maxV=1000*Math.pow(1+RATE,show);
+  const show=Math.max(yrs,1), maxV=10000*Math.pow(1+rate,show);
   for(let i=0;i<=show;i++){
-    const v=1000*Math.pow(1+RATE,i);
+    const v=10000*Math.pow(1+rate,i);
     const b=document.createElement("div");
     b.className="bar"+(i===yrs?" now":"");
     b.style.height=(8+(v/maxV)*100)+"%";
@@ -439,33 +451,62 @@ function renderDemo(){
   }
 }
 
+/* ---------------- game ---------------- */
 function totalWealth(){ return invested+saved; }
+function yearBudget(){ return YEARS[idx].reduce((a,it)=>a+it.p,0); }
 
 function startGame(){
   idx=0; invested=0; principal=0; saved=0;
-  allInvest=0; for(let i=0;i<YEARS.length;i++){ allInvest=allInvest*(1+RATE)+BUDGET; }
+  // benchmark: invest the full budget every year at the chosen rate
+  allInvest=0; for(let i=0;i<YEARS.length;i++){ allInvest=allInvest*(1+rate)+YEARS[i].reduce((a,it)=>a+it.p,0); }
   go("game"); renderYear();
 }
 
 function renderYear(){
   const d=T[lang];
+  choices=YEARS[idx].map(()=>"invest");   // default: invest everything (player can change each)
   document.getElementById("hYear").textContent=(idx+1)+"/16";
+  document.getElementById("hRate").textContent=Math.round(rate*100)+"%";
   document.getElementById("hPort").textContent=fmt(totalWealth());
+  document.getElementById("yearBudget").textContent=fmt(yearBudget());
   document.getElementById("progLabel").textContent=d.progTo+goalName();
-  // wishlist bundle
-  const wrap=document.getElementById("bundle"); wrap.innerHTML="";
-  YEARS[idx].forEach(it=>{
-    const el=document.createElement("div"); el.className="bitem";
-    el.innerHTML=`${it.e} ${lang==="ar"?it.ar:it.en}<span class="bp">${fmt(it.p)}</span>`;
-    wrap.appendChild(el);
-  });
-  const yearsLeft=YEARS.length-1-idx;
-  const future=BUDGET*Math.pow(1+RATE,yearsLeft);
-  document.getElementById("growNote").textContent=(lang==="ar")
-    ? "💡 لو استثمرت الـ10,000 تصير ≈ "+fmt(future)+" ريال بعد "+yearsLeft+" سنة"
-    : "💡 If invested, your 10,000 becomes ≈ SAR "+fmt(future)+" in "+yearsLeft+" yrs";
+  renderItems();
   updateProg();
   document.getElementById("toast").textContent="";
+}
+
+function renderItems(){
+  const list=document.getElementById("itemList"); list.innerHTML="";
+  YEARS[idx].forEach((it,i)=>{
+    const row=document.createElement("div"); row.className="item-row";
+    row.innerHTML=`<div class="lbl">${it.e} ${lang==="ar"?it.ar:it.en}<span class="pr">${fmt(it.p)} ${T[lang].sar}</span></div>`;
+    const opt=document.createElement("div"); opt.className="opt";
+    [["buy","🛍️"],["save","🏦"],["invest","📈"]].forEach(([k,ic])=>{
+      const b=document.createElement("button");
+      b.textContent=ic;
+      b.className=(choices[i]===k?("sel "+k):"");
+      b.onclick=()=>{ choices[i]=k; renderItems(); };
+      opt.appendChild(b);
+    });
+    row.appendChild(opt);
+    list.appendChild(row);
+  });
+  updateSummary();
+}
+
+function updateSummary(){
+  let b=0,s=0,v=0;
+  YEARS[idx].forEach((it,i)=>{
+    if(choices[i]==="buy")b+=it.p; else if(choices[i]==="save")s+=it.p; else v+=it.p;
+  });
+  document.getElementById("sumBuy").textContent=fmt(b);
+  document.getElementById("sumSave").textContent=fmt(s);
+  document.getElementById("sumInvest").textContent=fmt(v);
+  const yearsLeft=YEARS.length-1-idx;
+  const future=v*Math.pow(1+rate,yearsLeft);
+  document.getElementById("growNote").textContent=(lang==="ar")
+    ? "📈 الـ"+fmt(v)+" اللي تستثمرها تصير ≈ "+fmt(future)+" ريال عند الهدف"
+    : "📈 The "+fmt(v)+" you invest becomes ≈ SAR "+fmt(future)+" by the goal";
 }
 
 function updateProg(){
@@ -474,23 +515,20 @@ function updateProg(){
   document.getElementById("progTxt").textContent=pct+"%";
 }
 
-function choose(kind){
+function commitYear(){
   const d=T[lang];
-  invested=invested*(1+RATE);                 // existing investments grow each year
-  const toast=document.getElementById("toast");
-  if(kind==="invest"){
-    invested+=BUDGET; principal+=BUDGET;
-    toast.textContent="✅ "+d.investedMsg; toast.style.color="var(--teal-d)";
-  }else if(kind==="save"){
-    saved+=BUDGET;
-    toast.textContent="🏦 "+d.savedMsg; toast.style.color="#b9852a";
-  }else{
-    toast.textContent="🛍️ "+d.boughtMsg; toast.style.color="var(--red)";
-  }
+  invested=invested*(1+rate);   // existing investments grow this year
+  YEARS[idx].forEach((it,i)=>{
+    if(choices[i]==="invest"){ invested+=it.p; principal+=it.p; }
+    else if(choices[i]==="save"){ saved+=it.p; }
+    // buy => money gone
+  });
   document.getElementById("hPort").textContent=fmt(totalWealth());
   updateProg();
+  const toast=document.getElementById("toast");
+  toast.textContent="✅ "+d.investedMsg; toast.style.color="var(--teal-d)";
   idx++;
-  setTimeout(()=>{ if(idx>=YEARS.length) showResult(); else renderYear(); },650);
+  setTimeout(()=>{ if(idx>=YEARS.length) showResult(); else renderYear(); },550);
 }
 
 function showResult(){
