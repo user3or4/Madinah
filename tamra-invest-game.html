@@ -17,7 +17,7 @@
   body{
     font-family:"Segoe UI",Tahoma,"Helvetica Neue",Arial,sans-serif;
     color:var(--ink);min-height:100%;
-    display:flex;align-items:center;justify-content:center;
+    display:flex;                 /* center via margin:auto on .app (overflow-safe) */
     padding:18px;overflow-x:hidden;background:var(--navy);position:relative;
   }
   body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
@@ -28,7 +28,7 @@
       radial-gradient(800px 500px at -10% 120%,var(--navy-d),transparent 55%),
       var(--navy);
   }
-  .app{position:relative;z-index:1;width:100%;max-width:760px;background:var(--white);
+  .app{position:relative;z-index:1;margin:auto;width:100%;max-width:760px;background:var(--white);
     border-radius:26px;box-shadow:var(--shadow);overflow:hidden}
   .top{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line)}
   .brand{display:flex;align-items:center;gap:11px}
@@ -128,6 +128,17 @@
   .stepdots{display:flex;gap:6px;justify-content:center;margin:16px 0 0}
   .stepdots i{width:8px;height:8px;border-radius:50%;background:#d6dae9}
   .stepdots i.on{background:var(--teal)}
+  .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;filter:grayscale(.35)}
+  .btn:disabled:active{transform:none}
+  @media(max-width:560px){
+    body{padding:10px}
+    .top{padding:12px 14px}
+    .screen{padding:18px 16px 24px}
+    .hero-emoji{font-size:46px}
+    h1{font-size:21px}
+    h2{font-size:18px}
+    .brand .name{font-size:15px}
+  }
 </style>
 </head>
 <body>
@@ -464,7 +475,7 @@ function startGame(){
 
 function renderYear(){
   const d=T[lang];
-  choices=YEARS[idx].map(()=>"invest");   // default: invest everything (player can change each)
+  choices=YEARS[idx].map(()=>null);   // no default — player must choose each item
   document.getElementById("hYear").textContent=(idx+1)+"/16";
   document.getElementById("hRate").textContent=Math.round(rate*100)+"%";
   document.getElementById("hPort").textContent=fmt(totalWealth());
@@ -492,6 +503,17 @@ function renderItems(){
     list.appendChild(row);
   });
   updateSummary();
+  refreshConfirm();
+}
+
+function refreshConfirm(){
+  const incomplete=choices.some(c=>c===null);
+  document.getElementById("confirmBtn").disabled=incomplete;
+  const toast=document.getElementById("toast");
+  if(incomplete){
+    toast.textContent=(lang==="ar")?"👆 اختر لكل غرض: شراء / ادّخار / استثمار":"👆 Choose for every item: Buy / Save / Invest";
+    toast.style.color="var(--muted)";
+  }else{ toast.textContent=""; }
 }
 
 function updateSummary(){
@@ -517,6 +539,7 @@ function updateProg(){
 
 function commitYear(){
   const d=T[lang];
+  if(choices.some(c=>c===null)) return;   // every item must have a choice
   invested=invested*(1+rate);   // existing investments grow this year
   YEARS[idx].forEach((it,i)=>{
     if(choices[i]==="invest"){ invested+=it.p; principal+=it.p; }
