@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tamra Capital — Road to Mercedes | الطريق إلى مرسيدس</title>
+<title>Tamra Capital — Own Your Dream | امتلك حلمك</title>
 <style>
   :root{
     --navy:#27357E; --navy-d:#1B2560; --navy-l:#3A4BA0;
@@ -39,6 +39,10 @@
   .brand .mark i:nth-child(3){top:20px;left:0;background:var(--navy)}
   .brand .name{font-weight:800;line-height:1.05;color:var(--ink)}
   .brand .name small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+  .top-actions{display:flex;gap:8px;align-items:center}
+  .iconbtn{cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--navy);
+    width:38px;height:38px;border-radius:50%;font-size:16px;display:grid;place-items:center;transition:.2s}
+  .iconbtn:hover{background:#eef1f8}
   .lang{cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--navy);
     padding:7px 14px;border-radius:999px;font-weight:800;font-size:13px;transition:.2s}
   .lang:hover{background:#eef1f8}
@@ -47,10 +51,10 @@
   .screen.active{display:block}
   @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
-  h1{font-size:26px;line-height:1.25;margin-bottom:10px;color:var(--ink)}
+  h1{font-size:25px;line-height:1.25;margin-bottom:10px;color:var(--ink)}
   h2{font-size:20px;margin-bottom:8px;color:var(--navy)}
   p.lead{color:#4a4f70;font-size:15px;line-height:1.55;margin-bottom:18px}
-  .hero-emoji{font-size:64px;text-align:center;margin:6px 0 4px;filter:drop-shadow(0 10px 16px rgba(20,30,80,.18))}
+  .hero-emoji{font-size:60px;text-align:center;margin:6px 0 4px;filter:drop-shadow(0 10px 16px rgba(20,30,80,.18))}
 
   .btn{cursor:pointer;border:none;border-radius:14px;font-weight:800;font-size:16px;padding:15px 22px;width:100%;transition:.18s;font-family:inherit}
   .btn:active{transform:translateY(1px)}
@@ -61,6 +65,13 @@
   .pill{display:inline-block;background:rgba(52,182,167,.14);color:var(--teal-d);padding:5px 12px;border-radius:999px;font-size:12px;font-weight:800;margin-bottom:10px;letter-spacing:.4px}
   .threecol{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   @media(max-width:560px){.threecol{grid-template-columns:1fr}}
+
+  /* goal picker */
+  .goalcard{cursor:pointer;background:var(--bg);border:2px solid var(--line);border-radius:16px;padding:16px 10px;text-align:center;transition:.18s}
+  .goalcard:hover{transform:translateY(-4px);border-color:var(--teal);box-shadow:0 12px 24px rgba(52,182,167,.18)}
+  .goalcard .ge{font-size:40px}
+  .goalcard .gn{font-weight:800;color:var(--navy);margin-top:6px;font-size:15px}
+  .goalcard .gp{font-size:12px;color:var(--muted);margin-top:2px}
 
   .demo-out{font-size:30px;font-weight:900;color:var(--teal-d);text-align:center;margin:6px 0}
   .demo-sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:12px}
@@ -79,9 +90,12 @@
   .track{height:16px;background:#e6e9f2;border-radius:999px;overflow:hidden}
   .fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--teal-l));border-radius:999px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
 
-  .price{font-size:14px;color:var(--muted);margin-bottom:4px}
-  .item-emoji{font-size:54px;margin:4px 0}
-  .grow-note{font-size:13px;color:var(--teal-d);min-height:18px;margin:8px 0 14px;font-weight:700}
+  .budget-line{font-size:14px;color:var(--muted);margin-bottom:8px}
+  .budget-line b{color:var(--ink)}
+  .bundle{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0 4px}
+  .bitem{background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px 11px;font-size:13px;font-weight:700;color:var(--ink)}
+  .bitem .bp{color:var(--muted);font-weight:600;margin-inline-start:5px}
+  .grow-note{font-size:13px;color:var(--teal-d);min-height:18px;margin:10px 0 14px;font-weight:700}
   .choice{cursor:pointer;border-radius:16px;padding:14px 10px;text-align:center;transition:.18s;border:2px solid}
   .choice.save{background:rgba(224,169,59,.10);border-color:var(--amber)}
   .choice.invest{background:rgba(52,182,167,.10);border-color:var(--teal)}
@@ -97,12 +111,12 @@
   .verdict{text-align:center;font-size:20px;font-weight:900;margin-bottom:14px}
   .win{color:var(--teal-d)}.lose{color:var(--red)}
   .ledger{margin:8px 0 4px}
-  .ledger .row{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-radius:12px;margin-bottom:8px;font-weight:700;font-size:14px}
+  .ledger .row{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-radius:12px;margin-bottom:8px;font-weight:700;font-size:14px;gap:10px}
   .ledger .row.paid{background:#fff;border:1px solid var(--line)}
   .ledger .row.ret{background:rgba(52,182,167,.12);color:var(--teal-d);font-weight:800}
   .ledger .row.sav{background:rgba(224,169,59,.10);color:#b9852a}
   .ledger .row.tot{background:var(--navy);color:#fff;font-weight:900;font-size:16px}
-  .ledger .row b{font-size:15px}
+  .ledger .row b{font-size:15px;white-space:nowrap}
   .bench{background:rgba(52,182,167,.08);border:1px dashed var(--teal);border-radius:12px;padding:10px 14px;text-align:center;font-size:13px;color:var(--teal-d);font-weight:700;margin-top:6px}
 
   .foot{text-align:center;font-size:12px;color:var(--muted);padding:14px;border-top:1px solid var(--line)}
@@ -119,20 +133,18 @@
       <span class="mark"><i></i><i></i><i></i></span>
       <span class="name"><span id="brandName">تمرة المالية</span><small id="brandSub">استثمر. انمُ. امتلك حلمك.</small></span>
     </div>
-    <button class="lang" id="langBtn">EN</button>
+    <div class="top-actions">
+      <button class="iconbtn" id="musicBtn" title="music">🔊</button>
+      <button class="lang" id="langBtn">EN</button>
+    </div>
   </div>
 
-  <!-- 1. INTRO -->
+  <!-- 1. INTRO + GOAL PICK -->
   <section class="screen active" id="s-intro">
-    <div class="hero-emoji">🚗💨</div>
+    <div class="hero-emoji">✨</div>
     <h1 data-t="introTitle"></h1>
     <p class="lead" data-t="introLead"></p>
-    <div class="card center">
-      <div style="font-size:40px">🎯</div>
-      <div style="font-weight:800;font-size:18px;color:var(--navy)" data-t="goalLine"></div>
-      <div style="color:var(--muted);font-size:13px;margin-top:4px" data-t="goalSub"></div>
-    </div>
-    <button class="btn teal" onclick="go('learn1')" data-t="startBtn"></button>
+    <div class="threecol" id="goalGrid"></div>
   </section>
 
   <!-- 2. LEARN: 3 paths -->
@@ -168,19 +180,17 @@
   <!-- 4. GAME -->
   <section class="screen" id="s-game">
     <div class="hud">
-      <div class="box"><b id="hYear">1</b><span data-t="hudYear"></span></div>
-      <div class="box"><b id="hAge">11</b><span data-t="hudAge"></span></div>
+      <div class="box"><b id="hYear">1/16</b><span data-t="hudYear"></span></div>
+      <div class="box"><b>10,000</b><span data-t="hudBudget"></span></div>
       <div class="box"><b id="hPort">0</b><span data-t="hudPort"></span></div>
     </div>
     <div class="progwrap">
-      <div class="labels"><span data-t="progLabel"></span><span id="progTxt">0%</span></div>
+      <div class="labels"><span id="progLabel"></span><span id="progTxt">0%</span></div>
       <div class="track"><div class="fill" id="progFill"></div></div>
     </div>
     <div class="card center">
-      <div class="price"><span data-t="thisYear"></span> <b id="yearCash" style="color:var(--ink)">0</b> <span data-t="sar"></span></div>
-      <div class="item-emoji" id="itemEmoji">📱</div>
-      <div style="font-weight:800;font-size:17px;color:var(--navy)" id="itemName"></div>
-      <div class="price" id="itemPrice"></div>
+      <div class="budget-line"><span data-t="thisYear"></span> <b>10,000</b> <span data-t="sar"></span></div>
+      <div class="bundle" id="bundle"></div>
       <div class="grow-note" id="growNote"></div>
       <div class="threecol">
         <div class="choice buy" onclick="choose('buy')">
@@ -218,23 +228,21 @@
       <b style="color:var(--navy)" data-t="ctaTitle"></b>
       <p style="color:#4a4f70;font-size:13px;margin-top:4px" data-t="ctaBody"></p>
     </div>
-    <button class="btn teal" onclick="startGame()" data-t="againBtn"></button>
+    <button class="btn teal" onclick="go('intro')" data-t="againBtn"></button>
   </section>
 
   <div class="foot" data-t="footer"></div>
 </div>
 
 <script>
+/* ---------------- i18n ---------------- */
 const T={
   ar:{
     brandName:"تمرة المالية", brandSub:"استثمر. انمُ. امتلك حلمك.",
-    introTitle:"الطريق إلى المرسيدس 🏆",
-    introLead:"15 سنة. قرار واحد كل سنة: تشتري، تدّخر، أو تستثمر؟ هل ستملك سيارة أحلامك؟ الوقت هو سلاحك السري.",
-    goalLine:"الهدف: مرسيدس بعد 15 سنة",
-    goalSub:"السعر: 250,000 ريال",
-    startBtn:"يلا نبدأ ▶",
+    introTitle:"اختر حلمك 🎯",
+    introLead:"بعد 16 سنة، أي حلم تبي تملكه؟ اختر هدفك وابدأ الرحلة.",
     learnTag1:"الدرس ١", invTitle:"ثلاث طرق لفلوسك",
-    invBody:"كل سنة تختار: تشتري وتنتهي الفلوس، أو تدّخر بدون نمو، أو تستثمر فتكبر مع الوقت.",
+    invBody:"كل سنة عندك 10,000 ريال. إما تشتري وتنتهي الفلوس، أو تدّخر بدون نمو، أو تستثمر فتكبر مع الوقت.",
     p1T:"تشتري", p1B:"تستمتع لحظة، وتختفي الفلوس.",
     p2T:"تدّخر", p2B:"تحفظها بأمان، لكن لا تكبر.",
     p3T:"تستثمر", p3B:"تشتغل لك وتكبر كل سنة.",
@@ -244,35 +252,34 @@ const T={
     cmpAfter:"بعد", cmpYears:"سنة", cmpYr:"سنة",
     cmpHint:"السر: ابدأ مبكراً. الوقت يصنع الفرق العجيب.",
     playBtn:"ابدأ اللعبة 🎮",
-    hudYear:"السنة", hudAge:"العمر", hudPort:"ثروتك",
-    progLabel:"التقدّم نحو المرسيدس", thisYear:"مدخول هذي السنة:", sar:"ريال",
-    cBuyT:"أشتريها", cBuyS:"تروح الفلوس",
-    cSaveT:"أدّخرها", cSaveS:"بدون نمو",
-    cInvestT:"أستثمرها", cInvestS:"+10٪ كل سنة",
+    hudYear:"السنة", hudBudget:"ميزانية/سنة", hudPort:"ثروتك",
+    thisYear:"ميزانية هذي السنة:", sar:"ريال",
+    cBuyT:"أشتريه", cBuyS:"تروح الـ10,000",
+    cSaveT:"أدّخره", cSaveS:"بدون نمو",
+    cInvestT:"أستثمره", cInvestS:"+10٪ كل سنة",
     resTotal:"إجمالي ثروتك",
     resPaidIn:"المبلغ الذي استثمرته (رأس المال)",
     resReturn:"الأرباح التي ربحتها (العائد) ✨",
     resSaved:"ما ادّخرته (بدون نمو)",
     resTotalRow:"الإجمالي",
-    resBench:"لو استثمرت كل شيء → 320,000 ريال",
     ctaTitle:"الأثرياء لا يدّخرون فقط… يستثمرون 🌴",
     ctaBody:"تمرة المالية تساعدك تبدأ رحلة استثمارك مبكراً وبخطوات بسيطة.",
     againBtn:"العب مرة ثانية 🔁",
     footer:"© تمرة المالية — لعبة تعليمية. الأرقام للتوضيح فقط وليست نصيحة استثمارية.",
-    savedMsg:"احتفظت بفلوسك (بدون نمو)", investedMsg:"استثمرت ونمت محفظتك!", boughtMsg:"اشتريت",
-    winV:"مبروك! امتلكت المرسيدس 🎉🚗", loseV:"لم تصل هالمرة… استثمر أكثر 💪",
+    savedMsg:"احتفظت بفلوسك (بدون نمو)", investedMsg:"استثمرت ونمت محفظتك!", boughtMsg:"اشتريت أغراض هذي السنة",
+    progTo:"التقدّم نحو ",
+    winV:"مبروك! امتلكت ", loseV:"لم تصل لـ",
     lessonWin:"شفت؟ المبلغ الذي استثمرته أعطاك أرباحاً إضافية مجاناً بفضل الفائدة المركبة. هذي طريقة الأثرياء.",
-    lessonLose:"الادّخار وحده لا يكفي، والشراء يضيّع فلوسك. الاستثمار المبكر هو الطريق — والوقت لا يعود."
+    lessonLose:"الادّخار وحده لا يكفي، والشراء يضيّع فلوسك. الاستثمار المبكر هو الطريق — والوقت لا يعود.",
+    benchTxt:"لو استثمرت كل سنة → ",
+    goalPrice:"250,000 ريال"
   },
   en:{
     brandName:"tamra capital", brandSub:"Invest. Grow. Own your dream.",
-    introTitle:"Road to Mercedes 🏆",
-    introLead:"15 years. One choice each year: buy, save, or invest? Will you own your dream car? Time is your secret weapon.",
-    goalLine:"Goal: a Mercedes in 15 years",
-    goalSub:"Price: SAR 250,000",
-    startBtn:"Let's start ▶",
+    introTitle:"Choose your dream 🎯",
+    introLead:"In 16 years, which dream do you want to own? Pick your goal and start the journey.",
     learnTag1:"LESSON 1", invTitle:"Three paths for your money",
-    invBody:"Each year you pick: buy it (money gone), save it (no growth), or invest it (grows over time).",
+    invBody:"Each year you have SAR 10,000. Buy it (money gone), save it (no growth), or invest it (grows over time).",
     p1T:"Buy it", p1B:"Enjoy a moment, money is gone.",
     p2T:"Save it", p2B:"Kept safe, but it doesn't grow.",
     p3T:"Invest it", p3B:"Works for you, grows every year.",
@@ -282,9 +289,9 @@ const T={
     cmpAfter:"After", cmpYears:"years", cmpYr:"yr",
     cmpHint:"The secret: start early. Time does the magic.",
     playBtn:"Play the game 🎮",
-    hudYear:"Year", hudAge:"Age", hudPort:"Wealth",
-    progLabel:"Progress to Mercedes", thisYear:"Income this year:", sar:"SAR",
-    cBuyT:"Buy it", cBuyS:"Money gone",
+    hudYear:"Year", hudBudget:"Budget/yr", hudPort:"Wealth",
+    thisYear:"This year's budget:", sar:"SAR",
+    cBuyT:"Buy it", cBuyS:"10,000 gone",
     cSaveT:"Save it", cSaveS:"No growth",
     cInvestT:"Invest it", cInvestS:"+10% / year",
     resTotal:"Your total wealth",
@@ -292,40 +299,95 @@ const T={
     resReturn:"The return you earned (benefit) ✨",
     resSaved:"What you saved (no growth)",
     resTotalRow:"Total",
-    resBench:"If you invested everything → SAR 320,000",
     ctaTitle:"Wealthy people don't just save… they invest 🌴",
     ctaBody:"Tamra Capital helps you start your investing journey early, in simple steps.",
     againBtn:"Play again 🔁",
     footer:"© Tamra Capital — Educational game. Numbers are illustrative, not investment advice.",
-    savedMsg:"You kept your money (no growth)", investedMsg:"Invested — your portfolio grew!", boughtMsg:"You bought",
-    winV:"Congrats! You own the Mercedes 🎉🚗", loseV:"Not this time… invest more 💪",
+    savedMsg:"You kept your money (no growth)", investedMsg:"Invested — your portfolio grew!", boughtMsg:"You bought this year's stuff",
+    progTo:"Progress to ",
+    winV:"Congrats! You own ", loseV:"You didn't reach ",
     lessonWin:"See? The money you invested earned extra profit for free, thanks to compound interest. That's how the wealthy do it.",
-    lessonLose:"Saving alone isn't enough, and buying drains your money. Investing early is the way — and time never returns."
+    lessonLose:"Saving alone isn't enough, and buying drains your money. Investing early is the way — and time never returns.",
+    benchTxt:"If you invested every year → ",
+    goalPrice:"SAR 250,000"
   }
 };
 
 let lang="ar";
-const RATE=0.10, TARGET=250000;
+const RATE=0.10, TARGET=250000, BUDGET=10000;
 
+const GOALS=[
+  {e:"🚗", ar:"مرسيدس", en:"a Mercedes"},
+  {e:"🏠", ar:"شقتك الخاصة", en:"your own apartment"},
+  {e:"🚀", ar:"مشروعك الخاص", en:"your own business"}
+];
+let goal=0;
+
+/* 16 years — each year's tempting wishlist (totals 10,000) */
 const YEARS=[
-  {age:11, cash:3000,  e:"🎮", ar:"جهاز ألعاب", en:"Game console"},
-  {age:12, cash:4000,  e:"👟", ar:"حذاء رياضي", en:"Sneakers"},
-  {age:13, cash:5000,  e:"📱", ar:"جوال جديد", en:"New phone"},
-  {age:14, cash:6000,  e:"🎧", ar:"سماعات", en:"Headphones"},
-  {age:15, cash:7000,  e:"⌚", ar:"ساعة ذكية", en:"Smartwatch"},
-  {age:16, cash:8000,  e:"🚲", ar:"دراجة فخمة", en:"Premium bike"},
-  {age:17, cash:9000,  e:"💻", ar:"لابتوب", en:"Laptop"},
-  {age:18, cash:10000, e:"📷", ar:"كاميرا", en:"Camera"},
-  {age:19, cash:12000, e:"✈️", ar:"رحلة سفر", en:"A trip abroad"},
-  {age:20, cash:14000, e:"👜", ar:"حقيبة ماركة", en:"Designer bag"},
-  {age:21, cash:16000, e:"🕹️", ar:"حاسب ألعاب", en:"Gaming PC"},
-  {age:22, cash:18000, e:"🛵", ar:"دراجة نارية", en:"Scooter"},
-  {age:23, cash:20000, e:"⌚", ar:"ساعة فاخرة", en:"Luxury watch"},
-  {age:24, cash:28000, e:"🛋️", ar:"أثاث غرفة", en:"Room makeover"},
-  {age:25, cash:40000, e:"🏝️", ar:"إجازة فاخرة", en:"Luxury vacation"}
+  [{e:"👟",ar:"حذاء",en:"Shoes",p:3000},{e:"🎮",ar:"جهاز ألعاب",en:"Console",p:4000},{e:"🍔",ar:"وجبات",en:"Eating out",p:3000}],
+  [{e:"📱",ar:"جوال",en:"Phone",p:6000},{e:"🎧",ar:"سماعات",en:"Headphones",p:4000}],
+  [{e:"💻",ar:"لابتوب",en:"Laptop",p:7000},{e:"🖱️",ar:"ملحقات",en:"Accessories",p:3000}],
+  [{e:"⌚",ar:"ساعة ذكية",en:"Smartwatch",p:4000},{e:"👕",ar:"ملابس",en:"Clothes",p:3000},{e:"🛹",ar:"تزلج",en:"Skateboard",p:3000}],
+  [{e:"🚲",ar:"دراجة",en:"Bike",p:5000},{e:"📷",ar:"كاميرا",en:"Camera",p:5000}],
+  [{e:"🕹️",ar:"حاسب ألعاب",en:"Gaming PC",p:8000},{e:"🎮",ar:"لعبة",en:"Game",p:2000}],
+  [{e:"✈️",ar:"رحلة",en:"Trip",p:7000},{e:"🧳",ar:"شنطة",en:"Luggage",p:3000}],
+  [{e:"👟",ar:"أحذية ماركة",en:"Branded shoes",p:4000},{e:"👜",ar:"حقيبة",en:"Bag",p:6000}],
+  [{e:"📱",ar:"جوال جديد",en:"New phone",p:7000},{e:"📲",ar:"إكسسوار",en:"Case & more",p:3000}],
+  [{e:"🛵",ar:"سكوتر",en:"Scooter",p:8000},{e:"⛑️",ar:"خوذة",en:"Helmet",p:2000}],
+  [{e:"🎧",ar:"سماعات فاخرة",en:"Premium audio",p:5000},{e:"🔊",ar:"مكبر صوت",en:"Speaker",p:5000}],
+  [{e:"⌚",ar:"ساعة فاخرة",en:"Luxury watch",p:6000},{e:"🕶️",ar:"نظارة",en:"Sunglasses",p:4000}],
+  [{e:"💻",ar:"جهاز جديد",en:"New laptop",p:9000},{e:"🖱️",ar:"ماوس",en:"Mouse",p:1000}],
+  [{e:"🏝️",ar:"إجازة",en:"Vacation",p:7000},{e:"🍽️",ar:"مطاعم",en:"Dining",p:3000}],
+  [{e:"👔",ar:"ملابس فاخرة",en:"Designer clothes",p:5000},{e:"👟",ar:"أحذية",en:"Sneakers",p:5000}],
+  [{e:"🎮",ar:"إصدار جديد",en:"New console",p:6000},{e:"🪑",ar:"كرسي ألعاب",en:"Gaming chair",p:4000}]
 ];
 
 let idx=0, invested=0, principal=0, saved=0, allInvest=0;
+
+/* ---------------- background music (Web Audio) ---------------- */
+let actx=null, master=null, musicOn=true, musicTimer=null, mstep=0;
+const MEL=[523.25,659.25,783.99,659.25, 440,523.25,659.25,523.25, 440,587.33,698.46,587.33, 392,493.88,587.33,493.88];
+const BASS=[130.81,110.00,87.31,98.00]; // C2 A2 F2 G2
+function noteOn(freq,dur,type,vol){
+  if(!actx) return;
+  const o=actx.createOscillator(), g=actx.createGain();
+  o.type=type; o.frequency.value=freq;
+  const t=actx.currentTime;
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(vol,t+0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g); g.connect(master);
+  o.start(t); o.stop(t+dur+0.05);
+}
+function tick(){
+  const i=mstep%16;
+  noteOn(MEL[i],0.45,"triangle",0.5);
+  if(i%4===0) noteOn(BASS[(mstep/4)%4 |0],1.0,"sine",0.9);
+  mstep++;
+}
+function initAudio(){
+  if(actx) return;
+  try{
+    actx=new (window.AudioContext||window.webkitAudioContext)();
+    master=actx.createGain();
+    master.gain.value=musicOn?0.16:0;
+    master.connect(actx.destination);
+    musicTimer=setInterval(tick,260);
+    tick();
+  }catch(e){ /* audio not supported */ }
+}
+function setMusic(on){
+  musicOn=on;
+  document.getElementById("musicBtn").textContent=on?"🔊":"🔇";
+  if(master) master.gain.value=on?0.16:0;
+}
+document.getElementById("musicBtn").onclick=()=>{ initAudio(); if(actx&&actx.state==="suspended")actx.resume(); setMusic(!musicOn); };
+/* start on first interaction anywhere (autoplay policy) */
+window.addEventListener("pointerdown",()=>{ initAudio(); if(actx&&actx.state==="suspended")actx.resume(); },{once:true});
+
+/* ---------------- i18n render ---------------- */
+function goalName(){ return lang==="ar"?GOALS[goal].ar:GOALS[goal].en; }
 
 function applyLang(){
   const d=T[lang];
@@ -337,10 +399,22 @@ function applyLang(){
   document.getElementById("brandName").textContent=d.brandName;
   document.getElementById("brandSub").textContent=d.brandSub;
   document.getElementById("langBtn").textContent=(lang==="ar")?"EN":"ع";
+  renderGoals();
   renderDemo();
   if(document.getElementById("s-game").classList.contains("active")) renderYear();
 }
 document.getElementById("langBtn").onclick=()=>{ lang=(lang==="ar")?"en":"ar"; applyLang(); };
+
+function renderGoals(){
+  const d=T[lang], grid=document.getElementById("goalGrid"); grid.innerHTML="";
+  GOALS.forEach((gObj,i)=>{
+    const c=document.createElement("div");
+    c.className="goalcard";
+    c.innerHTML=`<div class="ge">${gObj.e}</div><div class="gn">${lang==="ar"?gObj.ar:gObj.en}</div><div class="gp">${d.goalPrice}</div>`;
+    c.onclick=()=>{ goal=i; go('learn1'); };
+    grid.appendChild(c);
+  });
+}
 
 function go(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
@@ -369,24 +443,27 @@ function totalWealth(){ return invested+saved; }
 
 function startGame(){
   idx=0; invested=0; principal=0; saved=0;
-  allInvest=0; YEARS.forEach(y=>{ allInvest=allInvest*(1+RATE)+y.cash; });
+  allInvest=0; for(let i=0;i<YEARS.length;i++){ allInvest=allInvest*(1+RATE)+BUDGET; }
   go("game"); renderYear();
 }
 
 function renderYear(){
-  const d=T[lang], y=YEARS[idx];
-  document.getElementById("hYear").textContent=(idx+1);
-  document.getElementById("hAge").textContent=y.age;
+  const d=T[lang];
+  document.getElementById("hYear").textContent=(idx+1)+"/16";
   document.getElementById("hPort").textContent=fmt(totalWealth());
-  document.getElementById("yearCash").textContent=fmt(y.cash);
-  document.getElementById("itemEmoji").textContent=y.e;
-  document.getElementById("itemName").textContent=(lang==="ar")?y.ar:y.en;
-  document.getElementById("itemPrice").textContent=fmt(y.cash)+" "+d.sar;
+  document.getElementById("progLabel").textContent=d.progTo+goalName();
+  // wishlist bundle
+  const wrap=document.getElementById("bundle"); wrap.innerHTML="";
+  YEARS[idx].forEach(it=>{
+    const el=document.createElement("div"); el.className="bitem";
+    el.innerHTML=`${it.e} ${lang==="ar"?it.ar:it.en}<span class="bp">${fmt(it.p)}</span>`;
+    wrap.appendChild(el);
+  });
   const yearsLeft=YEARS.length-1-idx;
-  const future=y.cash*Math.pow(1+RATE,yearsLeft);
+  const future=BUDGET*Math.pow(1+RATE,yearsLeft);
   document.getElementById("growNote").textContent=(lang==="ar")
-    ? "💡 لو استثمرتها تصير ≈ "+fmt(future)+" ريال بعد "+yearsLeft+" سنة"
-    : "💡 If invested it becomes ≈ SAR "+fmt(future)+" in "+yearsLeft+" yrs";
+    ? "💡 لو استثمرت الـ10,000 تصير ≈ "+fmt(future)+" ريال بعد "+yearsLeft+" سنة"
+    : "💡 If invested, your 10,000 becomes ≈ SAR "+fmt(future)+" in "+yearsLeft+" yrs";
   updateProg();
   document.getElementById("toast").textContent="";
 }
@@ -398,17 +475,17 @@ function updateProg(){
 }
 
 function choose(kind){
-  const d=T[lang], y=YEARS[idx];
+  const d=T[lang];
   invested=invested*(1+RATE);                 // existing investments grow each year
   const toast=document.getElementById("toast");
   if(kind==="invest"){
-    invested+=y.cash; principal+=y.cash;
+    invested+=BUDGET; principal+=BUDGET;
     toast.textContent="✅ "+d.investedMsg; toast.style.color="var(--teal-d)";
   }else if(kind==="save"){
-    saved+=y.cash;
+    saved+=BUDGET;
     toast.textContent="🏦 "+d.savedMsg; toast.style.color="#b9852a";
   }else{
-    toast.textContent="🛍️ "+d.boughtMsg+" "+((lang==="ar")?y.ar:y.en); toast.style.color="var(--red)";
+    toast.textContent="🛍️ "+d.boughtMsg; toast.style.color="var(--red)";
   }
   document.getElementById("hPort").textContent=fmt(totalWealth());
   updateProg();
@@ -419,15 +496,15 @@ function choose(kind){
 function showResult(){
   const d=T[lang];
   const total=totalWealth(), gain=invested-principal, won=total>=TARGET;
-  document.getElementById("resEmoji").textContent=won?"🏆🚗":"🏁";
+  document.getElementById("resEmoji").textContent=won?(GOALS[goal].e+"🏆"):"🏁";
   const v=document.getElementById("verdict");
-  v.textContent=won?d.winV:d.loseV; v.className="verdict "+(won?"win":"lose");
+  v.textContent=(won?d.winV:d.loseV)+goalName()+(won?" 🎉":" 💪"); v.className="verdict "+(won?"win":"lose");
   document.getElementById("resPort").textContent=fmt(total)+" "+d.sar;
   document.getElementById("resPrincipal").textContent=fmt(principal);
   document.getElementById("resGain").textContent="+"+fmt(gain);
   document.getElementById("resSavedV").textContent=fmt(saved);
   document.getElementById("resTotalV").textContent=fmt(total);
-  document.getElementById("resBench").textContent=d.resBench;
+  document.getElementById("resBench").textContent=d.benchTxt+fmt(allInvest)+" "+d.sar;
   document.getElementById("resLesson").textContent=won?d.lessonWin:d.lessonLose;
   const pct=Math.min(100,Math.round(total/TARGET*100));
   go("result");
