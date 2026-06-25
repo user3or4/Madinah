@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tamra Capital — Own Your Dream | امتلك حلمك</title>
+<style>
+  :root{
+    --navy:#27357E; --navy-d:#1B2560; --navy-l:#3A4BA0;
+    --teal:#34B6A7; --teal-d:#2A9C8F; --teal-l:#62D2C5;
+    --ink:#222a5c; --muted:#7C82A0; --line:#E7EAF3;
+    --bg:#F4F6FB; --white:#fff; --red:#E2674A; --amber:#E0A93B;
+    --shadow:0 24px 60px rgba(20,30,80,.30);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Segoe UI",Tahoma,"Helvetica Neue",Arial,sans-serif;
+    color:var(--ink);min-height:100%;
+    display:flex;                 /* center via margin:auto on .app (overflow-safe) */
+    padding:18px;overflow-x:hidden;background:var(--navy);position:relative;
+  }
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      linear-gradient(135deg,transparent 55%,rgba(58,75,160,.55) 55%,rgba(58,75,160,.55) 70%,transparent 70%),
+      linear-gradient(135deg,transparent 72%,rgba(52,182,167,.30) 72%,rgba(52,182,167,.30) 80%,transparent 80%),
+      radial-gradient(900px 500px at 110% -10%,var(--navy-l),transparent 60%),
+      radial-gradient(800px 500px at -10% 120%,var(--navy-d),transparent 55%),
+      var(--navy);
+  }
+  .app{position:relative;z-index:1;margin:auto;width:100%;max-width:760px;background:var(--white);
+    border-radius:26px;box-shadow:var(--shadow);overflow:hidden}
+  .top{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:11px}
+  .brand .mark{width:38px;height:34px;position:relative;flex:none}
+  .brand .mark i{position:absolute;left:0;width:26px;height:11px;border-radius:2px;transform:skewX(-28deg);transform-origin:left}
+  .brand .mark i:nth-child(1){top:0;left:8px;background:var(--teal-l)}
+  .brand .mark i:nth-child(2){top:10px;left:4px;background:var(--teal)}
+  .brand .mark i:nth-child(3){top:20px;left:0;background:var(--navy)}
+  .brand .name{font-weight:800;line-height:1.05;color:var(--ink)}
+  .brand .name small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+  .top-actions{display:flex;gap:8px;align-items:center}
+  .iconbtn{cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--navy);
+    width:38px;height:38px;border-radius:50%;font-size:16px;display:grid;place-items:center;transition:.2s}
+  .iconbtn:hover{background:#eef1f8}
+  .lang{cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--navy);
+    padding:7px 14px;border-radius:999px;font-weight:800;font-size:13px;transition:.2s}
+  .lang:hover{background:#eef1f8}
+
+  .screen{display:none;padding:26px 24px 30px;animation:fade .45s ease}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  h1{font-size:25px;line-height:1.25;margin-bottom:10px;color:var(--ink)}
+  h2{font-size:20px;margin-bottom:8px;color:var(--navy)}
+  p.lead{color:#4a4f70;font-size:15px;line-height:1.55;margin-bottom:18px}
+  .hero-emoji{font-size:60px;text-align:center;margin:6px 0 4px;filter:drop-shadow(0 10px 16px rgba(20,30,80,.18))}
+
+  .btn{cursor:pointer;border:none;border-radius:14px;font-weight:800;font-size:16px;padding:15px 22px;width:100%;transition:.18s;font-family:inherit}
+  .btn:active{transform:translateY(1px)}
+  .btn.teal{background:linear-gradient(180deg,var(--teal-l),var(--teal));color:#08332d;box-shadow:0 10px 22px rgba(52,182,167,.4)}
+  .btn.teal:hover{filter:brightness(1.05)}
+
+  .card{background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px}
+  .pill{display:inline-block;background:rgba(52,182,167,.14);color:var(--teal-d);padding:5px 12px;border-radius:999px;font-size:12px;font-weight:800;margin-bottom:10px;letter-spacing:.4px}
+  .threecol{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(max-width:560px){.threecol{grid-template-columns:1fr}}
+
+  .goalcard{cursor:pointer;background:var(--bg);border:2px solid var(--line);border-radius:16px;padding:16px 10px;text-align:center;transition:.18s}
+  .goalcard:hover{transform:translateY(-4px);border-color:var(--teal);box-shadow:0 12px 24px rgba(52,182,167,.18)}
+  .goalcard .ge{font-size:40px}
+  .goalcard .gn{font-weight:800;color:var(--navy);margin-top:6px;font-size:15px}
+  .goalcard .gp{font-size:12px;color:var(--muted);margin-top:2px}
+
+  .demo-out{font-size:30px;font-weight:900;color:var(--teal-d);text-align:center;margin:6px 0}
+  .demo-sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:8px}
+  .ctrl{margin:10px 0}
+  .ctrl .lab{display:flex;justify-content:space-between;font-size:13px;color:var(--ink);font-weight:700;margin-bottom:4px}
+  input[type=range]{width:100%;accent-color:var(--teal)}
+  .bars{display:flex;align-items:flex-end;gap:6px;height:120px;margin:6px 0 4px}
+  .bar{flex:1;background:linear-gradient(180deg,var(--teal-l),var(--teal));border-radius:6px 6px 0 0;min-height:4px;transition:height .25s}
+  .bar.now{background:linear-gradient(180deg,var(--navy-l),var(--navy));box-shadow:0 6px 14px rgba(39,53,126,.35)}
+
+  .hud{display:flex;gap:10px;margin-bottom:16px}
+  .hud .box{flex:1;background:var(--navy);color:#fff;border-radius:14px;padding:10px 12px;text-align:center}
+  .hud .box b{display:block;font-size:18px;color:var(--teal-l)}
+  .hud .box span{font-size:11px;opacity:.8}
+
+  .progwrap{margin-bottom:18px}
+  .progwrap .labels{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
+  .track{height:16px;background:#e6e9f2;border-radius:999px;overflow:hidden}
+  .fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--teal-l));border-radius:999px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+
+  .budget-line{font-size:14px;color:var(--muted);margin-bottom:6px;text-align:center}
+  .budget-line b{color:var(--ink)}
+  .hint{font-size:12px;color:var(--muted);text-align:center;margin-bottom:10px}
+
+  /* per-item rows */
+  .item-row{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:8px}
+  .item-row .lbl{flex:1;text-align:start;font-weight:700;font-size:13px;color:var(--ink)}
+  .item-row .lbl .pr{display:block;color:var(--muted);font-weight:600;font-size:12px;margin-top:1px}
+  .opt{display:flex;gap:4px;flex:none}
+  .opt button{border:1px solid var(--line);background:var(--bg);border-radius:9px;width:38px;height:36px;font-size:16px;cursor:pointer;transition:.15s;padding:0;line-height:1}
+  .opt button:hover{filter:brightness(1.05)}
+  .opt button.sel.buy{background:rgba(226,103,74,.16);border-color:var(--red)}
+  .opt button.sel.save{background:rgba(224,169,59,.20);border-color:var(--amber)}
+  .opt button.sel.invest{background:rgba(52,182,167,.20);border-color:var(--teal)}
+
+  .sumbar{display:flex;justify-content:space-around;gap:6px;font-size:12.5px;font-weight:800;margin:10px 0 4px;flex-wrap:wrap}
+  .sumbar .s1{color:var(--red)}.sumbar .s2{color:#b9852a}.sumbar .s3{color:var(--teal-d)}
+  .grow-note{font-size:13px;color:var(--teal-d);min-height:18px;margin:8px 0 12px;font-weight:700;text-align:center}
+  .toast{font-size:14px;text-align:center;min-height:20px;margin-top:10px;font-weight:800}
+
+  .result-num{font-size:40px;font-weight:900;color:var(--teal-d);text-align:center;margin:6px 0}
+  .verdict{text-align:center;font-size:20px;font-weight:900;margin-bottom:14px}
+  .win{color:var(--teal-d)}.lose{color:var(--red)}
+  .ledger{margin:8px 0 4px}
+  .ledger .row{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-radius:12px;margin-bottom:8px;font-weight:700;font-size:14px;gap:10px}
+  .ledger .row.paid{background:#fff;border:1px solid var(--line)}
+  .ledger .row.ret{background:rgba(52,182,167,.12);color:var(--teal-d);font-weight:800}
+  .ledger .row.sav{background:rgba(224,169,59,.10);color:#b9852a}
+  .ledger .row.tot{background:var(--navy);color:#fff;font-weight:900;font-size:16px}
+  .ledger .row b{font-size:15px;white-space:nowrap}
+  .bench{background:rgba(52,182,167,.08);border:1px dashed var(--teal);border-radius:12px;padding:10px 14px;text-align:center;font-size:13px;color:var(--teal-d);font-weight:700;margin-top:6px}
+
+  .foot{text-align:center;font-size:12px;color:var(--muted);padding:14px;border-top:1px solid var(--line)}
+  .center{text-align:center}.mt{margin-top:12px}
+  .stepdots{display:flex;gap:6px;justify-content:center;margin:16px 0 0}
+  .stepdots i{width:8px;height:8px;border-radius:50%;background:#d6dae9}
+  .stepdots i.on{background:var(--teal)}
+  .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;filter:grayscale(.35)}
+  .btn:disabled:active{transform:none}
+  @media(max-width:560px){
+    body{padding:10px}
+    .top{padding:12px 14px}
+    .screen{padding:18px 16px 24px}
+    .hero-emoji{font-size:46px}
+    h1{font-size:21px}
+    h2{font-size:18px}
+    .brand .name{font-size:15px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand">
+      <span class="mark"><i></i><i></i><i></i></span>
+      <span class="name"><span id="brandName">تمرة المالية</span><small id="brandSub">استثمر. انمُ. امتلك حلمك.</small></span>
+    </div>
+    <div class="top-actions">
+      <button class="iconbtn" id="musicBtn" title="music">🔊</button>
+      <button class="lang" id="langBtn">EN</button>
+    </div>
+  </div>
+
+  <!-- 1. INTRO + GOAL PICK -->
+  <section class="screen active" id="s-intro">
+    <div class="hero-emoji">✨</div>
+    <h1 data-t="introTitle"></h1>
+    <p class="lead" data-t="introLead"></p>
+    <div class="threecol" id="goalGrid"></div>
+  </section>
+
+  <!-- 2. LEARN: 3 paths -->
+  <section class="screen" id="s-learn1">
+    <span class="pill" data-t="learnTag1"></span>
+    <h2 data-t="invTitle"></h2>
+    <p class="lead" data-t="invBody"></p>
+    <div class="threecol">
+      <div class="card center"><div style="font-size:28px">🛍️</div><b style="color:var(--red);font-size:14px" data-t="p1T"></b><p style="color:var(--muted);font-size:12px;margin-top:4px" data-t="p1B"></p></div>
+      <div class="card center"><div style="font-size:28px">🏦</div><b style="color:#b9852a;font-size:14px" data-t="p2T"></b><p style="color:var(--muted);font-size:12px;margin-top:4px" data-t="p2B"></p></div>
+      <div class="card center"><div style="font-size:28px">🌱</div><b style="color:var(--teal-d);font-size:14px" data-t="p3T"></b><p style="color:var(--muted);font-size:12px;margin-top:4px" data-t="p3B"></p></div>
+    </div>
+    <button class="btn teal mt" onclick="go('learn2')" data-t="nextBtn"></button>
+    <div class="stepdots"><i class="on"></i><i></i></div>
+  </section>
+
+  <!-- 3. LEARN: compound demo + rate control -->
+  <section class="screen" id="s-learn2">
+    <span class="pill" data-t="learnTag2"></span>
+    <h2 data-t="cmpTitle"></h2>
+    <p class="lead" data-t="cmpBody"></p>
+    <div class="card">
+      <div class="demo-out" id="demoOut">10,000</div>
+      <div class="demo-sub"><span data-t="cmpAfter"></span> <b id="demoYears">0</b> <span data-t="cmpYears"></span></div>
+      <div class="bars" id="demoBars"></div>
+      <div class="ctrl">
+        <div class="lab"><span data-t="cmpYearsLab"></span><b id="demoYears2">0</b></div>
+        <input type="range" id="demoSlider" min="0" max="30" value="0" />
+      </div>
+      <div class="ctrl">
+        <div class="lab"><span data-t="ratePrompt"></span><b id="rateVal">10%</b></div>
+        <input type="range" id="rateSlider" min="1" max="20" value="10" />
+      </div>
+      <div class="demo-sub mt" data-t="cmpHint"></div>
+    </div>
+    <button class="btn teal" onclick="startGame()" data-t="playBtn"></button>
+    <div class="stepdots"><i></i><i class="on"></i></div>
+  </section>
+
+  <!-- 4. GAME -->
+  <section class="screen" id="s-game">
+    <div class="hud">
+      <div class="box"><b id="hYear">1/16</b><span data-t="hudYear"></span></div>
+      <div class="box"><b id="hRate">10%</b><span data-t="hudRate"></span></div>
+      <div class="box"><b id="hPort">0</b><span data-t="hudPort"></span></div>
+    </div>
+    <div class="progwrap">
+      <div class="labels"><span id="progLabel"></span><span id="progTxt">0%</span></div>
+      <div class="track"><div class="fill" id="progFill"></div></div>
+    </div>
+    <div class="card">
+      <div class="budget-line"><span data-t="thisYear"></span> <b id="yearBudget">10,000</b> <span data-t="sar"></span></div>
+      <div class="hint" data-t="gameHint"></div>
+      <div id="itemList"></div>
+      <div class="sumbar">
+        <span class="s1">🛍️ <span data-t="sumBuy"></span> <b id="sumBuy">0</b></span>
+        <span class="s2">🏦 <span data-t="sumSave"></span> <b id="sumSave">0</b></span>
+        <span class="s3">📈 <span data-t="sumInvest"></span> <b id="sumInvest">0</b></span>
+      </div>
+      <div class="grow-note" id="growNote"></div>
+      <button class="btn teal" id="confirmBtn" onclick="commitYear()" data-t="confirmBtn"></button>
+      <div class="toast" id="toast"></div>
+    </div>
+  </section>
+
+  <!-- 5. RESULT -->
+  <section class="screen" id="s-result">
+    <div class="hero-emoji" id="resEmoji">🏁</div>
+    <div class="verdict" id="verdict"></div>
+    <div class="card">
+      <div class="center" style="color:var(--muted);font-size:13px" data-t="resTotal"></div>
+      <div class="result-num" id="resPort">0</div>
+      <div class="progwrap"><div class="track"><div class="fill" id="resFill"></div></div></div>
+      <div class="ledger">
+        <div class="row paid"><span data-t="resPaidIn"></span><b id="resPrincipal">0</b></div>
+        <div class="row ret"><span data-t="resReturn"></span><b id="resGain">0</b></div>
+        <div class="row sav"><span data-t="resSaved"></span><b id="resSavedV">0</b></div>
+        <div class="row tot"><span data-t="resTotalRow"></span><b id="resTotalV">0</b></div>
+      </div>
+      <div class="bench" id="resBench"></div>
+      <p class="lead" id="resLesson" style="margin:12px 0 0"></p>
+    </div>
+    <div class="card center" style="background:linear-gradient(120deg,rgba(52,182,167,.12),rgba(39,53,126,.06))">
+      <b style="color:var(--navy)" data-t="ctaTitle"></b>
+      <p style="color:#4a4f70;font-size:13px;margin-top:4px" data-t="ctaBody"></p>
+    </div>
+    <button class="btn teal" onclick="go('intro')" data-t="againBtn"></button>
+  </section>
+
+  <div class="foot" data-t="footer"></div>
+</div>
+
+<script>
+/* ---------------- i18n ---------------- */
+const T={
+  ar:{
+    brandName:"تمرة المالية", brandSub:"استثمر. انمُ. امتلك حلمك.",
+    introTitle:"اختر حلمك 🎯",
+    introLead:"بعد 16 سنة، أي حلم تبي تملكه؟ اختر هدفك وابدأ الرحلة.",
+    learnTag1:"الدرس ١", invTitle:"ثلاث طرق لفلوسك",
+    invBody:"كل سنة عندك ميزانية. كل غرض تقرر فيه: تشتريه، تدّخره، أو تستثمر مبلغه فيكبر مع الوقت.",
+    p1T:"تشتري", p1B:"تستمتع لحظة، وتختفي الفلوس.",
+    p2T:"تدّخر", p2B:"تحفظها بأمان، لكن لا تكبر.",
+    p3T:"تستثمر", p3B:"تشتغل لك وتكبر كل سنة.",
+    nextBtn:"التالي ◀",
+    learnTag2:"الدرس ٢", cmpTitle:"الفائدة المركبة ✨",
+    cmpBody:"أرباحك تربح أرباحاً! غيّر عدد السنوات والعائد وشوف كيف 10,000 ريال تكبر.",
+    cmpAfter:"بعد", cmpYears:"سنة", cmpYearsLab:"عدد السنوات", ratePrompt:"العائد السنوي",
+    cmpHint:"السر: ابدأ مبكراً، وكل ما زاد العائد والوقت، زادت ثروتك.",
+    playBtn:"ابدأ اللعبة 🎮",
+    hudYear:"السنة", hudRate:"العائد", hudPort:"ثروتك",
+    thisYear:"ميزانية هذي السنة:", sar:"ريال",
+    gameHint:"اختر لكل غرض: 🛍️ شراء · 🏦 ادّخار · 📈 استثمار",
+    sumBuy:"تشتري:", sumSave:"تدّخر:", sumInvest:"تستثمر:",
+    confirmBtn:"تأكيد والسنة التالية ▶",
+    resTotal:"إجمالي ثروتك",
+    resPaidIn:"المبلغ الذي استثمرته (رأس المال)",
+    resReturn:"الأرباح التي ربحتها (العائد) ✨",
+    resSaved:"ما ادّخرته (بدون نمو)",
+    resTotalRow:"الإجمالي",
+    ctaTitle:"الأثرياء لا يدّخرون فقط… يستثمرون 🌴",
+    ctaBody:"تمرة المالية تساعدك تبدأ رحلة استثمارك مبكراً وبخطوات بسيطة.",
+    againBtn:"العب مرة ثانية 🔁",
+    footer:"© تمرة المالية — لعبة تعليمية. الأرقام للتوضيح فقط وليست نصيحة استثمارية.",
+    investedMsg:"استثمرت ونمت محفظتك!",
+    progTo:"التقدّم نحو ",
+    winV:"مبروك! امتلكت ", loseV:"لم تصل لـ",
+    lessonWin:"شفت؟ المبلغ الذي استثمرته أعطاك أرباحاً إضافية مجاناً بفضل الفائدة المركبة. هذي طريقة الأثرياء.",
+    lessonLose:"الادّخار وحده لا يكفي، والشراء يضيّع فلوسك. الاستثمار المبكر هو الطريق — والوقت لا يعود.",
+    benchTxt:"لو استثمرت كل شيء كل سنة → ",
+    goalPrice:"250,000 ريال"
+  },
+  en:{
+    brandName:"tamra capital", brandSub:"Invest. Grow. Own your dream.",
+    introTitle:"Choose your dream 🎯",
+    introLead:"In 16 years, which dream do you want to own? Pick your goal and start the journey.",
+    learnTag1:"LESSON 1", invTitle:"Three paths for your money",
+    invBody:"Each year you get a budget. For every item you decide: buy it, save it, or invest its amount so it grows.",
+    p1T:"Buy it", p1B:"Enjoy a moment, money is gone.",
+    p2T:"Save it", p2B:"Kept safe, but it doesn't grow.",
+    p3T:"Invest it", p3B:"Works for you, grows every year.",
+    nextBtn:"Next ▶",
+    learnTag2:"LESSON 2", cmpTitle:"Compound interest ✨",
+    cmpBody:"Your profits earn profits! Change the years and the return, and watch SAR 10,000 grow.",
+    cmpAfter:"After", cmpYears:"years", cmpYearsLab:"Number of years", ratePrompt:"Annual return",
+    cmpHint:"The secret: start early — the higher the return and the longer the time, the bigger your wealth.",
+    playBtn:"Play the game 🎮",
+    hudYear:"Year", hudRate:"Return", hudPort:"Wealth",
+    thisYear:"This year's budget:", sar:"SAR",
+    gameHint:"For each item choose: 🛍️ Buy · 🏦 Save · 📈 Invest",
+    sumBuy:"Buy:", sumSave:"Save:", sumInvest:"Invest:",
+    confirmBtn:"Confirm & next year ▶",
+    resTotal:"Your total wealth",
+    resPaidIn:"What you paid into investing (principal)",
+    resReturn:"The return you earned (benefit) ✨",
+    resSaved:"What you saved (no growth)",
+    resTotalRow:"Total",
+    ctaTitle:"Wealthy people don't just save… they invest 🌴",
+    ctaBody:"Tamra Capital helps you start your investing journey early, in simple steps.",
+    againBtn:"Play again 🔁",
+    footer:"© Tamra Capital — Educational game. Numbers are illustrative, not investment advice.",
+    investedMsg:"Invested — your portfolio grew!",
+    progTo:"Progress to ",
+    winV:"Congrats! You own ", loseV:"You didn't reach ",
+    lessonWin:"See? The money you invested earned extra profit for free, thanks to compound interest. That's how the wealthy do it.",
+    lessonLose:"Saving alone isn't enough, and buying drains your money. Investing early is the way — and time never returns.",
+    benchTxt:"If you invested everything every year → ",
+    goalPrice:"SAR 250,000"
+  }
+};
+
+let lang="ar";
+const TARGET=250000;
+let rate=0.10;                 // changeable by the player
+
+const GOALS=[
+  {e:"🚗", ar:"مرسيدس", en:"a Mercedes"},
+  {e:"🏠", ar:"شقتك الخاصة", en:"your own apartment"},
+  {e:"🚀", ar:"مشروعك الخاص", en:"your own business"}
+];
+let goal=0;
+
+/* 16 years — each year's items (totals 10,000) */
+const YEARS=[
+  [{e:"👟",ar:"حذاء",en:"Shoes",p:3000},{e:"🎮",ar:"جهاز ألعاب",en:"Console",p:4000},{e:"🍔",ar:"وجبات",en:"Eating out",p:3000}],
+  [{e:"📱",ar:"جوال",en:"Phone",p:6000},{e:"🎧",ar:"سماعات",en:"Headphones",p:4000}],
+  [{e:"💻",ar:"لابتوب",en:"Laptop",p:7000},{e:"🖱️",ar:"ملحقات",en:"Accessories",p:3000}],
+  [{e:"⌚",ar:"ساعة ذكية",en:"Smartwatch",p:4000},{e:"👕",ar:"ملابس",en:"Clothes",p:3000},{e:"🛹",ar:"تزلج",en:"Skateboard",p:3000}],
+  [{e:"🚲",ar:"دراجة",en:"Bike",p:5000},{e:"📷",ar:"كاميرا",en:"Camera",p:5000}],
+  [{e:"🕹️",ar:"حاسب ألعاب",en:"Gaming PC",p:8000},{e:"🎮",ar:"لعبة",en:"Game",p:2000}],
+  [{e:"✈️",ar:"رحلة",en:"Trip",p:7000},{e:"🧳",ar:"شنطة",en:"Luggage",p:3000}],
+  [{e:"👟",ar:"أحذية ماركة",en:"Branded shoes",p:4000},{e:"👜",ar:"حقيبة",en:"Bag",p:6000}],
+  [{e:"📱",ar:"جوال جديد",en:"New phone",p:7000},{e:"📲",ar:"إكسسوار",en:"Case & more",p:3000}],
+  [{e:"🛵",ar:"سكوتر",en:"Scooter",p:8000},{e:"⛑️",ar:"خوذة",en:"Helmet",p:2000}],
+  [{e:"🎧",ar:"سماعات فاخرة",en:"Premium audio",p:5000},{e:"🔊",ar:"مكبر صوت",en:"Speaker",p:5000}],
+  [{e:"⌚",ar:"ساعة فاخرة",en:"Luxury watch",p:6000},{e:"🕶️",ar:"نظارة",en:"Sunglasses",p:4000}],
+  [{e:"💻",ar:"جهاز جديد",en:"New laptop",p:9000},{e:"🖱️",ar:"ماوس",en:"Mouse",p:1000}],
+  [{e:"🏝️",ar:"إجازة",en:"Vacation",p:7000},{e:"🍽️",ar:"مطاعم",en:"Dining",p:3000}],
+  [{e:"👔",ar:"ملابس فاخرة",en:"Designer clothes",p:5000},{e:"👟",ar:"أحذية",en:"Sneakers",p:5000}],
+  [{e:"🎮",ar:"إصدار جديد",en:"New console",p:6000},{e:"🪑",ar:"كرسي ألعاب",en:"Gaming chair",p:4000}]
+];
+
+let idx=0, invested=0, principal=0, saved=0, allInvest=0;
+let choices=[];   // per-item disposition for the current year: 'buy' | 'save' | 'invest'
+
+/* ---------------- background music (Web Audio) ---------------- */
+let actx=null, master=null, musicOn=true, musicTimer=null, mstep=0;
+const MEL=[523.25,659.25,783.99,659.25, 440,523.25,659.25,523.25, 440,587.33,698.46,587.33, 392,493.88,587.33,493.88];
+const BASS=[130.81,110.00,87.31,98.00];
+function noteOn(freq,dur,type,vol){
+  if(!actx) return;
+  const o=actx.createOscillator(), g=actx.createGain();
+  o.type=type; o.frequency.value=freq;
+  const t=actx.currentTime;
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(vol,t+0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g); g.connect(master);
+  o.start(t); o.stop(t+dur+0.05);
+}
+function musicStep(){
+  const i=mstep%16;
+  noteOn(MEL[i],0.45,"triangle",0.5);
+  if(i%4===0) noteOn(BASS[(mstep/4)%4 |0],1.0,"sine",0.9);
+  mstep++;
+}
+function initAudio(){
+  if(actx) return;
+  try{
+    actx=new (window.AudioContext||window.webkitAudioContext)();
+    master=actx.createGain();
+    master.gain.value=musicOn?0.16:0;
+    master.connect(actx.destination);
+    musicTimer=setInterval(musicStep,260);
+    musicStep();
+  }catch(e){}
+}
+function setMusic(on){
+  musicOn=on;
+  document.getElementById("musicBtn").textContent=on?"🔊":"🔇";
+  if(master) master.gain.value=on?0.16:0;
+}
+document.getElementById("musicBtn").onclick=()=>{ initAudio(); if(actx&&actx.state==="suspended")actx.resume(); setMusic(!musicOn); };
+window.addEventListener("pointerdown",()=>{ initAudio(); if(actx&&actx.state==="suspended")actx.resume(); },{once:true});
+
+/* ---------------- i18n render ---------------- */
+function goalName(){ return lang==="ar"?GOALS[goal].ar:GOALS[goal].en; }
+function applyLang(){
+  const d=T[lang];
+  document.documentElement.lang=lang;
+  document.documentElement.dir=(lang==="ar")?"rtl":"ltr";
+  document.querySelectorAll("[data-t]").forEach(el=>{
+    const k=el.getAttribute("data-t"); if(d[k]!==undefined) el.textContent=d[k];
+  });
+  document.getElementById("brandName").textContent=d.brandName;
+  document.getElementById("brandSub").textContent=d.brandSub;
+  document.getElementById("langBtn").textContent=(lang==="ar")?"EN":"ع";
+  renderGoals();
+  renderDemo();
+  if(document.getElementById("s-game").classList.contains("active")) renderYear();
+}
+document.getElementById("langBtn").onclick=()=>{ lang=(lang==="ar")?"en":"ar"; applyLang(); };
+
+function renderGoals(){
+  const d=T[lang], grid=document.getElementById("goalGrid"); grid.innerHTML="";
+  GOALS.forEach((gObj,i)=>{
+    const c=document.createElement("div");
+    c.className="goalcard";
+    c.innerHTML=`<div class="ge">${gObj.e}</div><div class="gn">${lang==="ar"?gObj.ar:gObj.en}</div><div class="gp">${d.goalPrice}</div>`;
+    c.onclick=()=>{ goal=i; go('learn1'); };
+    grid.appendChild(c);
+  });
+}
+
+function go(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("s-"+id).classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ---------------- compound demo + rate ---------------- */
+const slider=document.getElementById("demoSlider");
+const rateSlider=document.getElementById("rateSlider");
+slider.addEventListener("input",renderDemo);
+rateSlider.addEventListener("input",()=>{ rate=(+rateSlider.value)/100; renderDemo(); });
+function renderDemo(){
+  const yrs=+slider.value;
+  document.getElementById("demoOut").textContent=fmt(10000*Math.pow(1+rate,yrs));
+  document.getElementById("demoYears").textContent=yrs;
+  document.getElementById("demoYears2").textContent=yrs;
+  document.getElementById("rateVal").textContent=Math.round(rate*100)+"%";
+  const bars=document.getElementById("demoBars"); bars.innerHTML="";
+  const show=Math.max(yrs,1), maxV=10000*Math.pow(1+rate,show);
+  for(let i=0;i<=show;i++){
+    const v=10000*Math.pow(1+rate,i);
+    const b=document.createElement("div");
+    b.className="bar"+(i===yrs?" now":"");
+    b.style.height=(8+(v/maxV)*100)+"%";
+    bars.appendChild(b);
+  }
+}
+
+/* ---------------- game ---------------- */
+function totalWealth(){ return invested+saved; }
+function yearBudget(){ return YEARS[idx].reduce((a,it)=>a+it.p,0); }
+
+function startGame(){
+  idx=0; invested=0; principal=0; saved=0;
+  // benchmark: invest the full budget every year at the chosen rate
+  allInvest=0; for(let i=0;i<YEARS.length;i++){ allInvest=allInvest*(1+rate)+YEARS[i].reduce((a,it)=>a+it.p,0); }
+  go("game"); renderYear();
+}
+
+function renderYear(){
+  const d=T[lang];
+  choices=YEARS[idx].map(()=>null);   // no default — player must choose each item
+  document.getElementById("hYear").textContent=(idx+1)+"/16";
+  document.getElementById("hRate").textContent=Math.round(rate*100)+"%";
+  document.getElementById("hPort").textContent=fmt(totalWealth());
+  document.getElementById("yearBudget").textContent=fmt(yearBudget());
+  document.getElementById("progLabel").textContent=d.progTo+goalName();
+  renderItems();
+  updateProg();
+  document.getElementById("toast").textContent="";
+}
+
+function renderItems(){
+  const list=document.getElementById("itemList"); list.innerHTML="";
+  YEARS[idx].forEach((it,i)=>{
+    const row=document.createElement("div"); row.className="item-row";
+    row.innerHTML=`<div class="lbl">${it.e} ${lang==="ar"?it.ar:it.en}<span class="pr">${fmt(it.p)} ${T[lang].sar}</span></div>`;
+    const opt=document.createElement("div"); opt.className="opt";
+    [["buy","🛍️"],["save","🏦"],["invest","📈"]].forEach(([k,ic])=>{
+      const b=document.createElement("button");
+      b.textContent=ic;
+      b.className=(choices[i]===k?("sel "+k):"");
+      b.onclick=()=>{ choices[i]=k; renderItems(); };
+      opt.appendChild(b);
+    });
+    row.appendChild(opt);
+    list.appendChild(row);
+  });
+  updateSummary();
+  refreshConfirm();
+}
+
+function refreshConfirm(){
+  const incomplete=choices.some(c=>c===null);
+  document.getElementById("confirmBtn").disabled=incomplete;
+  const toast=document.getElementById("toast");
+  if(incomplete){
+    toast.textContent=(lang==="ar")?"👆 اختر لكل غرض: شراء / ادّخار / استثمار":"👆 Choose for every item: Buy / Save / Invest";
+    toast.style.color="var(--muted)";
+  }else{ toast.textContent=""; }
+}
+
+function updateSummary(){
+  let b=0,s=0,v=0;
+  YEARS[idx].forEach((it,i)=>{
+    if(choices[i]==="buy")b+=it.p; else if(choices[i]==="save")s+=it.p; else v+=it.p;
+  });
+  document.getElementById("sumBuy").textContent=fmt(b);
+  document.getElementById("sumSave").textContent=fmt(s);
+  document.getElementById("sumInvest").textContent=fmt(v);
+  const yearsLeft=YEARS.length-1-idx;
+  const future=v*Math.pow(1+rate,yearsLeft);
+  document.getElementById("growNote").textContent=(lang==="ar")
+    ? "📈 الـ"+fmt(v)+" اللي تستثمرها تصير ≈ "+fmt(future)+" ريال عند الهدف"
+    : "📈 The "+fmt(v)+" you invest becomes ≈ SAR "+fmt(future)+" by the goal";
+}
+
+function updateProg(){
+  const pct=Math.min(100,Math.round(totalWealth()/TARGET*100));
+  document.getElementById("progFill").style.width=pct+"%";
+  document.getElementById("progTxt").textContent=pct+"%";
+}
+
+function commitYear(){
+  const d=T[lang];
+  if(choices.some(c=>c===null)) return;   // every item must have a choice
+  invested=invested*(1+rate);   // existing investments grow this year
+  YEARS[idx].forEach((it,i)=>{
+    if(choices[i]==="invest"){ invested+=it.p; principal+=it.p; }
+    else if(choices[i]==="save"){ saved+=it.p; }
+    // buy => money gone
+  });
+  document.getElementById("hPort").textContent=fmt(totalWealth());
+  updateProg();
+  const toast=document.getElementById("toast");
+  toast.textContent="✅ "+d.investedMsg; toast.style.color="var(--teal-d)";
+  idx++;
+  setTimeout(()=>{ if(idx>=YEARS.length) showResult(); else renderYear(); },550);
+}
+
+function showResult(){
+  const d=T[lang];
+  const total=totalWealth(), gain=invested-principal, won=total>=TARGET;
+  document.getElementById("resEmoji").textContent=won?(GOALS[goal].e+"🏆"):"🏁";
+  const v=document.getElementById("verdict");
+  v.textContent=(won?d.winV:d.loseV)+goalName()+(won?" 🎉":" 💪"); v.className="verdict "+(won?"win":"lose");
+  document.getElementById("resPort").textContent=fmt(total)+" "+d.sar;
+  document.getElementById("resPrincipal").textContent=fmt(principal);
+  document.getElementById("resGain").textContent="+"+fmt(gain);
+  document.getElementById("resSavedV").textContent=fmt(saved);
+  document.getElementById("resTotalV").textContent=fmt(total);
+  document.getElementById("resBench").textContent=d.benchTxt+fmt(allInvest)+" "+d.sar;
+  document.getElementById("resLesson").textContent=won?d.lessonWin:d.lessonLose;
+  const pct=Math.min(100,Math.round(total/TARGET*100));
+  go("result");
+  setTimeout(()=>{document.getElementById("resFill").style.width=pct+"%";},120);
+}
+
+function fmt(n){ return Math.round(n).toLocaleString("en-US"); }
+
+applyLang(); renderDemo();
+</script>
+</body>
+</html>
