@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TPS · Stopwatch Time Study</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* ── Design tokens ──────────────────────────────────────────────────────── */
+:root {
+  --teal:       #28414D;
+  --teal-md:    #3C6474;
+  --teal-lt:    #5A8A9A;
+  --teal-bg:    #EEF3F5;
+  --gold:       #EEC643;
+  --gold-lt:    #FBF0C0;
+  --gold-dk:    #B8941F;
+  --white:      #FFFFFF;
+  --off-white:  #F5F7F9;
+  --gray-100:   #EEF0F2;
+  --gray-200:   #DDE1E5;
+  --gray-500:   #7A8895;
+  --gray-700:   #3D4A55;
+  --red:        #C53030;
+  --red-lt:     #FEF0EE;
+  --green:      #1E6B3E;
+  --green-lt:   #EBF7F0;
+  --font-ui:    'Sora', sans-serif;
+  --font-mono:  'JetBrains Mono', monospace;
+  --shadow-sm:  0 1px 3px rgba(40,65,77,.08), 0 1px 2px rgba(40,65,77,.06);
+  --shadow-md:  0 4px 12px rgba(40,65,77,.12);
+  --shadow-lg:  0 8px 28px rgba(40,65,77,.16);
+  --radius:     10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-ui);
+  background: var(--off-white);
+  color: var(--gray-700);
+  min-height: 100vh;
+}
+
+/* ── App shell ──────────────────────────────────────────────────────────── */
+.app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ── Top brand bar ──────────────────────────────────────────────────────── */
+.brand-bar {
+  background: var(--teal);
+  padding: 0 28px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.brand-bar-left { display: flex; align-items: center; gap: 14px; }
+.brand-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 3px rgba(238,198,67,.25);
+}
+.brand-title {
+  font-size: 11px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: rgba(255,255,255,.75);
+}
+.brand-title span { color: var(--gold); }
+.live-clock {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+  color: rgba(255,255,255,.55); letter-spacing: .08em;
+}
+
+/* ── Main header ────────────────────────────────────────────────────────── */
+.main-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 18px 28px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.header-identity { display: flex; align-items: center; gap: 16px; }
+
+.trigger-btn {
+  width: 58px; height: 58px;
+  background: var(--teal);
+  border: none; border-radius: var(--radius);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background .15s, transform .1s, box-shadow .15s;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+.trigger-btn:hover  { background: var(--teal-md); box-shadow: var(--shadow-lg); }
+.trigger-btn:active { transform: scale(.94); }
+.trigger-btn .icon { font-size: 26px; position: relative; z-index: 1; }
+
+/* Pulse ring when recording */
+.trigger-btn.recording::after {
+  content: '';
+  position: absolute;
+  inset: -4px; border-radius: 14px;
+  border: 2px solid var(--gold);
+  animation: pulse-ring 1.2s cubic-bezier(.4,0,.6,1) infinite;
+}
+@keyframes pulse-ring {
+  0%   { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.25); }
+}
+
+.header-text h1 {
+  font-size: 20px; font-weight: 800; color: var(--teal);
+  line-height: 1.2;
+}
+.header-text .subtitle {
+  font-size: 12px; color: var(--gray-500);
+  margin-top: 4px; line-height: 1.5;
+  display: flex; align-items: center; gap: 6px;
+}
+.kbd {
+  display: inline-flex; align-items: center;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  background: var(--gray-100); border: 1px solid var(--gray-200);
+  border-bottom-width: 2px; color: var(--teal);
+  border-radius: 4px; padding: 1px 6px;
+}
+
+/* Status pill */
+.status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; transition: all .2s;
+}
+.status-pill .pip {
+  width: 7px; height: 7px; border-radius: 50%;
+}
+.status-ready  { background: var(--teal-bg); color: var(--teal-md); }
+.status-ready .pip { background: var(--teal-lt); }
+.status-rec    { background: var(--gold-lt); color: var(--gold-dk); }
+.status-rec .pip { background: var(--gold); animation: blink 1s infinite; }
+.status-done   { background: var(--green-lt); color: var(--green); }
+.status-done .pip { background: var(--green); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* ── Buttons ──────────────────────────────────────────────────────────────*/
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font-ui); font-size: 13px; font-weight: 700;
+  border: none; border-radius: 8px; cursor: pointer;
+  padding: 9px 18px; transition: all .15s;
+  white-space: nowrap;
+}
+.btn:active { transform: scale(.96); }
+.btn-primary { background: var(--teal); color: var(--white); }
+.btn-primary:hover { background: var(--teal-md); box-shadow: var(--shadow-sm); }
+.btn-gold { background: var(--gold); color: var(--teal); }
+.btn-gold:hover { background: #F5D060; box-shadow: var(--shadow-sm); }
+.btn-danger { background: var(--red-lt); color: var(--red); border: 1px solid #FECACA; }
+.btn-danger:hover { background: #FECACA; }
+.btn-ghost { background: transparent; color: var(--teal); border: 1.5px solid var(--gray-200); }
+.btn-ghost:hover { background: var(--teal-bg); border-color: var(--teal-lt); }
+.btn-sm { font-size: 11px; padding: 5px 10px; border-radius: 6px; gap: 4px; }
+
+/* ── Content area ─────────────────────────────────────────────────────── */
+.content { padding: 20px 28px; display: flex; flex-direction: column; gap: 18px; }
+
+/* ── Paste zone ─────────────────────────────────────────────────────────── */
+.paste-zone {
+  background: var(--white);
+  border: 1.5px dashed var(--gray-200);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+  transition: border-color .2s;
+}
+.paste-zone:focus-within { border-color: var(--teal-lt); border-style: solid; }
+.paste-zone label {
+  font-size: 11px; font-weight: 700; color: var(--teal);
+  letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px;
+  display: block;
+}
+.paste-textarea {
+  width: 100%;
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--gray-700); background: var(--off-white);
+  border: 1px solid var(--gray-200); border-radius: 6px;
+  padding: 8px 10px; resize: vertical;
+  min-height: 52px; max-height: 120px;
+  outline: none; transition: border-color .15s;
+}
+.paste-textarea:focus { border-color: var(--teal-lt); background: var(--white); }
+.paste-textarea::placeholder { color: var(--gray-500); }
+.paste-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+
+/* ── Summary cards ──────────────────────────────────────────────────────── */
+.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media (max-width: 700px) { .summary-grid { grid-template-columns: 1fr; } }
+
+.summary-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  border-left: 4px solid transparent;
+  box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.summary-card.card-regular { border-color: var(--teal); }
+.summary-card.card-oneoff  { border-color: var(--gold); }
+.summary-card.card-count   { border-color: var(--gray-200); }
+
+.card-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .10em;
+  text-transform: uppercase; color: var(--gray-500);
+}
+.card-value {
+  font-family: var(--font-mono); font-size: 24px; font-weight: 600;
+  color: var(--teal); line-height: 1.1; margin-top: 2px;
+}
+.card-regular .card-value { color: var(--teal); }
+.card-oneoff  .card-value { color: var(--gold-dk); }
+.card-count   .card-value { color: var(--gray-700); font-size: 20px; }
+
+/* ── Table wrapper ──────────────────────────────────────────────────────── */
+.table-wrapper {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  overflow: hidden;
+}
+.table-scroll { overflow-x: auto; overflow-y: auto; max-height: 58vh; }
+
+/* ── Table ────────────────────────────────────────────────────────────── */
+table { width: 100%; border-collapse: collapse; min-width: 960px; }
+
+thead tr {
+  background: var(--teal);
+  position: sticky; top: 0; z-index: 20;
+}
+thead th {
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase; color: rgba(255,255,255,.8);
+  padding: 11px 8px; white-space: nowrap;
+}
+thead th.col-num    { width: 42px; text-align: center; }
+thead th.col-op     { width: 110px; }
+thead th.col-step   { width: 160px; }
+thead th.col-desc   { width: 190px; }
+thead th.col-type   { width: 100px; }
+thead th.col-time   { width: 140px; }
+thead th.col-calc   { width: 80px; text-align: center; background: rgba(0,0,0,.18); }
+thead th.col-input  { width: 72px; text-align: center; }
+
+tbody tr {
+  border-bottom: 1px solid var(--gray-100);
+  transition: background .1s;
+  cursor: pointer;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover:not(.row-active) { background: var(--teal-bg); }
+tbody tr.row-active  {
+  background: var(--gold-lt) !important;
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+tbody tr.row-active td.num-cell { color: var(--gold-dk); font-weight: 800; }
+
+td { padding: 5px 6px; font-size: 11px; vertical-align: middle; }
+td.num-cell {
+  text-align: center; font-weight: 700; color: var(--gray-500);
+  background: var(--gray-100); font-size: 10px; font-family: var(--font-mono);
+  width: 42px;
+}
+td.calc-cell {
+  background: rgba(40,65,77,.05);
+  text-align: center;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  color: var(--teal);
+}
+td.std-cell {
+  background: rgba(40,65,77,.09);
+  text-align: center;
+  font-family: var(--font-mono); font-size: 12px; font-weight: 800;
+  color: var(--teal);
+}
+
+/* Inputs inside table */
+.td-input {
+  width: 100%; padding: 4px 6px;
+  font-family: var(--font-ui); font-size: 11px;
+  color: var(--gray-700);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  outline: none; transition: all .15s;
+}
+.td-input:hover { border-color: var(--gray-200); background: var(--white); }
+.td-input:focus { border-color: var(--teal-lt); background: var(--white); box-shadow: 0 0 0 2px rgba(90,138,154,.2); }
+.td-input.mono { font-family: var(--font-mono); font-size: 10px; text-align: center; }
+.td-input.number { text-align: center; width: 100%; }
+
+.type-select {
+  width: 100%; padding: 4px 5px;
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  border: 1px solid var(--gray-200); border-radius: 5px;
+  background: var(--white); color: var(--teal);
+  outline: none; cursor: pointer; transition: border-color .15s;
+}
+.type-select:focus { border-color: var(--teal-lt); }
+.type-select option[value="Regular"] { color: var(--teal); }
+.type-select option[value="One-off"] { color: var(--gold-dk); }
+
+/* Time stamp cell */
+.time-cell { display: flex; gap: 4px; align-items: center; }
+.stamp-btn {
+  flex-shrink: 0;
+  width: 24px; height: 24px;
+  background: var(--teal-bg); border: 1px solid var(--teal-lt);
+  border-radius: 5px; cursor: pointer; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .12s; color: var(--teal);
+}
+.stamp-btn:hover { background: var(--teal); color: var(--white); }
+.stamp-btn:active { transform: scale(.88); }
+
+/* ── Toast notification ─────────────────────────────────────────────────── */
+.toast-container {
+  position: fixed; top: 20px; right: 20px; z-index: 9999;
+  display: flex; flex-direction: column; gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--teal); color: var(--white);
+  padding: 10px 18px; border-radius: 8px;
+  font-size: 13px; font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  display: flex; align-items: center; gap: 8px;
+  animation: toast-in .25s ease-out, toast-out .3s ease-in .35s forwards;
+  pointer-events: none;
+  max-width: 320px;
+}
+.toast.toast-success { border-left: 4px solid var(--gold); }
+.toast.toast-warn    { background: var(--gold-dk); border-left: 4px solid var(--gold); }
+.toast.toast-error   { background: var(--red); border-left: 4px solid #FCA5A5; }
+@keyframes toast-in  { from { opacity:0; transform:translateX(30px); } to { opacity:1; transform:translateX(0); } }
+@keyframes toast-out { to   { opacity:0; transform:translateX(30px); } }
+
+/* ── Row progress bar at bottom ─────────────────────────────────────────── */
+.progress-bar-wrap {
+  background: var(--gray-100); height: 4px;
+  border-radius: 0 0 var(--radius) var(--radius);
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%; background: linear-gradient(90deg, var(--teal), var(--teal-lt));
+  border-radius: 0 2px 2px 0;
+  transition: width .4s ease;
+}
+
+/* ── Step indicator ─────────────────────────────────────────────────────── */
+.step-indicator {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px; font-weight: 600; color: var(--gray-500);
+}
+.step-indicator strong { font-size: 15px; color: var(--teal); font-family: var(--font-mono); }
+.table-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px 10px 12px;
+  border-bottom: 1px solid var(--gray-100);
+  gap: 12px; flex-wrap: wrap;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .main-header { padding: 14px 16px; }
+  .content { padding: 14px 16px; }
+  .brand-bar { padding: 0 16px; }
+  .paste-zone { grid-template-columns: 1fr; }
+  .paste-actions { flex-direction: row; width: 100%; justify-content: flex-start; }
+}
+
+/* ── Yamazumi chart panel ───────────────────────────────────────────────── */
+.chart-panel {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  padding: 14px 16px 18px;
+}
+.chart-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.chart-title { font-size: 14px; font-weight: 800; color: var(--teal); line-height: 1.2; }
+.chart-sub   { display: block; font-size: 11px; color: var(--gray-500); margin-top: 3px; }
+.chart-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.chart-toggle {
+  font-size: 11px; font-weight: 700; color: var(--teal);
+  display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+  user-select: none;
+}
+.chart-toggle input { accent-color: var(--teal); cursor: pointer; }
+.chart-metric {
+  font-family: var(--font-ui); font-size: 11px; font-weight: 700;
+  border: 1px solid var(--gray-200); border-radius: 6px;
+  background: var(--white); color: var(--teal);
+  padding: 5px 8px; outline: none; cursor: pointer;
+}
+.chart-metric:focus { border-color: var(--teal-lt); }
+.chart-canvas-wrap { position: relative; width: 100%; height: 440px; }
+.chart-empty {
+  text-align: center; color: var(--gray-500); font-size: 12px;
+  padding: 40px 0 12px; display: none;
+}
+
+/* Scrollbar styling */
+.table-scroll::-webkit-scrollbar { width: 7px; height: 7px; }
+.table-scroll::-webkit-scrollbar-track { background: var(--gray-100); }
+.table-scroll::-webkit-scrollbar-thumb { background: var(--teal-lt); border-radius: 4px; }
+.table-scroll::-webkit-scrollbar-thumb:hover { background: var(--teal); }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ─── Brand bar ──────────────────────────────────────────────────── -->
+  <div class="brand-bar">
+    <div class="brand-bar-left">
+      <div class="brand-dot"></div>
+      <span class="brand-title">TPS · <span>Stopwatch Time Study Tracker</span></span>
+    </div>
+    <span class="live-clock" id="live-clock">--:--:--</span>
+  </div>
+
+  <!-- ─── Main header ───────────────────────────────────────────────── -->
+  <div class="main-header">
+    <div class="header-identity">
+      <button class="trigger-btn" id="trigger-btn" onclick="triggerGlobalStopwatch()" title="Spacebar · Start → Stop → Next">
+        <span class="icon">⏱</span>
+      </button>
+      <div class="header-text">
+        <h1>Time Study</h1>
+        <div class="subtitle">
+          Press <span class="kbd">SPACE</span> to sequence:
+          <strong style="color:var(--teal)">Start → Stop → Next row</strong>
+        </div>
+        <div style="margin-top:6px;">
+          <span class="status-pill status-ready" id="status-pill">
+            <span class="pip"></span>
+            <span id="status-text">Ready</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-danger" onclick="clearTableData()">🗑 Clear Table</button>
+      <button class="btn btn-gold" onclick="exportToExcel()">📊 Export Excel</button>
+    </div>
+  </div>
+
+  <!-- ─── Content ───────────────────────────────────────────────────── -->
+  <div class="content">
+
+    <!-- Paste zone -->
+    <div class="paste-zone">
+      <div>
+        <label for="paste-box">📋 Paste Excel Rows (Columns A · B · C — Operator · Step · Description)</label>
+        <textarea id="paste-box" class="paste-textarea" rows="2"
+          placeholder="Ctrl+V to paste your copied Excel columns here…"></textarea>
+      </div>
+      <div class="paste-actions">
+        <button class="btn btn-primary" onclick="loadPastedData()">📥 Load Data</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('paste-box').value=''">✕ Clear</button>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="summary-grid">
+      <div class="summary-card card-regular">
+        <div class="card-label">Total Regular Standard Time</div>
+        <div class="card-value" id="summary-regular">0.00 s</div>
+      </div>
+      <div class="summary-card card-oneoff">
+        <div class="card-label">Total One-Off Delay Time</div>
+        <div class="card-value" id="summary-oneoff">0.00 s</div>
+      </div>
+      <div class="summary-card card-count">
+        <div class="card-label">Steps Logged</div>
+        <div class="card-value" id="summary-count">0 / 150</div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrapper">
+      <!-- Toolbar -->
+      <div class="table-toolbar">
+        <div class="step-indicator">
+          Active row: <strong id="active-row-label">1</strong>
+          <span style="color:var(--gray-200)">|</span>
+          <span id="step-state-label" style="font-size:11px;color:var(--gray-500)">Waiting for start…</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-ghost btn-sm" onclick="jumpToRow()" title="Jump to active row">↓ Jump to row</button>
+        </div>
+      </div>
+
+      <!-- Scroll -->
+      <div class="table-scroll">
+        <table id="time-study-table">
+          <thead>
+            <tr>
+              <th class="col-num">#</th>
+              <th class="col-op">Operator</th>
+              <th class="col-step">Process Step</th>
+              <th class="col-desc">Description</th>
+              <th class="col-type">Type</th>
+              <th class="col-time">Start Time</th>
+              <th class="col-time">End Time</th>
+              <th class="col-calc">Obs (s)</th>
+              <th class="col-input">Rating %</th>
+              <th class="col-calc">Norm (s)</th>
+              <th class="col-input">Allow %</th>
+              <th class="col-calc">Std (s)</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Yamazumi chart -->
+    <div class="chart-panel">
+      <div class="chart-toolbar">
+        <div>
+          <span class="chart-title">📊 Yamazumi — Operator Workload</span>
+          <span class="chart-sub" id="chart-sub">Stacked task time per operator — builds automatically</span>
+        </div>
+        <div class="chart-actions">
+          <label class="chart-toggle" title="Show / hide the step colour legend">
+            <input type="checkbox" id="chart-legend-toggle" onchange="renderYamazumiChart()"> Legend
+          </label>
+          <select id="chart-metric" class="chart-metric" onchange="renderYamazumiChart()" title="Which time value to plot">
+            <option value="auto">Std (Reg) · Obs (One-off)</option>
+            <option value="standard">Standard time</option>
+            <option value="observed">Observed time</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="renderYamazumiChart()">↻ Refresh</button>
+          <button class="btn btn-gold btn-sm" onclick="downloadChartPNG()">⬇ PNG</button>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas id="yamazumi-canvas"></canvas>
+      </div>
+      <div class="chart-empty" id="chart-empty">
+        Add operators, steps and times — the Yamazumi chart builds itself. Hover any segment to see the step and its time.
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+</div><!-- /app-shell -->
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ─── Build 150 rows ─────────────────────────────────────────────────────
+const tbody = document.getElementById('table-body');
+for (let i = 1; i <= 150; i++) {
+  const tr = document.createElement('tr');
+  tr.id = `row-${i}`;
+  tr.onclick = () => setActiveRow(i);
+  tr.innerHTML = `
+    <td class="num-cell">${i}</td>
+    <td><input type="text" id="operator-${i}" class="td-input" placeholder="—"></td>
+    <td><input type="text" id="step-${i}" class="td-input" placeholder="Step name" oninput="updateGlobalSummaries()"></td>
+    <td><input type="text" id="desc-${i}" class="td-input" placeholder="Details"></td>
+    <td>
+      <select id="type-${i}" class="type-select" onchange="calculateRow(${i})">
+        <option value="Regular">Regular</option>
+        <option value="One-off">One-off</option>
+      </select>
+    </td>
+    <td>
+      <div class="time-cell">
+        <input type="text" id="start-${i}" class="td-input mono" placeholder="HH:MM:SS" oninput="calculateRow(${i})">
+        <button class="stamp-btn" onclick="event.stopPropagation();stampTime(${i},'start')" title="Stamp start">▶</button>
+      </div>
+    </td>
+    <td>
+      <div class="time-cell">
+        <input type="text" id="end-${i}" class="td-input mono" placeholder="HH:MM:SS" oninput="calculateRow(${i})">
+        <button class="stamp-btn" onclick="event.stopPropagation();stampTime(${i},'end')" title="Stamp end">■</button>
+      </div>
+    </td>
+    <td class="calc-cell" id="observed-${i}">—</td>
+    <td><input type="number" id="rating-${i}" value="100" class="td-input number" oninput="calculateRow(${i})"></td>
+    <td class="calc-cell" id="normal-${i}">—</td>
+    <td><input type="number" id="allowance-${i}" value="12" class="td-input number" oninput="calculateRow(${i})"></td>
+    <td class="std-cell" id="standard-${i}">—</td>
+  `;
+  tbody.appendChild(tr);
+}
+
+// ─── State ───────────────────────────────────────────────────────────────
+let currentActiveRowIdx = 1;
+let rowState = 'waiting'; // 'waiting' | 'started'
+
+// ─── Init ────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  setActiveRowStyle(currentActiveRowIdx);
+  updateStepStateLabel();
+  startLiveClock();
+  updateGlobalSummaries();
+  renderYamazumiChart();
+});
+
+// ─── Live clock ──────────────────────────────────────────────────────────
+function startLiveClock() {
+  function tick() {
+    const now = new Date();
+    document.getElementById('live-clock').textContent =
+      `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+// ─── Keyboard ────────────────────────────────────────────────────────────
+window.addEventListener('keydown', e => {
+  const tag = document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  if (e.code === 'Space' || e.keyCode === 32) {
+    e.preventDefault();
+    triggerGlobalStopwatch();
+  }
+});
+
+// ─── Central sequencer ───────────────────────────────────────────────────
+function triggerGlobalStopwatch() {
+  const i = currentActiveRowIdx;
+  if (i > 150) return;
+
+  const startField = document.getElementById(`start-${i}`);
+  const endField   = document.getElementById(`end-${i}`);
+  const btn = document.getElementById('trigger-btn');
+
+  if (startField.value.trim() === '') {
+    stampTime(i, 'start');
+    rowState = 'started';
+    btn.classList.add('recording');
+    updateStatus('rec', `Row ${i} — recording…`);
+    updateStepStateLabel();
+  } else if (endField.value.trim() === '') {
+    stampTime(i, 'end');
+    rowState = 'waiting';
+    btn.classList.remove('recording');
+    // Advance
+    removeActiveRowStyle(i);
+    currentActiveRowIdx++;
+    if (currentActiveRowIdx <= 150) {
+      setActiveRowStyle(currentActiveRowIdx);
+      stampTime(currentActiveRowIdx, 'start');
+      rowState = 'started';
+      btn.classList.add('recording');
+      updateStatus('rec', `Row ${currentActiveRowIdx} — recording…`);
+      document.getElementById(`row-${currentActiveRowIdx}`)
+        .scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      btn.classList.remove('recording');
+      updateStatus('done', 'Study complete!');
+      toast('All 150 steps processed — study complete!', 'success');
+    }
+    updateStepStateLabel();
+    updateProgressBar();
+  } else {
+    // Row fully done, manually advance
+    removeActiveRowStyle(i);
+    currentActiveRowIdx++;
+    if (currentActiveRowIdx <= 150) {
+      setActiveRowStyle(currentActiveRowIdx);
+      stampTime(currentActiveRowIdx, 'start');
+      rowState = 'started';
+      btn.classList.add('recording');
+      updateStatus('rec', `Row ${currentActiveRowIdx} — recording…`);
+      document.getElementById(`row-${currentActiveRowIdx}`)
+        .scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      btn.classList.remove('recording');
+      updateStatus('done', 'Study complete!');
+    }
+    updateStepStateLabel();
+    updateProgressBar();
+  }
+}
+
+function setActiveRow(index) {
+  removeActiveRowStyle(currentActiveRowIdx);
+  currentActiveRowIdx = index;
+  setActiveRowStyle(currentActiveRowIdx);
+  updateActiveRowLabel();
+  updateStepStateLabel();
+}
+
+function setActiveRowStyle(idx) {
+  const tr = document.getElementById(`row-${idx}`);
+  if (tr) tr.classList.add('row-active');
+  updateActiveRowLabel();
+}
+
+function removeActiveRowStyle(idx) {
+  const tr = document.getElementById(`row-${idx}`);
+  if (tr) tr.classList.remove('row-active');
+}
+
+function updateActiveRowLabel() {
+  document.getElementById('active-row-label').textContent = currentActiveRowIdx;
+}
+
+function updateStepStateLabel() {
+  const s = document.getElementById('step-state-label');
+  const i = currentActiveRowIdx;
+  if (i > 150) { s.textContent = 'All steps complete'; return; }
+  const startVal = document.getElementById(`start-${i}`).value.trim();
+  const endVal   = document.getElementById(`end-${i}`).value.trim();
+  if (!startVal) s.textContent = 'Waiting for start…';
+  else if (!endVal) s.textContent = 'Started — press SPACE to stop & advance';
+  else s.textContent = 'Row complete — press SPACE to advance';
+}
+
+function updateStatus(state, text) {
+  const pill = document.getElementById('status-pill');
+  const txt  = document.getElementById('status-text');
+  pill.className = 'status-pill status-' + state;
+  txt.textContent = text;
+}
+
+function updateProgressBar() {
+  const pct = Math.min(((currentActiveRowIdx - 1) / 150) * 100, 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+function jumpToRow() {
+  const el = document.getElementById(`row-${currentActiveRowIdx}`);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ─── Stamp time ──────────────────────────────────────────────────────────
+function stampTime(rowIndex, field) {
+  const now = new Date();
+  const val = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  document.getElementById(`${field}-${rowIndex}`).value = val;
+  calculateRow(rowIndex);
+  updateStepStateLabel();
+}
+
+function pad(n) { return String(n).padStart(2, '0'); }
+
+// ─── Parse time ──────────────────────────────────────────────────────────
+function timeToSeconds(timeStr) {
+  if (!timeStr || !timeStr.trim()) return null;
+  let s = timeStr.trim().toUpperCase();
+  const isPM = s.includes('PM'), isAM = s.includes('AM');
+  s = s.replace('AM','').replace('PM','').trim();
+  const parts = s.split(':');
+  if (parts.length < 2) return null;
+  let h = parseInt(parts[0], 10) || 0;
+  let m = parseInt(parts[1], 10) || 0;
+  let sec = parts[2] ? parseInt(parts[2], 10) : 0;
+  if (isPM && h < 12) h += 12;
+  if (isAM && h === 12) h = 0;
+  return (h * 3600) + (m * 60) + sec;
+}
+
+// ─── Calculate row ───────────────────────────────────────────────────────
+function calculateRow(i) {
+  const t1 = timeToSeconds(document.getElementById(`start-${i}`).value);
+  const t2 = timeToSeconds(document.getElementById(`end-${i}`).value);
+  const rating    = parseFloat(document.getElementById(`rating-${i}`).value)    || 100;
+  const allowance = parseFloat(document.getElementById(`allowance-${i}`).value) || 0;
+
+  const obsEl = document.getElementById(`observed-${i}`);
+  const norEl = document.getElementById(`normal-${i}`);
+  const stdEl = document.getElementById(`standard-${i}`);
+
+  if (t1 !== null && t2 !== null) {
+    let diff = t2 - t1;
+    if (diff < 0) diff += 86400;
+    const norm = diff * (rating / 100);
+    const std  = norm * (1 + allowance / 100);
+    obsEl.textContent = diff.toFixed(2);
+    norEl.textContent = norm.toFixed(2);
+    stdEl.textContent = std.toFixed(2);
+  } else {
+    obsEl.textContent = '—';
+    norEl.textContent = '—';
+    stdEl.textContent = '—';
+  }
+  updateGlobalSummaries();
+}
+
+// ─── Summaries ───────────────────────────────────────────────────────────
+function updateGlobalSummaries() {
+  let totalReg = 0, totalOneOff = 0, active = 0;
+  for (let i = 1; i <= 150; i++) {
+    const step = document.getElementById(`step-${i}`).value.trim();
+    const type = document.getElementById(`type-${i}`).value;
+    const obs  = parseFloat(document.getElementById(`observed-${i}`).textContent) || 0;
+    const std  = parseFloat(document.getElementById(`standard-${i}`).textContent) || 0;
+    if (step || obs > 0) active++;
+    if (type === 'Regular') totalReg += std;
+    else if (type === 'One-off') totalOneOff += obs;
+  }
+  document.getElementById('summary-regular').textContent = totalReg.toFixed(2) + ' s';
+  document.getElementById('summary-oneoff').textContent  = totalOneOff.toFixed(2) + ' s';
+  document.getElementById('summary-count').textContent   = `${active} / 150`;
+  scheduleChartRefresh();
+}
+
+// ─── Clear ───────────────────────────────────────────────────────────────
+function clearTableInputsWithoutConfirm() {
+  for (let i = 1; i <= 150; i++) {
+    document.getElementById(`operator-${i}`).value    = '';
+    document.getElementById(`step-${i}`).value        = '';
+    document.getElementById(`desc-${i}`).value        = '';
+    document.getElementById(`start-${i}`).value       = '';
+    document.getElementById(`end-${i}`).value         = '';
+    document.getElementById(`rating-${i}`).value      = '100';
+    document.getElementById(`allowance-${i}`).value   = '12';
+    document.getElementById(`observed-${i}`).textContent = '—';
+    document.getElementById(`normal-${i}`).textContent   = '—';
+    document.getElementById(`standard-${i}`).textContent = '—';
+  }
+}
+
+function clearTableData() {
+  if (!confirm('Clear all recorded data? This cannot be undone.')) return;
+  clearTableInputsWithoutConfirm();
+  removeActiveRowStyle(currentActiveRowIdx);
+  currentActiveRowIdx = 1;
+  rowState = 'waiting';
+  document.getElementById('trigger-btn').classList.remove('recording');
+  setActiveRowStyle(currentActiveRowIdx);
+  updateStatus('ready', 'Ready');
+  updateProgressBar();
+  updateGlobalSummaries();
+  updateStepStateLabel();
+  document.getElementById('paste-box').value = '';
+  toast('Table cleared', 'success');
+}
+
+// ─── Load pasted data ────────────────────────────────────────────────────
+function loadPastedData() {
+  const raw = document.getElementById('paste-box').value;
+  if (!raw.trim()) { toast('Paste box is empty — copy rows from Excel first', 'warn'); return; }
+
+  const lines = raw.split(/\r?\n/);
+  let loaded = 0;
+  clearTableInputsWithoutConfirm();
+
+  for (let i = 0; i < lines.length && loaded < 150; i++) {
+    const line = lines[i];
+    if (!line.trim()) continue;
+    const cols = line.split('\t');
+    if (i === 0 && line.toLowerCase().includes('operator')) continue;
+    const op   = (cols[0] || '').toString().trim();
+    const step = (cols[1] || '').toString().trim();
+    const desc = (cols[2] || '').toString().trim();
+    if (!op && !step && !desc) continue;
+    const idx = loaded + 1;
+    document.getElementById(`operator-${idx}`).value = op;
+    document.getElementById(`step-${idx}`).value     = step;
+    document.getElementById(`desc-${idx}`).value     = desc;
+    loaded++;
+  }
+
+  removeActiveRowStyle(currentActiveRowIdx);
+  currentActiveRowIdx = 1;
+  setActiveRowStyle(currentActiveRowIdx);
+  updateStatus('ready', 'Ready');
+  updateGlobalSummaries();
+  updateStepStateLabel();
+  document.getElementById('paste-box').value = '';
+  toast(`${loaded} step${loaded !== 1 ? 's' : ''} loaded`, 'success');
+}
+
+// ─── Yamazumi chart ──────────────────────────────────────────────────────
+let yamazumiChart = null;
+let chartRefreshTimer = null;
+
+// Distinct, report-friendly palette cycled across steps
+const STEP_PALETTE = [
+  '#3C6474','#EEC643','#C97B6A','#5A8A9A','#7C9A6B','#B8941F','#8E6C8A','#4F7CAC',
+  '#D08C60','#6BA292','#A8475A','#577590','#E0A458','#7A6C5D','#9CB380','#3D5A6C',
+  '#C26E60','#5B8266','#AA8F66','#48788A','#D7A3B0','#6D8EA0','#BFA15B','#8A5A44'
+];
+
+// Time value for a row, given the selected metric
+function effectiveTime(i, metric) {
+  const obs  = parseFloat(document.getElementById(`observed-${i}`).textContent) || 0;
+  const std  = parseFloat(document.getElementById(`standard-${i}`).textContent) || 0;
+  const type = document.getElementById(`type-${i}`).value;
+  if (metric === 'standard') return std || obs;
+  if (metric === 'observed') return obs;
+  return type === 'Regular' ? (std || obs) : obs; // auto = mirror summary logic
+}
+
+// Group rows → operators (X), steps (stacked series), time matrix
+function buildYamazumiData() {
+  const metric = document.getElementById('chart-metric').value;
+  const operators = [], opIndex = {};
+  const stepNames = [], stepIndex = {};
+  const matrix = {}; // stepLabel -> { opLabel: time }
+
+  for (let i = 1; i <= 150; i++) {
+    const opRaw   = document.getElementById(`operator-${i}`).value.trim();
+    const stepRaw = document.getElementById(`step-${i}`).value.trim();
+    const descRaw = document.getElementById(`desc-${i}`).value.trim();
+    const t = effectiveTime(i, metric);
+    if (t <= 0) continue; // only plot measured rows
+    const op   = opRaw || '(Unassigned)';
+    const step = stepRaw || descRaw || `Step ${i}`;
+    if (!(op in opIndex))   { opIndex[op] = operators.length; operators.push(op); }
+    if (!(step in stepIndex)){ stepIndex[step] = stepNames.length; stepNames.push(step); matrix[step] = {}; }
+    matrix[step][op] = (matrix[step][op] || 0) + t;
+  }
+  return { operators, stepNames, matrix };
+}
+
+function renderYamazumiChart() {
+  if (typeof Chart === 'undefined') return; // CDN offline — fail quietly
+  const { operators, stepNames, matrix } = buildYamazumiData();
+  const emptyEl = document.getElementById('chart-empty');
+  const canvas  = document.getElementById('yamazumi-canvas');
+
+  if (operators.length === 0) {
+    if (yamazumiChart) { yamazumiChart.destroy(); yamazumiChart = null; }
+    emptyEl.style.display = 'block';
+    canvas.style.display  = 'none';
+    document.getElementById('chart-sub').textContent = 'Stacked task time per operator — builds automatically';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  canvas.style.display  = 'block';
+
+  const totals = operators.map(op =>
+    stepNames.reduce((s, st) => s + (matrix[st][op] || 0), 0));
+  const maxTotal = Math.max(...totals, 1);
+  const labelThreshold = maxTotal * 0.05; // hide tiny in-segment labels
+
+  const barDatasets = stepNames.map((st, idx) => ({
+    label: st,
+    data: operators.map(op => +(matrix[st][op] || 0).toFixed(2)),
+    backgroundColor: STEP_PALETTE[idx % STEP_PALETTE.length],
+    borderColor: 'rgba(255,255,255,.85)',
+    borderWidth: 1,
+    stack: 'work',
+    order: 2,
+    datalabels: {
+      display: ctx => (ctx.dataset.data[ctx.dataIndex] || 0) >= labelThreshold,
+      color: '#fff',
+      font: { family: 'JetBrains Mono, monospace', size: 9, weight: 600 },
+      formatter: v => v ? v.toFixed(0) : ''
+    }
+  }));
+
+  const lineDataset = {
+    type: 'line',
+    label: 'Total',
+    data: totals.map(v => +v.toFixed(2)),
+    borderColor: '#7C9A6B',
+    backgroundColor: '#7C9A6B',
+    borderWidth: 2.5,
+    pointBackgroundColor: '#fff',
+    pointBorderColor: '#7C9A6B',
+    pointBorderWidth: 2,
+    pointRadius: 4,
+    tension: 0.25,
+    order: 1,
+    datalabels: {
+      display: true, align: 'top', anchor: 'end', offset: 4,
+      color: '#28414D',
+      font: { family: 'JetBrains Mono, monospace', size: 11, weight: 700 },
+      formatter: v => v ? v.toFixed(0) : ''
+    }
+  };
+
+  const showLegend = document.getElementById('chart-legend-toggle').checked;
+
+  if (yamazumiChart) yamazumiChart.destroy();
+  yamazumiChart = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: { labels: operators, datasets: [...barDatasets, lineDataset] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 24 } },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: showLegend, position: 'bottom',
+          labels: { boxWidth: 12, padding: 10, font: { family: 'Sora, sans-serif', size: 10 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              if (v == null || v === 0) return null;
+              return `${ctx.dataset.label}: ${v.toFixed(1)} s`;
+            },
+            footer: items => {
+              if (!items.length) return '';
+              const op = items[0].label;
+              const total = totals[operators.indexOf(op)] || 0;
+              return `Operator total: ${total.toFixed(1)} s`;
+            }
+          }
+        },
+        datalabels: { display: false }
+      },
+      scales: {
+        x: {
+          stacked: true, grid: { display: false },
+          ticks: { font: { family: 'Sora, sans-serif', size: 11, weight: 600 }, color: '#3D4A55' }
+        },
+        y: {
+          stacked: true, beginAtZero: true,
+          title: { display: true, text: 'Task time (s)', font: { family: 'Sora, sans-serif', size: 11, weight: 700 }, color: '#7A8895' },
+          grid: { color: 'rgba(40,65,77,.07)' },
+          ticks: { font: { family: 'JetBrains Mono, monospace', size: 10 }, color: '#7A8895' }
+        }
+      }
+    },
+    plugins: (typeof ChartDataLabels !== 'undefined' ? [ChartDataLabels] : [])
+  });
+
+  document.getElementById('chart-sub').textContent =
+    `${operators.length} operator${operators.length !== 1 ? 's' : ''} · ${stepNames.length} step${stepNames.length !== 1 ? 's' : ''} · hover a segment for step + time`;
+}
+
+function scheduleChartRefresh() {
+  clearTimeout(chartRefreshTimer);
+  chartRefreshTimer = setTimeout(renderYamazumiChart, 350);
+}
+
+function downloadChartPNG() {
+  if (!yamazumiChart) { toast('Nothing to chart yet — add data first', 'warn'); return; }
+  const src = yamazumiChart.canvas;
+  const out = document.createElement('canvas');
+  out.width = src.width; out.height = src.height;
+  const ctx = out.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, out.width, out.height); // solid white bg for reports
+  ctx.drawImage(src, 0, 0);
+  const a = document.createElement('a');
+  a.href = out.toDataURL('image/png', 1.0);
+  a.download = 'Yamazumi_Chart.png';
+  a.click();
+  toast('Chart image downloaded', 'success');
+}
+
+// ─── Export ──────────────────────────────────────────────────────────────
+// Effective time for an exported data row, given the metric (mirror of on-screen)
+function rowEffective(r, metric) {
+  const obs = r[7], std = r[11], type = r[4];
+  if (metric === 'standard') return std || obs;
+  if (metric === 'observed') return obs;
+  return type === 'Regular' ? (std || obs) : obs;
+}
+
+// Build one "results" sheet + its formula-linked Yamazumi chart-data sheet.
+// The chart sheet uses SUMIFS pointed at the results sheet, so editing the
+// results values updates the chart data automatically.
+function buildStudySheet(wb, resultName, chartName, dataRows, metric) {
+  const HEADER = ['Step #','Operator','Process Step','Description','Type','Start Time','End Time',
+                  'Observed (s)','Rating %','Normal (s)','Allowance %','Standard (s)','Effective (s)'];
+
+  // ---- Results sheet ----
+  const aoa = [[`STOPWATCH TIME STUDY — ${resultName.toUpperCase()}`], [], HEADER];
+  dataRows.forEach(r => aoa.push([...r, null])); // M (Effective) filled with a formula below
+
+  const N        = dataRows.length;
+  const firstRow = 4;                 // first data row (Excel 1-based)
+  const lastRow  = 3 + N;             // last data row
+  let regRow = 0, oneRow = 0, effRow = 0;
+  if (N > 0) {
+    aoa.push([], ['SUMMARY']);
+    aoa.push(['Total Regular Standard Time (s)', null]);
+    aoa.push(['Total One-Off Delay Time (s)',    null]);
+    aoa.push(['Total Effective Time (s)',        null]);
+    regRow = lastRow + 3; oneRow = lastRow + 4; effRow = lastRow + 5;
+  }
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+  // Effective value per row (cached + used for chart sums)
+  const eff = dataRows.map(r => +(rowEffective(r, metric)).toFixed(2));
+
+  // Per-row Effective formula (column M) — cache value or SheetJS drops the cell
+  for (let r = firstRow; r <= lastRow; r++) {
+    const idx = r - firstRow;
+    let f;
+    if (metric === 'standard')      f = `L${r}`;
+    else if (metric === 'observed') f = `H${r}`;
+    else                            f = `IF(E${r}="Regular",L${r},H${r})`;
+    ws[`M${r}`] = { t: 'n', f, v: eff[idx] };
+  }
+  // Live summary formulas (with cached values)
+  if (N > 0) {
+    let reg = 0, one = 0, totEff = 0;
+    dataRows.forEach((r, i) => {
+      if (r[4] === 'Regular') reg += r[11];   // standard
+      if (r[4] === 'One-off') one += r[7];    // observed
+      totEff += eff[i];
+    });
+    ws[`B${regRow}`] = { t: 'n', v: +reg.toFixed(2),    f: `SUMIF(E${firstRow}:E${lastRow},"Regular",L${firstRow}:L${lastRow})` };
+    ws[`B${oneRow}`] = { t: 'n', v: +one.toFixed(2),    f: `SUMIF(E${firstRow}:E${lastRow},"One-off",H${firstRow}:H${lastRow})` };
+    ws[`B${effRow}`] = { t: 'n', v: +totEff.toFixed(2), f: `SUM(M${firstRow}:M${lastRow})` };
+  }
+  ws['!cols'] = [{wch:7},{wch:14},{wch:22},{wch:24},{wch:9},{wch:11},{wch:11},
+                 {wch:11},{wch:9},{wch:10},{wch:11},{wch:12},{wch:13}];
+  XLSX.utils.book_append_sheet(wb, ws, resultName);
+
+  // ---- Linked Yamazumi chart-data sheet ----
+  const operators = [], opSet = {}, steps = [], stepSet = {};
+  const cellSum = {}; // "op\u0000step" -> summed effective (cached value)
+  dataRows.forEach((r, i) => {
+    const op = r[1], step = r[2], e = eff[i];
+    if (!op || !step || e <= 0) return;
+    if (!(op   in opSet))   { opSet[op]   = 1; operators.push(op); }
+    if (!(step in stepSet)) { stepSet[step] = 1; steps.push(step); }
+    const k = op + '\u0000' + step;
+    cellSum[k] = (cellSum[k] || 0) + e;
+  });
+
+  const m = [
+    [`YAMAZUMI — ${resultName.toUpperCase()} (seconds) · linked to "${resultName}"`],
+    [],
+    ['Process Step \\ Operator', ...operators]
+  ];
+  steps.forEach(st => m.push([st, ...operators.map(() => null)]));
+  m.push(['TOTAL', ...operators.map(() => null)]);
+  m.push([]);
+  if (operators.length) {
+    m.push([`Live-linked to "${resultName}": edit any Observed / Standard / Type there and these totals recalculate. (Brand-new operators or steps need a fresh export.)`]);
+    m.push(['Tip: select the step rows + the operator header, then Insert → Chart → Stacked Column for a native Excel Yamazumi.']);
+  } else {
+    m.push(['No operator + step + time data found to chart. Fill the Operator and Process Step columns and re-export.']);
+  }
+
+  const ws2     = XLSX.utils.aoa_to_sheet(m);
+  const headRow = 3;
+  const stepTop = 4;
+  const stepBot = 3 + steps.length;
+  const totRow  = 4 + steps.length;
+  const q       = `'${resultName}'`;   // quoted sheet ref for formulas
+
+  operators.forEach((op, j) => {
+    const colL = XLSX.utils.encode_col(j + 1); // B, C, D, ...
+    let colTotal = 0;
+    for (let i = 0; i < steps.length; i++) {
+      const R = stepTop + i;
+      const v = +(cellSum[op + '\u0000' + steps[i]] || 0).toFixed(2);
+      colTotal += v;
+      ws2[`${colL}${R}`] = { t: 'n', v,
+        f: `SUMIFS(${q}!$M:$M,${q}!$B:$B,${colL}$${headRow},${q}!$C:$C,$A${R})` };
+    }
+    if (steps.length) {
+      ws2[`${colL}${totRow}`] = { t: 'n', v: +colTotal.toFixed(2),
+        f: `SUM(${colL}${stepTop}:${colL}${stepBot})` };
+    }
+  });
+
+  ws2['!cols'] = [{wch:26}, ...operators.map(() => ({wch:13}))];
+  XLSX.utils.book_append_sheet(wb, ws2, chartName);
+}
+
+function exportToExcel() {
+  try {
+    const metric = document.getElementById('chart-metric').value;
+
+    // ---- Collect recorded data rows once (reused for Before & After) ----
+    const dataRows = [];
+    for (let i = 1; i <= 150; i++) {
+      const op   = document.getElementById(`operator-${i}`).value.trim();
+      const step = document.getElementById(`step-${i}`).value.trim();
+      const desc = document.getElementById(`desc-${i}`).value.trim();
+      if (!op && !step && !desc) continue;
+      dataRows.push([
+        i, op, step, desc,
+        document.getElementById(`type-${i}`).value,
+        document.getElementById(`start-${i}`).value.trim(),
+        document.getElementById(`end-${i}`).value.trim(),
+        parseFloat(document.getElementById(`observed-${i}`).textContent) || 0,
+        parseFloat(document.getElementById(`rating-${i}`).value) || 100,
+        parseFloat(document.getElementById(`normal-${i}`).textContent) || 0,
+        parseFloat(document.getElementById(`allowance-${i}`).value) || 0,
+        parseFloat(document.getElementById(`standard-${i}`).textContent) || 0,
+      ]);
+    }
+
+    if (dataRows.length === 0) { toast('No data to export yet — record some steps first', 'warn'); return; }
+
+    const wb = XLSX.utils.book_new();
+    // Sheet 1 (results) + Sheet 2 (linked chart data)
+    buildStudySheet(wb, 'Before', 'Before Chart Data', dataRows, metric);
+    // Sheet 3 (editable After copy) + Sheet 4 (linked chart data)
+    buildStudySheet(wb, 'After',  'After Chart Data',  dataRows, metric);
+
+    XLSX.writeFile(wb, 'TPS_Time_Study_Export.xlsx');
+
+    // Refresh + reveal the on-screen Yamazumi chart
+    renderYamazumiChart();
+    document.querySelector('.chart-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    toast('Excel exported · 4 sheets (Before / After + linked chart data)', 'success');
+  } catch (err) {
+    toast('Export failed — check console', 'error');
+    console.error(err);
+  }
+}
+
+// ─── Toast ───────────────────────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.textContent = type === 'success' ? '✓ ' + msg : type === 'warn' ? '⚠ ' + msg : '✕ ' + msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 700);
+}
+</script>
+</body>
+</html>
