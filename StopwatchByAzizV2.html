@@ -247,7 +247,7 @@ body {
 .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 58vh; }
 
 /* ── Table ────────────────────────────────────────────────────────────── */
-table { width: 100%; border-collapse: collapse; min-width: 1140px; }
+table { width: 100%; border-collapse: collapse; min-width: 1320px; }
 
 thead tr {
   background: var(--teal);
@@ -436,20 +436,43 @@ td.std-cell {
 .table-scroll::-webkit-scrollbar-thumb:hover { background: var(--teal); }
 
 /* ── Line-balancing additions ───────────────────────────────────────────── */
-thead th.col-stage { width: 56px; text-align: center; background: rgba(0,0,0,.18); }
-thead th.col-pred  { width: 96px; }
+thead th.col-stage  { width: 54px; text-align: center; }
+thead th.col-move   { width: 50px; text-align: center; }
+thead th.col-pos    { width: 92px; }
+thead th.col-anchor { width: 56px; text-align: center; }
 
-td.stage-cell {
-  text-align: center;
-  font-family: var(--font-mono); font-size: 12px; font-weight: 800;
-  color: var(--white);
+/* Stage input — tinted by assigned (After) stage once balanced */
+.td-input.stage-in { font-weight: 800; text-align: center; }
+.td-input.stage-in.assigned { color: #fff; border-color: transparent; }
+
+.move-chk { width: 16px; height: 16px; accent-color: var(--gold-dk); cursor: pointer; }
+.pos-select {
+  width: 100%; padding: 4px 5px;
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  border: 1px solid var(--gray-200); border-radius: 5px;
+  background: var(--white); color: var(--teal); outline: none; cursor: pointer;
 }
-td.stage-cell .stage-chip {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 24px; height: 22px; padding: 0 7px;
-  border-radius: 6px; background: var(--gray-200); color: var(--gray-500);
-  font-size: 11px; font-weight: 800;
+.pos-select:focus { border-color: var(--teal-lt); }
+
+/* Stage layout board (after balancing) */
+.stage-board { display: flex; gap: 12px; flex-wrap: nowrap; padding: 4px; min-width: min-content; }
+.stage-col {
+  flex: 0 0 200px; background: var(--off-white);
+  border: 1px solid var(--gray-200); border-top: 4px solid var(--teal);
+  border-radius: 8px; padding: 10px 10px 12px;
 }
+.stage-col h4 { font-size: 12px; font-weight: 800; color: var(--teal); display: flex; justify-content: space-between; align-items: baseline; }
+.stage-col h4 .st-time { font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
+.stage-bar { height: 5px; border-radius: 3px; background: var(--gray-200); margin: 7px 0 10px; overflow: hidden; }
+.stage-bar > span { display: block; height: 100%; }
+.op-group { margin-bottom: 8px; }
+.op-group .op-name { font-size: 10px; font-weight: 800; letter-spacing: .04em; color: var(--gray-700); text-transform: uppercase; }
+.op-group .op-task {
+  font-size: 11px; color: var(--gray-700); padding: 2px 0 2px 8px;
+  display: flex; justify-content: space-between; gap: 6px;
+}
+.op-group .op-task.moved { color: var(--gold-dk); font-weight: 700; }
+.op-group .op-task .t-time { font-family: var(--font-mono); font-size: 10px; color: var(--gray-500); }
 
 /* Balancing panel */
 .balance-panel {
@@ -558,7 +581,7 @@ td.stage-cell .stage-chip {
     <!-- Paste zone -->
     <div class="paste-zone">
       <div>
-        <label for="paste-box">📋 Paste Excel Rows (A·B·C·D — Operator · Step · Description · Predecessors[opt])</label>
+        <label for="paste-box">📋 Paste Excel Rows (A·B·C·D·E — Operator · Step · Description · Stage[opt] · Obs sec[opt])</label>
         <textarea id="paste-box" class="paste-textarea" rows="2"
           placeholder="Ctrl+V to paste your copied Excel columns here…"></textarea>
       </div>
@@ -588,23 +611,31 @@ td.stage-cell .stage-chip {
     <div class="balance-panel">
       <div class="balance-head">
         <div class="balance-title">⚖️ Line Balancing — Build the “After” Line
-          <span class="sub">Fill the <strong>Predecessors</strong> column, choose a target, then balance. Tasks are grouped into stages of (almost) equal time.</span>
+          <span class="sub">Paste your current <strong>Stage</strong> per row → see the “before” cycle time. Operators stay together; tick <strong>Move?</strong> + a Before/After rule for tasks that may shift. Then balance.</span>
         </div>
         <div class="balance-controls">
           <div class="bc-group">
             <label for="balance-mode">Balance by</label>
             <select id="balance-mode" class="bc-select" onchange="onBalanceModeChange()">
+              <option value="match">Keep my stage count</option>
               <option value="takt">Takt / cycle time (s)</option>
               <option value="stages">Number of stages</option>
             </select>
           </div>
           <div class="bc-group">
             <label for="takt-input">Takt time (s)</label>
-            <input type="number" id="takt-input" class="bc-input" value="60" min="0.1" step="0.5" oninput="scheduleBalance()">
+            <input type="number" id="takt-input" class="bc-input" value="60" min="0.1" step="0.5" disabled oninput="scheduleBalance()">
           </div>
           <div class="bc-group">
             <label for="stages-input">Target stages</label>
             <input type="number" id="stages-input" class="bc-input" value="4" min="1" step="1" disabled oninput="scheduleBalance()">
+          </div>
+          <div class="bc-group">
+            <label for="stage-basis">Stage time</label>
+            <select id="stage-basis" class="bc-select" onchange="scheduleBalance()" title="How a stage's time is counted when it holds several operators">
+              <option value="sum">Sum of operators</option>
+              <option value="parallel">Busiest operator (parallel)</option>
+            </select>
           </div>
           <div class="bc-group">
             <label for="balance-metric">Time basis</label>
@@ -621,7 +652,8 @@ td.stage-cell .stage-chip {
         </div>
       </div>
       <div class="balance-metrics">
-        <div class="bm-card"><div class="bm-label">Stages created</div><div class="bm-value" id="bm-stages">—</div></div>
+        <div class="bm-card"><div class="bm-label">Before cycle time (s)</div><div class="bm-value" id="bm-before">—</div></div>
+        <div class="bm-card"><div class="bm-label">Stages (after)</div><div class="bm-value" id="bm-stages">—</div></div>
         <div class="bm-card"><div class="bm-label">Bottleneck stage (s)</div><div class="bm-value" id="bm-bottleneck">—</div></div>
         <div class="bm-card" id="bm-eff-card"><div class="bm-label">Balance efficiency</div><div class="bm-value" id="bm-efficiency">—</div></div>
         <div class="bm-card"><div class="bm-label">Smoothness index</div><div class="bm-value" id="bm-smoothness">—</div></div>
@@ -652,7 +684,9 @@ td.stage-cell .stage-chip {
               <th class="col-op">Operator</th>
               <th class="col-step">Process Step</th>
               <th class="col-desc">Description</th>
-              <th class="col-pred">Predec.</th>
+              <th class="col-move">Move?</th>
+              <th class="col-pos">Before/After</th>
+              <th class="col-anchor">Ref #</th>
               <th class="col-type">Type</th>
               <th class="col-time">Start Time</th>
               <th class="col-time">End Time</th>
@@ -724,21 +758,21 @@ td.stage-cell .stage-chip {
       </div>
     </div>
 
-    <!-- ─── Precedence diagram ───────────────────────────────────────── -->
+    <!-- ─── Stage layout board (after balancing) ─────────────────────── -->
     <div class="precedence-panel">
       <div class="chart-toolbar">
         <div>
-          <span class="chart-title">🔗 Precedence Diagram</span>
-          <span class="chart-sub">Built from the <strong>Predecessors</strong> column · node colour = assigned stage after balancing</span>
+          <span class="chart-title">🧩 Balanced Stage Layout</span>
+          <span class="chart-sub">Each stage shows its operators and tasks after balancing · <span style="color:var(--gold-dk);font-weight:700">↪ gold = a moved / movable task</span></span>
         </div>
         <div class="chart-actions">
-          <button class="btn btn-ghost btn-sm" onclick="renderPrecedenceDiagram()">↻ Refresh</button>
+          <button class="btn btn-ghost btn-sm" onclick="balanceLine(true)">↻ Re-balance</button>
         </div>
       </div>
       <div class="precedence-scroll">
-        <svg id="precedence-svg" xmlns="http://www.w3.org/2000/svg"></svg>
-        <div class="precedence-empty" id="precedence-empty">
-          Fill the Operator / Process Step columns (and optionally Predecessors), then refresh to draw the flow.
+        <div class="stage-board" id="stage-board"></div>
+        <div class="precedence-empty" id="stage-board-empty">
+          Paste your stages, mark any movable tasks, then press <strong>⚖ Balance Line</strong> to see the rearranged stages here.
         </div>
       </div>
     </div>
@@ -759,11 +793,19 @@ for (let i = 1; i <= 150; i++) {
   tr.onclick = () => setActiveRow(i);
   tr.innerHTML = `
     <td class="num-cell">${i}</td>
-    <td class="stage-cell" id="stage-${i}"><span class="stage-chip">—</span></td>
-    <td><input type="text" id="operator-${i}" class="td-input" placeholder="—"></td>
+    <td><input type="number" id="stage-${i}" class="td-input number stage-in" placeholder="—" min="1" step="1" oninput="onStageInput()" title="Initial stage (paste your current line layout)"></td>
+    <td><input type="text" id="operator-${i}" class="td-input" placeholder="—" oninput="updateGlobalSummaries()"></td>
     <td><input type="text" id="step-${i}" class="td-input" placeholder="Step name" oninput="updateGlobalSummaries()"></td>
     <td><input type="text" id="desc-${i}" class="td-input" placeholder="Details"></td>
-    <td><input type="text" id="pred-${i}" class="td-input mono" placeholder="e.g. 1,2" title="Step #s that must finish before this one" oninput="schedulePrecedenceRefresh()"></td>
+    <td style="text-align:center"><input type="checkbox" id="move-${i}" class="move-chk" onchange="onMoveToggle(${i})" title="Tick if this task can move between operators/stages to balance"></td>
+    <td>
+      <select id="pos-${i}" class="pos-select" onchange="scheduleBalance()" title="Place this movable task before/after a step" disabled>
+        <option value="">—</option>
+        <option value="before">Before</option>
+        <option value="after">After</option>
+      </select>
+    </td>
+    <td><input type="number" id="anchor-${i}" class="td-input number mono" placeholder="#" min="1" step="1" oninput="scheduleBalance()" title="Reference step # for the Before/After rule" disabled></td>
     <td>
       <select id="type-${i}" class="type-select" onchange="calculateRow(${i})">
         <option value="Regular">Regular</option>
@@ -782,7 +824,7 @@ for (let i = 1; i <= 150; i++) {
         <button class="stamp-btn" onclick="event.stopPropagation();stampTime(${i},'end')" title="Stamp end">■</button>
       </div>
     </td>
-    <td class="calc-cell" id="observed-${i}">—</td>
+    <td><input type="number" id="obs-${i}" class="td-input number mono" placeholder="auto" step="0.01" min="0" oninput="onObsInput(${i})" title="Paste observed seconds, or leave blank to derive from Start/End"></td>
     <td><input type="number" id="rating-${i}" value="100" class="td-input number" oninput="calculateRow(${i})"></td>
     <td class="calc-cell" id="normal-${i}">—</td>
     <td><input type="number" id="allowance-${i}" value="12" class="td-input number" oninput="calculateRow(${i})"></td>
@@ -803,7 +845,8 @@ window.addEventListener('DOMContentLoaded', () => {
   updateGlobalSummaries();
   renderYamazumiChart();
   onBalanceModeChange();
-  renderPrecedenceDiagram();
+  updateBeforeMetrics();
+  renderStageLayout();
 });
 
 // ─── Live clock ──────────────────────────────────────────────────────────
@@ -963,31 +1006,55 @@ function timeToSeconds(timeStr) {
   return (h * 3600) + (m * 60) + sec;
 }
 
-// ─── Calculate row ───────────────────────────────────────────────────────
-function calculateRow(i) {
+// ─── Observed time (pasteable, else derived from Start/End) ────────────────
+// Fill the Obs input from Start/End unless the user typed/pasted a value.
+function autofillObs(i) {
+  const el = document.getElementById(`obs-${i}`);
+  if (el.dataset.manual === '1') return;
   const t1 = timeToSeconds(document.getElementById(`start-${i}`).value);
   const t2 = timeToSeconds(document.getElementById(`end-${i}`).value);
+  if (t1 !== null && t2 !== null) { let d = t2 - t1; if (d < 0) d += 86400; el.value = d.toFixed(2); }
+  else el.value = '';
+}
+function onObsInput(i) {
+  const el = document.getElementById(`obs-${i}`);
+  el.dataset.manual = el.value.trim() !== '' ? '1' : '';
+  calculateRow(i);
+}
+function getObserved(i) {
+  const v = parseFloat(document.getElementById(`obs-${i}`).value);
+  return isNaN(v) ? 0 : v;
+}
+
+// ─── Calculate row ───────────────────────────────────────────────────────
+function calculateRow(i) {
+  autofillObs(i);
+  const diff      = getObserved(i);
   const rating    = parseFloat(document.getElementById(`rating-${i}`).value)    || 100;
   const allowance = parseFloat(document.getElementById(`allowance-${i}`).value) || 0;
-
-  const obsEl = document.getElementById(`observed-${i}`);
   const norEl = document.getElementById(`normal-${i}`);
   const stdEl = document.getElementById(`standard-${i}`);
 
-  if (t1 !== null && t2 !== null) {
-    let diff = t2 - t1;
-    if (diff < 0) diff += 86400;
+  if (diff > 0) {
     const norm = diff * (rating / 100);
     const std  = norm * (1 + allowance / 100);
-    obsEl.textContent = diff.toFixed(2);
     norEl.textContent = norm.toFixed(2);
     stdEl.textContent = std.toFixed(2);
   } else {
-    obsEl.textContent = '—';
     norEl.textContent = '—';
     stdEl.textContent = '—';
   }
   updateGlobalSummaries();
+}
+
+// Stage / movable input handlers
+function onStageInput()  { updateBeforeMetrics(); scheduleBalance(); }
+function onMoveToggle(i) {
+  const on = document.getElementById(`move-${i}`).checked;
+  // disable the before/after rule controls when the row can't move
+  document.getElementById(`pos-${i}`).disabled    = !on;
+  document.getElementById(`anchor-${i}`).disabled = !on;
+  scheduleBalance();
 }
 
 // ─── Summaries ───────────────────────────────────────────────────────────
@@ -996,7 +1063,7 @@ function updateGlobalSummaries() {
   for (let i = 1; i <= 150; i++) {
     const step = document.getElementById(`step-${i}`).value.trim();
     const type = document.getElementById(`type-${i}`).value;
-    const obs  = parseFloat(document.getElementById(`observed-${i}`).textContent) || 0;
+    const obs  = getObserved(i);
     const std  = parseFloat(document.getElementById(`standard-${i}`).textContent) || 0;
     if (step || obs > 0) active++;
     if (type === 'Regular') totalReg += std;
@@ -1011,17 +1078,21 @@ function updateGlobalSummaries() {
 // ─── Clear ───────────────────────────────────────────────────────────────
 function clearTableInputsWithoutConfirm() {
   for (let i = 1; i <= 150; i++) {
+    document.getElementById(`stage-${i}`).value       = '';
     document.getElementById(`operator-${i}`).value    = '';
     document.getElementById(`step-${i}`).value        = '';
     document.getElementById(`desc-${i}`).value        = '';
-    document.getElementById(`pred-${i}`).value        = '';
+    document.getElementById(`move-${i}`).checked      = false;
+    document.getElementById(`pos-${i}`).value         = '';   document.getElementById(`pos-${i}`).disabled    = true;
+    document.getElementById(`anchor-${i}`).value      = '';   document.getElementById(`anchor-${i}`).disabled = true;
     document.getElementById(`start-${i}`).value       = '';
     document.getElementById(`end-${i}`).value         = '';
+    const obsEl = document.getElementById(`obs-${i}`); obsEl.value = ''; obsEl.dataset.manual = '';
     document.getElementById(`rating-${i}`).value      = '100';
     document.getElementById(`allowance-${i}`).value   = '12';
-    document.getElementById(`observed-${i}`).textContent = '—';
     document.getElementById(`normal-${i}`).textContent   = '—';
     document.getElementById(`standard-${i}`).textContent = '—';
+    const st = document.getElementById(`stage-${i}`); st.classList.remove('assigned'); st.style.background = ''; st.style.color = '';
   }
 }
 
@@ -1029,10 +1100,10 @@ function clearTableData() {
   if (!confirm('Clear all recorded data? This cannot be undone.')) return;
   clearTableInputsWithoutConfirm();
   balanceResult = null;
-  applyStageChips();
   updateBalanceMetrics();
+  updateBeforeMetrics();
   renderBalancedChart();
-  renderPrecedenceDiagram();
+  renderStageLayout();
   removeActiveRowStyle(currentActiveRowIdx);
   currentActiveRowIdx = 1;
   rowState = 'waiting';
@@ -1060,16 +1131,22 @@ function loadPastedData() {
     if (!line.trim()) continue;
     const cols = line.split('\t');
     if (i === 0 && line.toLowerCase().includes('operator')) continue;
-    const op   = (cols[0] || '').toString().trim();
-    const step = (cols[1] || '').toString().trim();
-    const desc = (cols[2] || '').toString().trim();
-    const pred = (cols[3] || '').toString().trim();
+    const op    = (cols[0] || '').toString().trim();
+    const step  = (cols[1] || '').toString().trim();
+    const desc  = (cols[2] || '').toString().trim();
+    const stage = (cols[3] || '').toString().trim();
+    const obs   = (cols[4] || '').toString().trim();
     if (!op && !step && !desc) continue;
     const idx = loaded + 1;
     document.getElementById(`operator-${idx}`).value = op;
     document.getElementById(`step-${idx}`).value     = step;
     document.getElementById(`desc-${idx}`).value     = desc;
-    document.getElementById(`pred-${idx}`).value     = pred;
+    if (stage !== '') document.getElementById(`stage-${idx}`).value = parseInt(stage, 10) || '';
+    if (obs !== '' && !isNaN(parseFloat(obs))) {
+      const o = document.getElementById(`obs-${idx}`);
+      o.value = parseFloat(obs); o.dataset.manual = '1';
+      calculateRow(idx);
+    }
     loaded++;
   }
 
@@ -1079,7 +1156,8 @@ function loadPastedData() {
   updateStatus('ready', 'Ready');
   updateGlobalSummaries();
   updateStepStateLabel();
-  renderPrecedenceDiagram();
+  updateBeforeMetrics();
+  renderStageLayout();
   document.getElementById('paste-box').value = '';
   toast(`${loaded} step${loaded !== 1 ? 's' : ''} loaded`, 'success');
 }
@@ -1097,7 +1175,7 @@ const STEP_PALETTE = [
 
 // Time value for a row, given the selected metric
 function effectiveTime(i, metric) {
-  const obs  = parseFloat(document.getElementById(`observed-${i}`).textContent) || 0;
+  const obs  = getObserved(i);
   const std  = parseFloat(document.getElementById(`standard-${i}`).textContent) || 0;
   const type = document.getElementById(`type-${i}`).value;
   if (metric === 'standard') return std || obs;
@@ -1259,10 +1337,10 @@ function downloadChartPNG() {
   toast('Chart image downloaded', 'success');
 }
 
-// ─── Line balancing ───────────────────────────────────────────────────────
-let balanceResult = null;          // last computed balance (used by chart + export)
+// ─── Line balancing (operator-bundle model) ────────────────────────────────
+let balanceResult = null;          // last computed balance (used by chart, board, export)
 let balancedChart = null;
-let balanceTimer = null, precedenceTimer = null;
+let balanceTimer = null;
 
 // Vivid, distinct stage colours
 const STAGE_PALETTE = [
@@ -1270,8 +1348,10 @@ const STAGE_PALETTE = [
   '#A8475A','#B8941F','#577590','#9CB380','#C26E60','#5B8266','#48788A','#AA8F66'
 ];
 const stageColor = s => STAGE_PALETTE[(s - 1) % STAGE_PALETTE.length];
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function getBalanceMetric() { return document.getElementById('balance-metric').value; }
+function getStageBasis()    { return document.getElementById('stage-basis').value; }   // 'sum' | 'parallel'
 
 function onBalanceModeChange() {
   const mode = document.getElementById('balance-mode').value;
@@ -1279,170 +1359,169 @@ function onBalanceModeChange() {
   document.getElementById('stages-input').disabled = (mode !== 'stages');
   scheduleBalance();
 }
-
 function scheduleBalance() {
   clearTimeout(balanceTimer);
-  balanceTimer = setTimeout(() => { if (collectTasks(getBalanceMetric()).length) balanceLine(false); }, 300);
-}
-function schedulePrecedenceRefresh() {
-  clearTimeout(precedenceTimer);
-  precedenceTimer = setTimeout(() => { renderPrecedenceDiagram(); if (balanceResult) balanceLine(false); }, 350);
+  balanceTimer = setTimeout(() => { updateBeforeMetrics(); if (balanceResult) balanceLine(false); }, 300);
 }
 
-// Collect rows that hold data, parse their predecessor lists
-function collectTasks(metric) {
-  const tasks = [];
+// Gather every row that has data, with its initial stage + movable rule
+function collectModel(metric) {
+  const rows = [];
   for (let i = 1; i <= 150; i++) {
+    const op   = document.getElementById(`operator-${i}`).value.trim();
     const step = document.getElementById(`step-${i}`).value.trim();
     const desc = document.getElementById(`desc-${i}`).value.trim();
-    const op   = document.getElementById(`operator-${i}`).value.trim();
-    const t    = effectiveTime(i, metric);
-    if (!(step || desc || t > 0)) continue;
-    tasks.push({ id: i, time: t, op, desc, step: step || desc || `Step ${i}`,
-                 predsRaw: document.getElementById(`pred-${i}`).value });
+    const time = effectiveTime(i, metric);
+    if (!(op || step || desc || time > 0)) continue;
+    const stageRaw = parseInt(document.getElementById(`stage-${i}`).value, 10);
+    rows.push({
+      id: i, op: op || '(Unassigned)', step: step || desc || `Step ${i}`, desc, time,
+      stage: isNaN(stageRaw) ? null : stageRaw,
+      movable: document.getElementById(`move-${i}`).checked,
+      pos: document.getElementById(`pos-${i}`).value,
+      anchor: parseInt(document.getElementById(`anchor-${i}`).value, 10) || null
+    });
   }
-  const idset = new Set(tasks.map(t => t.id));
-  tasks.forEach(t => {
-    t.preds = (t.predsRaw || '').split(/[,\s;]+/)
-      .map(x => parseInt(x, 10))
-      .filter(n => !isNaN(n) && idset.has(n) && n !== t.id);
-  });
-  return tasks;
+  return rows;
 }
 
-// Build successor map + positional weights (task time + Σ unique successor times)
-function buildGraph(tasks) {
-  const byId = {}; tasks.forEach(t => byId[t.id] = t);
-  const succ = {}; tasks.forEach(t => succ[t.id] = []);
-  tasks.forEach(t => t.preds.forEach(p => { if (succ[p]) succ[p].push(t.id); }));
-  const PW = {};
-  tasks.forEach(t => {
-    const seen = new Set(), stack = [...succ[t.id]];
-    while (stack.length) { const x = stack.pop(); if (seen.has(x)) continue; seen.add(x); succ[x].forEach(y => stack.push(y)); }
-    let s = t.time; seen.forEach(x => s += byId[x].time);
-    PW[t.id] = s;
-  });
-  return { byId, succ, PW };
+// Time of a stage: SUM of work, or MAX operator (parallel) per the chosen basis
+function stageWeight(rows, basis) {
+  if (basis === 'parallel') {
+    const byOp = {}; rows.forEach(r => byOp[r.op] = (byOp[r.op] || 0) + r.time);
+    return Math.max(0, ...Object.values(byOp));
+  }
+  return rows.reduce((s, r) => s + r.time, 0);
 }
 
-// Ranked-Positional-Weight assignment for a given cycle time c
-function assignStations(tasks, PW, c) {
-  const order = [...tasks].sort((a, b) => PW[b.id] - PW[a.id] || b.time - a.time || a.id - b.id);
-  const assigned = new Set(), stageOf = {}, stages = [];
-  while (assigned.size < tasks.length) {
-    const stage = []; let cap = c, progressed = true;
-    while (progressed) {
-      progressed = false;
-      for (const t of order) {
-        if (assigned.has(t.id)) continue;
-        if (!t.preds.every(p => assigned.has(p))) continue;
-        if (t.time <= cap + 1e-9) {
-          stage.push(t.id); assigned.add(t.id); stageOf[t.id] = stages.length + 1;
-          cap -= t.time; progressed = true;
-        }
+// "Before" = the stages the user pasted; cycle time = busiest stage
+function updateBeforeMetrics() {
+  const basis = getStageBasis();
+  const rows  = collectModel(getBalanceMetric());
+  const staged = rows.filter(r => r.stage != null);
+  const el = document.getElementById('bm-before');
+  if (!staged.length) { if (el) el.textContent = '—'; return null; }
+  const byStage = {}; staged.forEach(r => (byStage[r.stage] = byStage[r.stage] || []).push(r));
+  const keys = Object.keys(byStage).map(Number).sort((a, b) => a - b);
+  const times = keys.map(k => stageWeight(byStage[k], basis));
+  const cycle = Math.max(...times);
+  if (el) el.textContent = cycle.toFixed(1) + ' s';
+  return { byStage, keys, times, cycle, nStages: keys.length };
+}
+
+// Assign operator bundles (phase 1) + movable tasks (phase 2) to K stages
+function placeUnits(fixed, movs, K, basis, byId) {
+  const stageRows = Array.from({ length: K }, () => []);
+  const assignedStage = {};
+  const wt = s => stageWeight(stageRows[s], basis);
+  const bestStage = feas => { let best = feas[0], bw = Infinity; for (const s of feas) { const w = wt(s); if (w < bw - 1e-9) { bw = w; best = s; } } return best; };
+
+  [...fixed].sort((a, b) => b.time - a.time).forEach(u => {
+    const s = bestStage([...Array(K).keys()]);
+    u.rows.forEach(r => { stageRows[s].push(r); assignedStage[r.id] = s + 1; });
+  });
+
+  [...movs].sort((a, b) => b.time - a.time).forEach(u => {
+    const r = u.rows[0];
+    let feas = [...Array(K).keys()];
+    if (u.pos && u.anchor && byId[u.anchor]) {
+      let aStage = assignedStage[u.anchor] || byId[u.anchor].stage;
+      if (aStage) {
+        if (u.pos === 'before') feas = feas.filter(s => (s + 1) <= aStage);
+        else                    feas = feas.filter(s => (s + 1) >= aStage);
       }
     }
-    if (stage.length === 0) {                         // nothing fits → force smallest available alone
-      let pick = null;
-      for (const t of order) {
-        if (assigned.has(t.id) || !t.preds.every(p => assigned.has(p))) continue;
-        if (pick === null || t.time < pick.time) pick = t;
-      }
-      if (pick === null) break;                       // remaining blocked by a precedence cycle
-      stage.push(pick.id); assigned.add(pick.id); stageOf[pick.id] = stages.length + 1;
-    }
-    stages.push(stage);
-  }
-  if (assigned.size < tasks.length) {                 // dump any cycle leftovers into a final stage
-    const rest = tasks.filter(t => !assigned.has(t.id)).map(t => t.id);
-    rest.forEach(id => stageOf[id] = stages.length + 1);
-    stages.push(rest);
-  }
-  return { stages, stageOf };
-}
-
-// Type-II: smallest cycle time that fits within N stages (binary search)
-function assignByStageCount(tasks, PW, N) {
-  const total = tasks.reduce((s, t) => s + t.time, 0);
-  const maxT  = Math.max(0, ...tasks.map(t => t.time));
-  let lo = Math.max(maxT, total / Math.max(N, 1)), hi = Math.max(total, maxT, lo);
-  let best = assignStations(tasks, PW, hi);
-  for (let k = 0; k < 60 && hi - lo > 1e-4; k++) {
-    const mid = (lo + hi) / 2;
-    const r = assignStations(tasks, PW, mid);
-    if (r.stages.length <= N) { best = r; hi = mid; } else lo = mid;
-  }
-  return best;
+    if (!feas.length) feas = [...Array(K).keys()];
+    const s = bestStage(feas);
+    stageRows[s].push(r); assignedStage[r.id] = s + 1;
+  });
+  return { stageRows, assignedStage };
 }
 
 function balanceLine(announce) {
-  const metric = getBalanceMetric();
-  const tasks = collectTasks(metric);
-  if (tasks.length === 0) {
-    if (announce) toast('No tasks to balance — record some steps first', 'warn');
-    return;
-  }
-  const { PW } = buildGraph(tasks);
+  const metric = getBalanceMetric(), basis = getStageBasis();
+  const rows = collectModel(metric);
+  if (!rows.length) { if (announce) toast('No tasks to balance — add data first', 'warn'); return; }
+  const byId = {}; rows.forEach(r => byId[r.id] = r);
+  const before = updateBeforeMetrics();
   const mode = document.getElementById('balance-mode').value;
-  const totalTime = tasks.reduce((s, t) => s + t.time, 0);
+  const totalTime = rows.reduce((s, r) => s + r.time, 0);
 
-  let result, taktLine;
-  if (mode === 'takt') {
-    const takt = parseFloat(document.getElementById('takt-input').value) || 0;
-    if (takt <= 0) { if (announce) toast('Enter a takt time greater than 0', 'warn'); return; }
-    const maxT = Math.max(0, ...tasks.map(t => t.time));
-    if (maxT > takt && announce) toast(`Heads-up: step time ${maxT.toFixed(1)}s exceeds takt — it gets its own stage`, 'warn');
-    result = assignStations(tasks, PW, takt);
-    taktLine = takt;
+  // Build units: one bundle per operator (inseparable) + each movable task on its own
+  const opBundles = {}, movs = [];
+  rows.forEach(r => {
+    if (r.movable) movs.push({ rows: [r], time: r.time, op: r.op, movable: true, pos: r.pos, anchor: r.anchor });
+    else { const b = opBundles[r.op] = opBundles[r.op] || { rows: [], time: 0, op: r.op }; b.rows.push(r); b.time += r.time; }
+  });
+  const fixed = Object.values(opBundles);
+
+  // Decide number of stages K
+  let K, takt = 0;
+  if (mode === 'match') {
+    K = (before && before.nStages) ? before.nStages : (new Set(rows.map(r => r.op)).size || 1);
+  } else if (mode === 'stages') {
+    K = Math.max(1, parseInt(document.getElementById('stages-input').value, 10) || 1);
   } else {
-    const N = Math.max(1, parseInt(document.getElementById('stages-input').value, 10) || 1);
-    result = assignByStageCount(tasks, PW, N);
-    taktLine = 0; // will use bottleneck as the reference line
+    takt = parseFloat(document.getElementById('takt-input').value) || 0;
+    if (takt <= 0) { if (announce) toast('Enter a takt time greater than 0', 'warn'); return; }
+    K = Math.max(1, Math.ceil(totalTime / takt));
+    const maxUnit = Math.max(0, ...fixed.map(u => u.time), ...movs.map(u => u.time));
+    if (maxUnit > takt && announce) toast(`An operator bundle (${maxUnit.toFixed(1)}s) exceeds takt — it gets its own stage`, 'warn');
+    // grow K until every stage fits takt (or we run out of units)
+    for (let guard = 0; guard < rows.length; guard++) {
+      const test = placeUnits(fixed, movs, K, basis, byId);
+      if (Math.max(0, ...test.stageRows.map(rs => stageWeight(rs, basis))) <= takt + 1e-6) break;
+      if (K >= fixed.length + movs.length) break;
+      K++;
+    }
   }
 
-  // Stage time totals
-  const byId = {}; tasks.forEach(t => byId[t.id] = t);
-  const stageTime = result.stages.map(st => st.reduce((s, id) => s + byId[id].time, 0));
-  const bottleneck = Math.max(0, ...stageTime);
-  if (!taktLine) taktLine = bottleneck;
+  const res = placeUnits(fixed, movs, K, basis, byId);
+  const stageTime = res.stageRows.map(rs => stageWeight(rs, basis));
+  const cycle = Math.max(0, ...stageTime);
+  const sumWork = stageTime.reduce((a, b) => a + b, 0);
+  const efficiency = cycle > 0 ? (sumWork / (K * cycle)) * 100 : 0;
+  const smoothness = Math.sqrt(stageTime.reduce((s, t) => s + Math.pow(cycle - t, 2), 0));
 
-  const nStages = result.stages.length;
-  const efficiency = bottleneck > 0 ? (totalTime / (nStages * bottleneck)) * 100 : 0;
-  const smoothness = Math.sqrt(stageTime.reduce((s, st) => s + Math.pow(bottleneck - st, 2), 0));
+  balanceResult = { mode, metric, basis, rows, byId, K,
+    stageRows: res.stageRows, assignedStage: res.assignedStage,
+    stageTime, cycle, efficiency, smoothness, totalTime,
+    beforeCycle: before ? before.cycle : null, nStages: K };
 
-  balanceResult = { mode, metric, tasks, byId, stages: result.stages, stageOf: result.stageOf,
-                    stageTime, bottleneck, taktLine, efficiency, smoothness, totalTime, nStages };
-
-  applyStageChips();
+  applyStageTints();
   updateBalanceMetrics();
   renderBalancedChart();
-  renderPrecedenceDiagram();
-  if (announce) toast(`Balanced into ${nStages} stage${nStages !== 1 ? 's' : ''} · ${efficiency.toFixed(0)}% efficient`, 'success');
+  renderStageLayout();
+  if (announce) {
+    const imp = balanceResult.beforeCycle ? ` (before: ${balanceResult.beforeCycle.toFixed(1)}s)` : '';
+    toast(`Balanced into ${K} stage${K !== 1 ? 's' : ''} · bottleneck ${cycle.toFixed(1)}s${imp}`, 'success');
+  }
 }
 
-function applyStageChips() {
-  // reset all
+// Tint each Stage input by its balanced (After) stage; keeps the typed initial value
+function applyStageTints() {
   for (let i = 1; i <= 150; i++) {
-    const chip = document.querySelector(`#stage-${i} .stage-chip`);
-    if (chip) { chip.textContent = '—'; chip.style.background = ''; chip.style.color = ''; }
+    const st = document.getElementById(`stage-${i}`);
+    if (st) { st.classList.remove('assigned'); st.style.background = ''; st.style.color = ''; st.title = 'Initial stage (paste your current line layout)'; }
   }
   if (!balanceResult) return;
-  Object.entries(balanceResult.stageOf).forEach(([id, s]) => {
-    const chip = document.querySelector(`#stage-${id} .stage-chip`);
-    if (chip) { chip.textContent = s; chip.style.background = stageColor(s); chip.style.color = '#fff'; }
+  Object.entries(balanceResult.assignedStage).forEach(([id, s]) => {
+    const st = document.getElementById(`stage-${id}`);
+    if (st) { st.classList.add('assigned'); st.style.background = stageColor(s); st.style.color = '#fff';
+              st.title = `Typed value = initial stage. Balanced → Stage ${s}`; }
   });
 }
 
 function updateBalanceMetrics() {
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
   const r = balanceResult;
-  const set = (id, v) => document.getElementById(id).textContent = v;
   if (!r) { ['bm-stages','bm-bottleneck','bm-efficiency','bm-smoothness'].forEach(i => set(i, '—')); return; }
   set('bm-stages', r.nStages);
-  set('bm-bottleneck', r.bottleneck.toFixed(1) + ' s');
+  set('bm-bottleneck', r.cycle.toFixed(1) + ' s');
   set('bm-efficiency', r.efficiency.toFixed(1) + ' %');
   set('bm-smoothness', r.smoothness.toFixed(2));
-  const effCard = document.getElementById('bm-eff-card');
-  effCard.className = 'bm-card ' + (r.efficiency >= 85 ? 'good' : r.efficiency >= 70 ? 'warn' : '');
+  const c = document.getElementById('bm-eff-card');
+  if (c) c.className = 'bm-card ' + (r.efficiency >= 85 ? 'good' : r.efficiency >= 70 ? 'warn' : '');
 }
 
 // ─── Balanced (After) stage chart ─────────────────────────────────────────
@@ -1450,36 +1529,35 @@ function renderBalancedChart() {
   if (typeof Chart === 'undefined') return;
   const canvas = document.getElementById('balanced-canvas');
   const empty  = document.getElementById('balanced-empty');
-  if (!balanceResult || balanceResult.nStages === 0) {
+  if (!balanceResult || !balanceResult.nStages) {
     if (balancedChart) { balancedChart.destroy(); balancedChart = null; }
     empty.style.display = 'block'; canvas.style.display = 'none';
-    document.getElementById('balanced-sub').textContent = 'Run “Balance Line” above to group steps into equal-time stages';
+    document.getElementById('balanced-sub').textContent = 'Run “Balance Line” above to group operators into equal-time stages';
     return;
   }
   empty.style.display = 'none'; canvas.style.display = 'block';
   const r = balanceResult;
-  const labels = r.stages.map((_, i) => `Stage ${i + 1}`);
+  const labels = r.stageRows.map((_, i) => `Stage ${i + 1}`);
 
-  // unique step names → consistent colours (matches Yamazumi palette)
-  const stepNames = [], stepIdx = {};
-  r.tasks.forEach(t => { if (!(t.step in stepIdx)) { stepIdx[t.step] = stepNames.length; stepNames.push(t.step); } });
+  const stepNames = [], idx = {};
+  r.rows.forEach(t => { if (!(t.step in idx)) { idx[t.step] = stepNames.length; stepNames.push(t.step); } });
 
-  const datasets = stepNames.map((name, idx) => ({
+  const datasets = stepNames.map((name, k) => ({
     label: name,
-    data: r.stages.map(st => +st.filter(id => r.byId[id].step === name)
-                               .reduce((s, id) => s + r.byId[id].time, 0).toFixed(2)),
-    backgroundColor: STEP_PALETTE[idx % STEP_PALETTE.length],
+    data: r.stageRows.map(rs => +rs.filter(x => x.step === name).reduce((s, x) => s + x.time, 0).toFixed(2)),
+    backgroundColor: STEP_PALETTE[k % STEP_PALETTE.length],
     borderColor: 'rgba(255,255,255,.85)', borderWidth: 1, stack: 'stage', order: 2,
     datalabels: {
-      display: ctx => (ctx.dataset.data[ctx.dataIndex] || 0) >= r.bottleneck * 0.05,
+      display: ctx => (ctx.dataset.data[ctx.dataIndex] || 0) >= r.cycle * 0.05,
       color: '#fff', font: { family: 'JetBrains Mono, monospace', size: 9, weight: 600 },
       formatter: v => v ? v.toFixed(0) : ''
     }
   }));
 
-  const taktDataset = {
-    type: 'line', label: `Takt (${r.taktLine.toFixed(1)}s)`,
-    data: labels.map(() => +r.taktLine.toFixed(2)),
+  const refVal = r.beforeCycle || r.cycle;
+  const refLine = {
+    type: 'line', label: `Before cycle (${refVal.toFixed(1)}s)`,
+    data: labels.map(() => +refVal.toFixed(2)),
     borderColor: '#C53030', backgroundColor: '#C53030', borderWidth: 2,
     borderDash: [6, 4], pointRadius: 0, order: 1, datalabels: { display: false }
   };
@@ -1488,7 +1566,7 @@ function renderBalancedChart() {
   if (balancedChart) balancedChart.destroy();
   balancedChart = new Chart(canvas.getContext('2d'), {
     type: 'bar',
-    data: { labels, datasets: [...datasets, taktDataset] },
+    data: { labels, datasets: [...datasets, refLine] },
     options: {
       responsive: true, maintainAspectRatio: false, layout: { padding: { top: 24 } },
       interaction: { mode: 'index', intersect: false },
@@ -1514,7 +1592,8 @@ function renderBalancedChart() {
   });
 
   document.getElementById('balanced-sub').textContent =
-    `${r.nStages} stage${r.nStages !== 1 ? 's' : ''} · bottleneck ${r.bottleneck.toFixed(1)}s · ${r.efficiency.toFixed(0)}% balance efficiency`;
+    `${r.nStages} stage${r.nStages !== 1 ? 's' : ''} · bottleneck ${r.cycle.toFixed(1)}s · ${r.efficiency.toFixed(0)}% balance efficiency` +
+    (r.beforeCycle ? ` · was ${r.beforeCycle.toFixed(1)}s` : '');
 }
 
 function downloadBalancedPNG() {
@@ -1529,74 +1608,37 @@ function downloadBalancedPNG() {
   toast('Balanced chart downloaded', 'success');
 }
 
-// ─── Precedence diagram (SVG) ──────────────────────────────────────────────
-function renderPrecedenceDiagram() {
-  const svg   = document.getElementById('precedence-svg');
-  const empty = document.getElementById('precedence-empty');
-  const tasks = collectTasks(getBalanceMetric());
-  if (tasks.length === 0) { svg.innerHTML = ''; svg.removeAttribute('width'); svg.removeAttribute('height'); empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-
-  const byId = {}; tasks.forEach(t => byId[t.id] = t);
-  // longest-path level per node (cycle-guarded)
-  const level = {}, visiting = new Set();
-  function lvl(id) {
-    if (level[id] != null) return level[id];
-    if (visiting.has(id)) return 0;
-    visiting.add(id);
-    const ps = byId[id].preds.filter(p => byId[p]);
-    const v = ps.length ? 1 + Math.max(...ps.map(lvl)) : 0;
-    visiting.delete(id); level[id] = v; return v;
-  }
-  tasks.forEach(t => lvl(t.id));
-
-  const cols = {};
-  tasks.forEach(t => { (cols[level[t.id]] = cols[level[t.id]] || []).push(t.id); });
-  const maxLevel = Math.max(...Object.keys(cols).map(Number));
-
-  const NW = 132, NH = 50, GX = 56, GY = 22, M = 24;
-  const pos = {};
-  let maxRows = 0;
-  for (let L = 0; L <= maxLevel; L++) {
-    const ids = (cols[L] || []).sort((a, b) => a - b);
-    maxRows = Math.max(maxRows, ids.length);
-    ids.forEach((id, r) => { pos[id] = { x: M + L * (NW + GX), y: M + r * (NH + GY) }; });
-  }
-  const W = M * 2 + (maxLevel + 1) * NW + maxLevel * GX;
-  const H = M * 2 + maxRows * NH + (maxRows - 1) * GY;
-
-  let edges = '';
-  tasks.forEach(t => t.preds.forEach(p => {
-    if (!pos[p]) return;
-    const x1 = pos[p].x + NW, y1 = pos[p].y + NH / 2;
-    const x2 = pos[t.id].x,   y2 = pos[t.id].y + NH / 2;
-    const mx = (x1 + x2) / 2;
-    edges += `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="#9AAAB5" stroke-width="1.6" marker-end="url(#arrow)"/>`;
-  }));
-
-  let nodes = '';
-  tasks.forEach(t => {
-    const p = pos[t.id];
-    const s = balanceResult ? balanceResult.stageOf[t.id] : null;
-    const fill = s ? stageColor(s) : '#3C6474';
-    const name = t.step.length > 17 ? t.step.slice(0, 16) + '…' : t.step;
-    const esc = x => String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    nodes += `<g class="node-box">
-      <rect x="${p.x}" y="${p.y}" width="${NW}" height="${NH}" rx="8" fill="${fill}"/>
-      <circle cx="${p.x + 13}" cy="${p.y + 13}" r="9" fill="rgba(255,255,255,.9)"/>
-      <text class="node-num" x="${p.x + 13}" y="${p.y + 16}" text-anchor="middle" fill="${fill}">${t.id}</text>
-      <text class="node-label" x="${p.x + NW / 2 + 6}" y="${p.y + 21}" text-anchor="middle">${esc(name)}</text>
-      <text class="node-time" x="${p.x + NW / 2}" y="${p.y + 38}" text-anchor="middle">${t.time.toFixed(1)}s${s ? ' · S' + s : ''}</text>
-    </g>`;
+// ─── Stage layout board (After) ────────────────────────────────────────────
+function renderStageLayout() {
+  const wrap  = document.getElementById('stage-board');
+  const empty = document.getElementById('stage-board-empty');
+  if (!wrap) return;
+  if (!balanceResult || !balanceResult.nStages) { wrap.innerHTML = ''; if (empty) empty.style.display = 'block'; return; }
+  if (empty) empty.style.display = 'none';
+  const r = balanceResult, ref = Math.max(r.cycle, r.beforeCycle || 0) || 1;
+  let html = '';
+  r.stageRows.forEach((rows, si) => {
+    const stage = si + 1, col = stageColor(stage), stime = r.stageTime[si];
+    const byOp = {}; rows.forEach(x => (byOp[x.op] = byOp[x.op] || []).push(x));
+    let inner = '';
+    Object.entries(byOp).forEach(([op, list]) => {
+      const ot = list.reduce((s, x) => s + x.time, 0);
+      let tasks = '';
+      list.forEach(x => {
+        const moved = (x.stage != null && r.assignedStage[x.id] !== x.stage) || x.movable;
+        tasks += `<div class="op-task${moved ? ' moved' : ''}"><span>${escapeHtml(x.step)}${x.movable ? ' ↪' : ''}</span><span class="t-time">${x.time.toFixed(1)}</span></div>`;
+      });
+      inner += `<div class="op-group"><div class="op-name">${escapeHtml(op)} · ${ot.toFixed(1)}s</div>${tasks}</div>`;
+    });
+    const pct = Math.min(100, (stime / ref) * 100);
+    html += `<div class="stage-col" style="border-top-color:${col}">
+      <h4><span>Stage ${stage}</span><span class="st-time" style="color:${col}">${stime.toFixed(1)}s</span></h4>
+      <div class="stage-bar"><span style="width:${pct}%;background:${col}"></span></div>
+      ${inner || '<div class="op-task" style="color:var(--gray-500)">empty</div>'}</div>`;
   });
-
-  svg.setAttribute('width', W);
-  svg.setAttribute('height', H);
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.innerHTML =
-    `<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-       <path d="M0,0 L10,5 L0,10 z" fill="#9AAAB5"/></marker></defs>${edges}${nodes}`;
+  wrap.innerHTML = html;
 }
+
 
 // ─── Export ──────────────────────────────────────────────────────────────
 // Effective time for an exported data row, given the metric (mirror of on-screen)
@@ -1716,63 +1758,67 @@ function buildStudySheet(wb, resultName, chartName, dataRows, metric) {
 
 // Build the balanced "After" sheet (grouped by stage) + its linked chart-data sheet.
 function buildBalancedSheet(wb, br) {
-  const HEADER = ['Stage','Step #','Operator','Process Step','Description','Type',
+  const HEADER = ['Stage','Step #','Operator','Process Step','Description','Type','Movable',
                   'Observed (s)','Standard (s)','Effective (s)'];
-  const ordered = [...br.tasks].sort((a, b) => (br.stageOf[a.id] - br.stageOf[b.id]) || a.id - b.id);
-  const title = `BALANCED LINE (AFTER) — ${br.mode === 'takt'
-    ? 'Takt ' + br.taktLine.toFixed(1) + 's' : br.nStages + ' stages'}`;
+  // Flatten stages in order, tagging each row with its assigned stage
+  const ordered = [];
+  br.stageRows.forEach((rows, si) => rows.forEach(t => ordered.push({ t, stage: si + 1 })));
+  const modeTxt = br.mode === 'takt' ? 'Takt-driven' : br.mode === 'stages' ? br.nStages + ' stages' : 'Kept stage count';
+  const title = `BALANCED LINE (AFTER) — ${modeTxt} · ${br.basis === 'parallel' ? 'parallel (max operator)' : 'sum of operators'}`;
 
   const aoa = [[title], [], HEADER];
-  ordered.forEach(t => {
-    const obs  = parseFloat(document.getElementById(`observed-${t.id}`).textContent) || 0;
+  ordered.forEach(({ t, stage }) => {
+    const obs  = getObserved(t.id);
     const std  = parseFloat(document.getElementById(`standard-${t.id}`).textContent) || 0;
     const type = document.getElementById(`type-${t.id}`).value;
-    aoa.push([`S${br.stageOf[t.id]}`, t.id, t.op, t.step, t.desc, type, obs, std, null]);
+    aoa.push([`S${stage}`, t.id, t.op, t.step, t.desc, type, t.movable ? 'Yes' : '', obs, std, null]);
   });
   const N = ordered.length, firstRow = 4, lastRow = 3 + N;
 
   aoa.push([], ['STAGE SUMMARY']);
   const stageSumStart = lastRow + 3;
   br.stageTime.forEach((_, i) => aoa.push([`Stage ${i + 1} total (s)`, null]));
-  aoa.push(['Reference / Takt line (s)', +br.taktLine.toFixed(2)]);
-  aoa.push(['Bottleneck stage (s)',      +br.bottleneck.toFixed(2)]);
-  aoa.push(['Balance efficiency (%)',    +br.efficiency.toFixed(1)]);
-  aoa.push(['Smoothness index',          +br.smoothness.toFixed(2)]);
+  aoa.push(['Before cycle time (s)',  br.beforeCycle != null ? +br.beforeCycle.toFixed(2) : '—']);
+  aoa.push(['After bottleneck (s)',   +br.cycle.toFixed(2)]);
+  aoa.push(['Balance efficiency (%)', +br.efficiency.toFixed(1)]);
+  aoa.push(['Smoothness index',       +br.smoothness.toFixed(2)]);
 
   const ws = XLSX.utils.aoa_to_sheet(aoa);
+  // Effective formula per row (col J): H=Observed, I=Standard
   for (let r = firstRow; r <= lastRow; r++) {
-    const t = ordered[r - firstRow];
+    const t = ordered[r - firstRow].t;
     let f;
-    if (br.metric === 'standard')      f = `H${r}`;
-    else if (br.metric === 'observed') f = `G${r}`;
-    else                               f = `IF(F${r}="Regular",H${r},G${r})`;
-    ws[`I${r}`] = { t: 'n', f, v: +t.time.toFixed(2) };
+    if (br.metric === 'standard')      f = `I${r}`;
+    else if (br.metric === 'observed') f = `H${r}`;
+    else                               f = `IF(F${r}="Regular",I${r},H${r})`;
+    ws[`J${r}`] = { t: 'n', f, v: +t.time.toFixed(2) };
   }
   br.stageTime.forEach((st, i) => {
     const R = stageSumStart + i;
     ws[`B${R}`] = { t: 'n', v: +st.toFixed(2),
-      f: `SUMIF($A${firstRow}:$A${lastRow},"S${i + 1}",$I${firstRow}:$I${lastRow})` };
+      f: `SUMIF($A${firstRow}:$A${lastRow},"S${i + 1}",$J${firstRow}:$J${lastRow})` };
   });
-  ws['!cols'] = [{wch:8},{wch:7},{wch:14},{wch:24},{wch:24},{wch:9},{wch:11},{wch:11},{wch:12}];
+  ws['!cols'] = [{wch:8},{wch:7},{wch:14},{wch:24},{wch:24},{wch:9},{wch:9},{wch:11},{wch:11},{wch:12}];
   XLSX.utils.book_append_sheet(wb, ws, 'After');
 
   // ---- Linked After chart data, by stage ----
   const steps = [], stepSet = {};
-  ordered.forEach(t => { if (!(t.step in stepSet)) { stepSet[t.step] = 1; steps.push(t.step); } });
-  const stageLabels = br.stages.map((_, i) => `S${i + 1}`);
+  ordered.forEach(({ t }) => { if (!(t.step in stepSet)) { stepSet[t.step] = 1; steps.push(t.step); } });
+  const stageLabels = br.stageRows.map((_, i) => `S${i + 1}`);
+  const refVal = br.beforeCycle != null ? br.beforeCycle : br.cycle;
   const m = [['YAMAZUMI (AFTER) — by stage · linked to "After"'], [],
              ['Process Step \\ Stage', ...stageLabels]];
   steps.forEach(st => m.push([st, ...stageLabels.map(() => null)]));
   m.push(['TOTAL', ...stageLabels.map(() => null)]);
-  m.push(['TAKT / Reference', ...stageLabels.map(() => +br.taktLine.toFixed(2))]);
+  m.push(['Before cycle', ...stageLabels.map(() => +refVal.toFixed(2))]);
   m.push([]);
   m.push(['Live-linked to "After": edit Observed / Standard / Type there and these stage totals recalc. (Re-balance in the app to change the stage grouping.)']);
-  m.push(['Tip: select the step rows + the stage header, then Insert → Chart → Stacked Column; add the TAKT row as a line series.']);
+  m.push(['Tip: select the step rows + the stage header, then Insert → Chart → Stacked Column; add the Before-cycle row as a line series.']);
 
   const ws2 = XLSX.utils.aoa_to_sheet(m);
   const headRow = 3, stepTop = 4, stepBot = 3 + steps.length, totRow = 4 + steps.length;
   const cell = {};
-  ordered.forEach(t => { const k = `S${br.stageOf[t.id]}` + ' ' + t.step; cell[k] = (cell[k] || 0) + t.time; });
+  ordered.forEach(({ t, stage }) => { const k = `S${stage} ${t.step}`; cell[k] = (cell[k] || 0) + t.time; });
   stageLabels.forEach((sl, j) => {
     const colL = XLSX.utils.encode_col(j + 1);
     let colTot = 0;
@@ -1780,7 +1826,7 @@ function buildBalancedSheet(wb, br) {
       const R = stepTop + i, v = +((cell[sl + ' ' + steps[i]]) || 0).toFixed(2);
       colTot += v;
       ws2[`${colL}${R}`] = { t: 'n', v,
-        f: `SUMIFS('After'!$I:$I,'After'!$A:$A,${colL}$${headRow},'After'!$D:$D,$A${R})` };
+        f: `SUMIFS('After'!$J:$J,'After'!$A:$A,${colL}$${headRow},'After'!$D:$D,$A${R})` };
     }
     if (steps.length) ws2[`${colL}${totRow}`] = { t: 'n', v: +colTot.toFixed(2), f: `SUM(${colL}${stepTop}:${colL}${stepBot})` };
   });
@@ -1804,7 +1850,7 @@ function exportToExcel() {
         document.getElementById(`type-${i}`).value,
         document.getElementById(`start-${i}`).value.trim(),
         document.getElementById(`end-${i}`).value.trim(),
-        parseFloat(document.getElementById(`observed-${i}`).textContent) || 0,
+        getObserved(i),
         parseFloat(document.getElementById(`rating-${i}`).value) || 100,
         parseFloat(document.getElementById(`normal-${i}`).textContent) || 0,
         parseFloat(document.getElementById(`allowance-${i}`).value) || 0,
