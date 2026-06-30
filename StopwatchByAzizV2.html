@@ -11,6 +11,7 @@
 <!-- Firebase (compat SDK — works without a build step) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics-compat.js"></script>
 <script>
   // Your web app's Firebase configuration
@@ -24,10 +25,13 @@
     measurementId: "G-2E4E42H817"
   };
   // Initialise — but never let a Firebase/network failure break the app
-  var db = null, fbReady = false;
+  var db = null, auth = null, fbReady = false, currentUid = null;
   try {
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
+    auth = firebase.auth();
+    auth.onAuthStateChanged(u => { currentUid = u ? u.uid : null; });
+    auth.signInAnonymously().catch(e => console.warn('Anonymous sign-in failed:', e));
     try { firebase.analytics(); } catch (e) { /* analytics needs https; ignore */ }
     fbReady = true;
   } catch (e) { console.warn('Firebase not connected:', e); }
@@ -2011,6 +2015,7 @@ function serializeStudy(name) {
   }
   return {
     name, savedAt: Date.now(), savedAtText: new Date().toLocaleString(),
+    by: currentUid || null,
     settings: {
       mode:        document.getElementById('balance-mode').value,
       takt:        document.getElementById('takt-input').value,
@@ -2054,8 +2059,17 @@ function deserializeStudy(data) {
   updateGlobalSummaries(); updateBeforeMetrics(); renderYamazumiChart(); renderStageLayout();
 }
 
+// Make sure we have an (anonymous) signed-in session before touching Firestore
+async function ensureAuth() {
+  if (!fbReady || !auth) return false;
+  if (auth.currentUser) return true;
+  try { await auth.signInAnonymously(); return true; }
+  catch (e) { console.error(e); return false; }
+}
+
 async function cloudSave() {
   if (!fbReady || !db) { toast('Firebase not connected — check your internet / config', 'error'); return; }
+  if (!(await ensureAuth())) { toast('Sign-in failed — enable Anonymous auth in Firebase', 'error'); return; }
   const name = prompt('Save this study to the cloud as:', 'Study ' + new Date().toLocaleDateString());
   if (!name || !name.trim()) return;
   try {
@@ -2069,6 +2083,7 @@ async function cloudSave() {
 
 async function cloudLoad() {
   if (!fbReady || !db) { toast('Firebase not connected — check your internet / config', 'error'); return; }
+  if (!(await ensureAuth())) { toast('Sign-in failed — enable Anonymous auth in Firebase', 'error'); return; }
   try {
     const snap = await db.collection('studies').orderBy('savedAt', 'desc').get();
     if (snap.empty) { toast('No saved studies found in the cloud', 'warn'); return; }
