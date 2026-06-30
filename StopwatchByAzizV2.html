@@ -7,6 +7,32 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+
+<!-- Firebase (compat SDK — works without a build step) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics-compat.js"></script>
+<script>
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyDk3VLKfKse3wryFyd0lO_2edErJkSP7RA",
+    authDomain: "stopwatchaziz.firebaseapp.com",
+    projectId: "stopwatchaziz",
+    storageBucket: "stopwatchaziz.firebasestorage.app",
+    messagingSenderId: "535414448387",
+    appId: "1:535414448387:web:280a773ed0c1265053c936",
+    measurementId: "G-2E4E42H817"
+  };
+  // Initialise — but never let a Firebase/network failure break the app
+  var db = null, fbReady = false;
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    try { firebase.analytics(); } catch (e) { /* analytics needs https; ignore */ }
+    fbReady = true;
+  } catch (e) { console.warn('Firebase not connected:', e); }
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
@@ -575,6 +601,8 @@ thead th.col-case   { width: 74px; text-align: center; }
     </div>
 
     <div class="header-actions">
+      <button class="btn btn-ghost" onclick="cloudSave()" title="Save this study to Firebase">☁ Save</button>
+      <button class="btn btn-ghost" onclick="cloudLoad()" title="Load a study from Firebase">☁ Load</button>
       <button class="btn btn-danger" onclick="clearTableData()">🗑 Clear Table</button>
       <button class="btn btn-gold" onclick="exportToExcel()">📊 Export Excel</button>
     </div>
@@ -1954,6 +1982,108 @@ function exportToExcel() {
   } catch (err) {
     toast('Export failed — check console', 'error');
     console.error(err);
+  }
+}
+
+// ─── Firebase cloud save / load ────────────────────────────────────────────
+// Capture every row + the balancing settings into one plain object
+function serializeStudy(name) {
+  const rows = [];
+  for (let i = 1; i <= 150; i++) {
+    const obsEl = document.getElementById(`obs-${i}`);
+    rows.push({
+      stage:    document.getElementById(`stage-${i}`).value,
+      operator: document.getElementById(`operator-${i}`).value,
+      step:     document.getElementById(`step-${i}`).value,
+      desc:     document.getElementById(`desc-${i}`).value,
+      move:     document.getElementById(`move-${i}`).checked,
+      pos:      document.getElementById(`pos-${i}`).value,
+      anchor:   document.getElementById(`anchor-${i}`).value,
+      caseNo:   document.getElementById(`case-${i}`).value,
+      type:     document.getElementById(`type-${i}`).value,
+      start:    document.getElementById(`start-${i}`).value,
+      end:      document.getElementById(`end-${i}`).value,
+      obs:      obsEl.value,
+      obsManual: obsEl.dataset.manual === '1',
+      rating:    document.getElementById(`rating-${i}`).value,
+      allowance: document.getElementById(`allowance-${i}`).value
+    });
+  }
+  return {
+    name, savedAt: Date.now(), savedAtText: new Date().toLocaleString(),
+    settings: {
+      mode:        document.getElementById('balance-mode').value,
+      takt:        document.getElementById('takt-input').value,
+      stages:      document.getElementById('stages-input').value,
+      basis:       document.getElementById('stage-basis').value,
+      metric:      document.getElementById('balance-metric').value,
+      chartMetric: document.getElementById('chart-metric').value
+    },
+    rows
+  };
+}
+
+function deserializeStudy(data) {
+  clearTableInputsWithoutConfirm();
+  (data.rows || []).forEach((r, idx) => {
+    const i = idx + 1; if (i > 150) return;
+    document.getElementById(`stage-${i}`).value    = r.stage    || '';
+    document.getElementById(`operator-${i}`).value = r.operator || '';
+    document.getElementById(`step-${i}`).value     = r.step     || '';
+    document.getElementById(`desc-${i}`).value     = r.desc     || '';
+    const mv = document.getElementById(`move-${i}`); mv.checked = !!r.move; onMoveToggle(i);
+    document.getElementById(`pos-${i}`).value      = r.pos      || '';
+    document.getElementById(`anchor-${i}`).value   = r.anchor   || '';
+    document.getElementById(`case-${i}`).value     = r.caseNo   || ''; onCaseInput(i);
+    document.getElementById(`type-${i}`).value     = r.type     || 'Regular';
+    document.getElementById(`start-${i}`).value    = r.start    || '';
+    document.getElementById(`end-${i}`).value      = r.end      || '';
+    const o = document.getElementById(`obs-${i}`); o.value = r.obs || ''; o.dataset.manual = r.obsManual ? '1' : '';
+    document.getElementById(`rating-${i}`).value    = r.rating    || '100';
+    document.getElementById(`allowance-${i}`).value = r.allowance || '12';
+    calculateRow(i);
+  });
+  const s = data.settings || {};
+  document.getElementById('balance-mode').value  = s.mode        || 'match';
+  document.getElementById('takt-input').value    = s.takt        || '60';
+  document.getElementById('stages-input').value  = s.stages      || '4';
+  document.getElementById('stage-basis').value   = s.basis       || 'sum';
+  document.getElementById('balance-metric').value= s.metric      || 'auto';
+  document.getElementById('chart-metric').value  = s.chartMetric || 'auto';
+  onBalanceModeChange();
+  updateGlobalSummaries(); updateBeforeMetrics(); renderYamazumiChart(); renderStageLayout();
+}
+
+async function cloudSave() {
+  if (!fbReady || !db) { toast('Firebase not connected — check your internet / config', 'error'); return; }
+  const name = prompt('Save this study to the cloud as:', 'Study ' + new Date().toLocaleDateString());
+  if (!name || !name.trim()) return;
+  try {
+    await db.collection('studies').doc(name.trim()).set(serializeStudy(name.trim()));
+    toast('Saved to cloud: ' + name.trim(), 'success');
+  } catch (e) {
+    console.error(e);
+    toast('Cloud save failed — enable Firestore & check its rules', 'error');
+  }
+}
+
+async function cloudLoad() {
+  if (!fbReady || !db) { toast('Firebase not connected — check your internet / config', 'error'); return; }
+  try {
+    const snap = await db.collection('studies').orderBy('savedAt', 'desc').get();
+    if (snap.empty) { toast('No saved studies found in the cloud', 'warn'); return; }
+    const list = [];
+    snap.forEach(d => list.push(`${d.id}  (${d.data().savedAtText || ''})`));
+    const ids = []; snap.forEach(d => ids.push(d.id));
+    const pick = prompt('Type the name of the study to load:\n\n' + list.join('\n'), ids[0]);
+    if (!pick || !pick.trim()) return;
+    const doc = await db.collection('studies').doc(pick.trim()).get();
+    if (!doc.exists) { toast('Not found: ' + pick.trim(), 'error'); return; }
+    deserializeStudy(doc.data());
+    toast('Loaded from cloud: ' + pick.trim(), 'success');
+  } catch (e) {
+    console.error(e);
+    toast('Cloud load failed — check Firestore rules', 'error');
   }
 }
 
