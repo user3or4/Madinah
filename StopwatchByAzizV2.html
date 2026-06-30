@@ -769,7 +769,7 @@ thead th.col-case   { width: 74px; text-align: center; }
       <div class="chart-toolbar">
         <div>
           <span class="chart-title">🧩 Balanced Stage Layout</span>
-          <span class="chart-sub">Each stage shows its operators and tasks after balancing · <span style="color:var(--gold-dk);font-weight:700">↪ moved/movable</span> · 🔒 locked by Case #</span>
+          <span class="chart-sub">Each stage shows its operators and tasks after balancing · <span style="color:var(--gold-dk);font-weight:700">↪ moved/movable</span> · 🔒 locked by Case # · ⊕ auto-assigned (was unassigned)</span>
         </div>
         <div class="chart-actions">
           <button class="btn btn-ghost btn-sm" onclick="balanceLine(true)">↻ Re-balance</button>
@@ -1397,7 +1397,8 @@ function collectModel(metric) {
     if (!(op || step || desc || time > 0)) continue;
     const stageRaw = parseInt(document.getElementById(`stage-${i}`).value, 10);
     rows.push({
-      id: i, op: op || '(Unassigned)', step: step || desc || `Step ${i}`, desc, time,
+      id: i, op: op || '(Unassigned)', origOp: op, unassigned: !op,
+      step: step || desc || `Step ${i}`, desc, time,
       stage: isNaN(stageRaw) ? null : stageRaw,
       movable: document.getElementById(`move-${i}`).checked,
       pos: document.getElementById(`pos-${i}`).value,
@@ -1433,8 +1434,8 @@ function updateBeforeMetrics() {
   return { byStage, keys, times, cycle, nStages: keys.length };
 }
 
-// Assign operator bundles (phase 1) + movable tasks (phase 2) to K stages
-function placeUnits(fixed, movs, K, basis, byId) {
+// Assign operator bundles (phase 1) + movable tasks (phase 2) + unassigned (phase 3)
+function placeUnits(fixed, movs, unassigned, K, basis, byId, stageMembers) {
   const stageRows = Array.from({ length: K }, () => []);
   const assignedStage = {};
   const wt = s => stageWeight(stageRows[s], basis);
@@ -1461,6 +1462,27 @@ function placeUnits(fixed, movs, K, basis, byId) {
     if (!feas.length) feas = [...Array(K).keys()];
     place(u, bestStage(feas));
   });
+
+  // Phase 3 — unassigned tasks: hand each to the lightest operator that BELONGS to its
+  // pasted stage (by identity, so it's robust to operators being reshuffled). Falls back
+  // to the globally lightest operator if the stage has no named people.
+  [...unassigned].sort((a, b) => b.time - a.time).forEach(u => {
+    const r = u.rows[0];
+    // current load + stage index for every named operator (recomputed each pass)
+    const opStage = {}, opLoad = {};
+    for (let s2 = 0; s2 < K; s2++) stageRows[s2].forEach(x => {
+      if (x.op && x.op !== '(Unassigned)') { opStage[x.op] = s2; opLoad[x.op] = (opLoad[x.op] || 0) + x.time; }
+    });
+    let cands = [];
+    if (r.stage != null && stageMembers && stageMembers[r.stage]) cands = [...stageMembers[r.stage]].filter(op => op in opStage);
+    if (!cands.length) cands = Object.keys(opStage);   // fallback: anyone on the line
+    let target = null, min = Infinity;
+    cands.forEach(op => { const l = opLoad[op] || 0; if (l < min) { min = l; target = op; } });
+    let s;
+    if (target) { r.op = target; s = opStage[target]; }                      // join lightest person's stage
+    else s = (u.forced != null) ? Math.min(Math.max(u.forced, 1), K) - 1 : bestStage([...Array(K).keys()]);
+    place(u, s);
+  });
   return { stageRows, assignedStage };
 }
 
@@ -1475,10 +1497,17 @@ function balanceLine(announce) {
 
   // Build units: one bundle per operator (inseparable) + each movable task on its own.
   // A row with a Case # is LOCKED to its initial stage; that pins its whole operator.
-  const opBundles = {}, movs = [];
+  // Rows with NO operator are "unassigned" — handed to the lightest operator in their stage.
+  const opBundles = {}, movs = [], unassigned = [];
   let conflict = false;
   rows.forEach(r => {
     const lockedHere = r.pinned && r.stage != null;
+    if (r.unassigned) {
+      // fixed to its pasted stage unless it is explicitly movable (and not locked)
+      const forced = (r.movable && !r.pinned) ? null : (r.stage != null ? r.stage : null);
+      unassigned.push({ rows: [r], time: r.time, forced });
+      return;
+    }
     if (r.movable && !lockedHere) {
       movs.push({ rows: [r], time: r.time, op: r.op, movable: true, pos: r.pos, anchor: r.anchor, forced: null });
       return;
@@ -1492,6 +1521,10 @@ function balanceLine(announce) {
   });
   const fixed = Object.values(opBundles);
   if (conflict && announce) toast('Two locked case #s pin the same operator to different stages — using the first', 'warn');
+
+  // Which named operators belong to each pasted stage (for unassigned distribution)
+  const stageMembers = {};
+  rows.forEach(r => { if (!r.unassigned && r.stage != null) (stageMembers[r.stage] = stageMembers[r.stage] || new Set()).add(r.op); });
 
   // Decide number of stages K
   let K, takt = 0;
@@ -1507,14 +1540,14 @@ function balanceLine(announce) {
     if (maxUnit > takt && announce) toast(`An operator bundle (${maxUnit.toFixed(1)}s) exceeds takt — it gets its own stage`, 'warn');
     // grow K until every stage fits takt (or we run out of units)
     for (let guard = 0; guard < rows.length; guard++) {
-      const test = placeUnits(fixed, movs, K, basis, byId);
+      const test = placeUnits(fixed, movs, unassigned, K, basis, byId, stageMembers);
       if (Math.max(0, ...test.stageRows.map(rs => stageWeight(rs, basis))) <= takt + 1e-6) break;
       if (K >= fixed.length + movs.length) break;
       K++;
     }
   }
 
-  const res = placeUnits(fixed, movs, K, basis, byId);
+  const res = placeUnits(fixed, movs, unassigned, K, basis, byId, stageMembers);
   const stageTime = res.stageRows.map(rs => stageWeight(rs, basis));
   const cycle = Math.max(0, ...stageTime);
   const sumWork = stageTime.reduce((a, b) => a + b, 0);
@@ -1663,8 +1696,8 @@ function renderStageLayout() {
       const ot = list.reduce((s, x) => s + x.time, 0);
       let tasks = '';
       list.forEach(x => {
-        const moved = !x.pinned && ((x.stage != null && r.assignedStage[x.id] !== x.stage) || x.movable);
-        const mark  = x.pinned ? ' 🔒' : (x.movable ? ' ↪' : '');
+        const moved = x.unassigned || (!x.pinned && ((x.stage != null && r.assignedStage[x.id] !== x.stage) || x.movable));
+        const mark  = x.pinned ? ' 🔒' : x.unassigned ? ' ⊕' : (x.movable ? ' ↪' : '');
         tasks += `<div class="op-task${moved ? ' moved' : ''}"><span>${escapeHtml(x.step)}${mark}</span><span class="t-time">${x.time.toFixed(1)}</span></div>`;
       });
       inner += `<div class="op-group"><div class="op-name">${escapeHtml(op)} · ${ot.toFixed(1)}s</div>${tasks}</div>`;
