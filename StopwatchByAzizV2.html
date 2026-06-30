@@ -683,13 +683,6 @@ thead th.col-case   { width: 74px; text-align: center; }
             <input type="number" id="stages-input" class="bc-input" value="4" min="1" step="1" disabled oninput="scheduleBalance()">
           </div>
           <div class="bc-group">
-            <label for="stage-basis">Stage time</label>
-            <select id="stage-basis" class="bc-select" onchange="scheduleBalance()" title="How a stage's time is counted when it holds several operators">
-              <option value="sum">Sum of operators</option>
-              <option value="parallel">Busiest operator (parallel)</option>
-            </select>
-          </div>
-          <div class="bc-group">
             <label for="balance-metric">Time basis</label>
             <select id="balance-metric" class="bc-select" onchange="scheduleBalance()" title="Which time value to balance on">
               <option value="auto">Std (Reg) · Obs (One-off)</option>
@@ -722,7 +715,7 @@ thead th.col-case   { width: 74px; text-align: center; }
         <div class="chart-actions">
           <button class="btn btn-ghost btn-sm" id="diag-move-btn" onclick="setDiagMode('move')">✋ Move</button>
           <button class="btn btn-ghost btn-sm" id="diag-link-btn" onclick="setDiagMode('link')">🔗 Link</button>
-          <button class="btn btn-ghost btn-sm" onclick="rebuildDiagramBlocks(true); renderDiagram();">↻ Rebuild</button>
+          <button class="btn btn-ghost btn-sm" onclick="rebuildDiagramBlocks(true, true); renderDiagram();">↻ Rebuild</button>
           <button class="btn btn-ghost btn-sm" onclick="clearDiagramLinks()">🗑 Clear links</button>
           <button class="btn btn-gold btn-sm" onclick="balanceFromDiagram(true)">⚖ Balance from diagram</button>
         </div>
@@ -925,7 +918,7 @@ window.addEventListener('DOMContentLoaded', () => {
   updateBeforeMetrics();
   renderStageLayout();
   setDiagMode('move');
-  rebuildDiagramBlocks();
+  rebuildDiagramBlocks(false, true);
   renderDiagram();
 });
 
@@ -1198,7 +1191,7 @@ function clearTableData() {
   updateBeforeMetrics();
   renderBalancedChart();
   renderStageLayout();
-  rebuildDiagramBlocks(); renderDiagram();
+  rebuildDiagramBlocks(false, true); renderDiagram();
   removeActiveRowStyle(currentActiveRowIdx);
   currentActiveRowIdx = 1;
   rowState = 'waiting';
@@ -1255,7 +1248,7 @@ function loadPastedData() {
   updateStepStateLabel();
   updateBeforeMetrics();
   renderStageLayout();
-  rebuildDiagramBlocks(); renderDiagram();
+  rebuildDiagramBlocks(false, true); renderDiagram();
   document.getElementById('paste-box').value = '';
   toast(`${loaded} step${loaded !== 1 ? 's' : ''} loaded`, 'success');
 }
@@ -1449,7 +1442,7 @@ const stageColor = s => STAGE_PALETTE[(s - 1) % STAGE_PALETTE.length];
 function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function getBalanceMetric() { return document.getElementById('balance-metric').value; }
-function getStageBasis()    { return document.getElementById('stage-basis').value; }   // 'sum' | 'parallel'
+function getStageBasis()    { const e = document.getElementById('stage-basis'); return e ? e.value : 'sum'; }
 
 function onBalanceModeChange() {
   const mode = document.getElementById('balance-mode').value;
@@ -1562,7 +1555,11 @@ function placeUnits(fixed, movs, unassigned, K, basis, byId, stageMembers) {
   return { stageRows, assignedStage };
 }
 
-function balanceLine(announce) {
+// All balancing now flows through the precedence diagram so the links are always
+// respected (and the Yamazumi/After chart matches the engineering method).
+function balanceLine(announce) { return balanceFromDiagram(announce); }
+
+function balanceLineLegacy(announce) {
   const metric = getBalanceMetric(), basis = getStageBasis();
   const rows = collectModel(metric);
   if (!rows.length) { if (announce) toast('No tasks to balance — add data first', 'warn'); return; }
@@ -1806,8 +1803,9 @@ function setDiagMode(m) {
   renderDiagram();
 }
 
-// Build blocks from current data, preserving positions + links where ids still exist
-function rebuildDiagramBlocks(announce) {
+// Build blocks from current data, preserving positions + links where ids still exist.
+// autoChain=true draws a default A→B→C… chain (by row order) when there are no links.
+function rebuildDiagramBlocks(announce, autoChain) {
   const rows = collectModel(getBalanceMetric());
   const oldPos = {}; diagramBlocks.forEach(b => oldPos[b.id] = { x: b.x, y: b.y });
 
@@ -1840,6 +1838,13 @@ function rebuildDiagramBlocks(announce) {
   });
   diagramBlocks = blocks;
   diagramLinks = diagramLinks.filter(l => ids.has(l.from) && ids.has(l.to));  // drop dangling
+
+  // Default precedence: chain blocks in row order (operators by their first row,
+  // unassigned tasks by their row), so the user only tweaks a few links.
+  if (autoChain && diagramLinks.length === 0 && blocks.length > 1) {
+    const ordered = [...blocks].sort((a, b) => Math.min(...a.taskIds) - Math.min(...b.taskIds));
+    for (let i = 0; i < ordered.length - 1; i++) diagramLinks.push({ from: ordered[i].id, to: ordered[i + 1].id });
+  }
   if (announce) toast(`Diagram rebuilt — ${blocks.length} block${blocks.length !== 1 ? 's' : ''}`, 'success');
 }
 
@@ -1965,7 +1970,7 @@ function balanceFromDiagram(announce) {
   const metric = getBalanceMetric(), basis = getStageBasis();
   const rows = collectModel(metric);
   if (!rows.length) { if (announce) toast('No data — paste or type tasks first', 'warn'); return; }
-  rebuildDiagramBlocks();
+  rebuildDiagramBlocks(false, false);
   if (!diagramBlocks.length) { if (announce) toast('Nothing to balance', 'warn'); return; }
   const byRow = {}; rows.forEach(r => byRow[r.id] = r);
 
@@ -2355,13 +2360,13 @@ function deserializeStudy(data) {
   document.getElementById('balance-mode').value  = s.mode        || 'match';
   document.getElementById('takt-input').value    = s.takt        || '60';
   document.getElementById('stages-input').value  = s.stages      || '4';
-  document.getElementById('stage-basis').value   = s.basis       || 'sum';
+  if (document.getElementById('stage-basis')) document.getElementById('stage-basis').value = s.basis || 'sum';
   document.getElementById('balance-metric').value= s.metric      || 'auto';
   document.getElementById('chart-metric').value  = s.chartMetric || 'auto';
   onBalanceModeChange();
   updateGlobalSummaries(); updateBeforeMetrics(); renderYamazumiChart(); renderStageLayout();
   // rebuild diagram, then restore saved positions + links
-  rebuildDiagramBlocks();
+  rebuildDiagramBlocks(false, false);
   const dg = data.diagram || {};
   if (dg.pos) { const pm = {}; dg.pos.forEach(p => pm[p.id] = p); diagramBlocks.forEach(b => { if (pm[b.id]) { b.x = pm[b.id].x; b.y = pm[b.id].y; } }); }
   const ids = new Set(diagramBlocks.map(b => b.id));
