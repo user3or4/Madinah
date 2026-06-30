@@ -247,7 +247,7 @@ body {
 .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 58vh; }
 
 /* ── Table ────────────────────────────────────────────────────────────── */
-table { width: 100%; border-collapse: collapse; min-width: 1320px; }
+table { width: 100%; border-collapse: collapse; min-width: 1400px; }
 
 thead tr {
   background: var(--teal);
@@ -440,6 +440,11 @@ thead th.col-stage  { width: 54px; text-align: center; }
 thead th.col-move   { width: 50px; text-align: center; }
 thead th.col-pos    { width: 92px; }
 thead th.col-anchor { width: 56px; text-align: center; }
+thead th.col-case   { width: 74px; text-align: center; }
+
+/* Case # = locked task */
+.td-input.case-in { text-align: center; }
+.td-input.case-in.locked { background: var(--gold-lt); border-color: var(--gold); color: var(--gold-dk); font-weight: 700; }
 
 /* Stage input — tinted by assigned (After) stage once balanced */
 .td-input.stage-in { font-weight: 800; text-align: center; }
@@ -581,7 +586,7 @@ thead th.col-anchor { width: 56px; text-align: center; }
     <!-- Paste zone -->
     <div class="paste-zone">
       <div>
-        <label for="paste-box">📋 Paste Excel Rows (A·B·C·D·E — Operator · Step · Description · Stage[opt] · Obs sec[opt])</label>
+        <label for="paste-box">📋 Paste Excel Rows (A·B·C·D·E·F — Operator · Step · Description · Stage[opt] · Obs sec[opt] · Case #[opt])</label>
         <textarea id="paste-box" class="paste-textarea" rows="2"
           placeholder="Ctrl+V to paste your copied Excel columns here…"></textarea>
       </div>
@@ -687,6 +692,7 @@ thead th.col-anchor { width: 56px; text-align: center; }
               <th class="col-move">Move?</th>
               <th class="col-pos">Before/After</th>
               <th class="col-anchor">Ref #</th>
+              <th class="col-case">Case #</th>
               <th class="col-type">Type</th>
               <th class="col-time">Start Time</th>
               <th class="col-time">End Time</th>
@@ -763,7 +769,7 @@ thead th.col-anchor { width: 56px; text-align: center; }
       <div class="chart-toolbar">
         <div>
           <span class="chart-title">🧩 Balanced Stage Layout</span>
-          <span class="chart-sub">Each stage shows its operators and tasks after balancing · <span style="color:var(--gold-dk);font-weight:700">↪ gold = a moved / movable task</span></span>
+          <span class="chart-sub">Each stage shows its operators and tasks after balancing · <span style="color:var(--gold-dk);font-weight:700">↪ moved/movable</span> · 🔒 locked by Case #</span>
         </div>
         <div class="chart-actions">
           <button class="btn btn-ghost btn-sm" onclick="balanceLine(true)">↻ Re-balance</button>
@@ -806,6 +812,7 @@ for (let i = 1; i <= 150; i++) {
       </select>
     </td>
     <td><input type="number" id="anchor-${i}" class="td-input number mono" placeholder="#" min="1" step="1" oninput="scheduleBalance()" title="Reference step # for the Before/After rule" disabled></td>
+    <td><input type="text" id="case-${i}" class="td-input mono case-in" placeholder="—" oninput="onCaseInput(${i})" title="Case # locks this task to its stage — the balancer will not move it forward or backward"></td>
     <td>
       <select id="type-${i}" class="type-select" onchange="calculateRow(${i})">
         <option value="Regular">Regular</option>
@@ -1047,13 +1054,25 @@ function calculateRow(i) {
   updateGlobalSummaries();
 }
 
-// Stage / movable input handlers
+// Stage / movable / case input handlers
 function onStageInput()  { updateBeforeMetrics(); scheduleBalance(); }
 function onMoveToggle(i) {
   const on = document.getElementById(`move-${i}`).checked;
   // disable the before/after rule controls when the row can't move
   document.getElementById(`pos-${i}`).disabled    = !on;
   document.getElementById(`anchor-${i}`).disabled = !on;
+  if (on) document.getElementById(`case-${i}`).value = '';  // can't be both locked and movable
+  onCaseInput(i);
+  scheduleBalance();
+}
+function onCaseInput(i) {
+  const el = document.getElementById(`case-${i}`);
+  const locked = el.value.trim() !== '';
+  el.classList.toggle('locked', locked);
+  if (locked) {                       // locked wins over movable
+    const mv = document.getElementById(`move-${i}`);
+    if (mv.checked) { mv.checked = false; document.getElementById(`pos-${i}`).disabled = true; document.getElementById(`anchor-${i}`).disabled = true; }
+  }
   scheduleBalance();
 }
 
@@ -1085,6 +1104,7 @@ function clearTableInputsWithoutConfirm() {
     document.getElementById(`move-${i}`).checked      = false;
     document.getElementById(`pos-${i}`).value         = '';   document.getElementById(`pos-${i}`).disabled    = true;
     document.getElementById(`anchor-${i}`).value      = '';   document.getElementById(`anchor-${i}`).disabled = true;
+    const caseEl = document.getElementById(`case-${i}`); caseEl.value = ''; caseEl.classList.remove('locked');
     document.getElementById(`start-${i}`).value       = '';
     document.getElementById(`end-${i}`).value         = '';
     const obsEl = document.getElementById(`obs-${i}`); obsEl.value = ''; obsEl.dataset.manual = '';
@@ -1136,6 +1156,7 @@ function loadPastedData() {
     const desc  = (cols[2] || '').toString().trim();
     const stage = (cols[3] || '').toString().trim();
     const obs   = (cols[4] || '').toString().trim();
+    const caseN = (cols[5] || '').toString().trim();
     if (!op && !step && !desc) continue;
     const idx = loaded + 1;
     document.getElementById(`operator-${idx}`).value = op;
@@ -1147,6 +1168,7 @@ function loadPastedData() {
       o.value = parseFloat(obs); o.dataset.manual = '1';
       calculateRow(idx);
     }
+    if (caseN !== '') { document.getElementById(`case-${idx}`).value = caseN; onCaseInput(idx); }
     loaded++;
   }
 
@@ -1379,7 +1401,9 @@ function collectModel(metric) {
       stage: isNaN(stageRaw) ? null : stageRaw,
       movable: document.getElementById(`move-${i}`).checked,
       pos: document.getElementById(`pos-${i}`).value,
-      anchor: parseInt(document.getElementById(`anchor-${i}`).value, 10) || null
+      anchor: parseInt(document.getElementById(`anchor-${i}`).value, 10) || null,
+      caseNo: document.getElementById(`case-${i}`).value.trim(),
+      pinned: document.getElementById(`case-${i}`).value.trim() !== ''
     });
   }
   return rows;
@@ -1415,10 +1439,13 @@ function placeUnits(fixed, movs, K, basis, byId) {
   const assignedStage = {};
   const wt = s => stageWeight(stageRows[s], basis);
   const bestStage = feas => { let best = feas[0], bw = Infinity; for (const s of feas) { const w = wt(s); if (w < bw - 1e-9) { bw = w; best = s; } } return best; };
+  const place = (u, s) => u.rows.forEach(r => { stageRows[s].push(r); assignedStage[r.id] = s + 1; });
 
-  [...fixed].sort((a, b) => b.time - a.time).forEach(u => {
-    const s = bestStage([...Array(K).keys()]);
-    u.rows.forEach(r => { stageRows[s].push(r); assignedStage[r.id] = s + 1; });
+  // Locked operator bundles go to their pinned stage first (clamped into range)
+  fixed.filter(u => u.forced != null).forEach(u => place(u, Math.min(Math.max(u.forced, 1), K) - 1));
+  // Free operator bundles, largest first, into the lightest stage
+  fixed.filter(u => u.forced == null).sort((a, b) => b.time - a.time).forEach(u => {
+    place(u, bestStage([...Array(K).keys()]));
   });
 
   [...movs].sort((a, b) => b.time - a.time).forEach(u => {
@@ -1432,8 +1459,7 @@ function placeUnits(fixed, movs, K, basis, byId) {
       }
     }
     if (!feas.length) feas = [...Array(K).keys()];
-    const s = bestStage(feas);
-    stageRows[s].push(r); assignedStage[r.id] = s + 1;
+    place(u, bestStage(feas));
   });
   return { stageRows, assignedStage };
 }
@@ -1447,13 +1473,25 @@ function balanceLine(announce) {
   const mode = document.getElementById('balance-mode').value;
   const totalTime = rows.reduce((s, r) => s + r.time, 0);
 
-  // Build units: one bundle per operator (inseparable) + each movable task on its own
+  // Build units: one bundle per operator (inseparable) + each movable task on its own.
+  // A row with a Case # is LOCKED to its initial stage; that pins its whole operator.
   const opBundles = {}, movs = [];
+  let conflict = false;
   rows.forEach(r => {
-    if (r.movable) movs.push({ rows: [r], time: r.time, op: r.op, movable: true, pos: r.pos, anchor: r.anchor });
-    else { const b = opBundles[r.op] = opBundles[r.op] || { rows: [], time: 0, op: r.op }; b.rows.push(r); b.time += r.time; }
+    const lockedHere = r.pinned && r.stage != null;
+    if (r.movable && !lockedHere) {
+      movs.push({ rows: [r], time: r.time, op: r.op, movable: true, pos: r.pos, anchor: r.anchor, forced: null });
+      return;
+    }
+    const b = opBundles[r.op] = opBundles[r.op] || { rows: [], time: 0, op: r.op, forced: null };
+    b.rows.push(r); b.time += r.time;
+    if (lockedHere) {
+      if (b.forced != null && b.forced !== r.stage) conflict = true;
+      else b.forced = r.stage;
+    }
   });
   const fixed = Object.values(opBundles);
+  if (conflict && announce) toast('Two locked case #s pin the same operator to different stages — using the first', 'warn');
 
   // Decide number of stages K
   let K, takt = 0;
@@ -1625,8 +1663,9 @@ function renderStageLayout() {
       const ot = list.reduce((s, x) => s + x.time, 0);
       let tasks = '';
       list.forEach(x => {
-        const moved = (x.stage != null && r.assignedStage[x.id] !== x.stage) || x.movable;
-        tasks += `<div class="op-task${moved ? ' moved' : ''}"><span>${escapeHtml(x.step)}${x.movable ? ' ↪' : ''}</span><span class="t-time">${x.time.toFixed(1)}</span></div>`;
+        const moved = !x.pinned && ((x.stage != null && r.assignedStage[x.id] !== x.stage) || x.movable);
+        const mark  = x.pinned ? ' 🔒' : (x.movable ? ' ↪' : '');
+        tasks += `<div class="op-task${moved ? ' moved' : ''}"><span>${escapeHtml(x.step)}${mark}</span><span class="t-time">${x.time.toFixed(1)}</span></div>`;
       });
       inner += `<div class="op-group"><div class="op-name">${escapeHtml(op)} · ${ot.toFixed(1)}s</div>${tasks}</div>`;
     });
@@ -1758,7 +1797,7 @@ function buildStudySheet(wb, resultName, chartName, dataRows, metric) {
 
 // Build the balanced "After" sheet (grouped by stage) + its linked chart-data sheet.
 function buildBalancedSheet(wb, br) {
-  const HEADER = ['Stage','Step #','Operator','Process Step','Description','Type','Movable',
+  const HEADER = ['Stage','Step #','Operator','Process Step','Description','Type','Movable','Case #',
                   'Observed (s)','Standard (s)','Effective (s)'];
   // Flatten stages in order, tagging each row with its assigned stage
   const ordered = [];
@@ -1771,7 +1810,7 @@ function buildBalancedSheet(wb, br) {
     const obs  = getObserved(t.id);
     const std  = parseFloat(document.getElementById(`standard-${t.id}`).textContent) || 0;
     const type = document.getElementById(`type-${t.id}`).value;
-    aoa.push([`S${stage}`, t.id, t.op, t.step, t.desc, type, t.movable ? 'Yes' : '', obs, std, null]);
+    aoa.push([`S${stage}`, t.id, t.op, t.step, t.desc, type, t.movable ? 'Yes' : '', t.caseNo || '', obs, std, null]);
   });
   const N = ordered.length, firstRow = 4, lastRow = 3 + N;
 
@@ -1784,21 +1823,21 @@ function buildBalancedSheet(wb, br) {
   aoa.push(['Smoothness index',       +br.smoothness.toFixed(2)]);
 
   const ws = XLSX.utils.aoa_to_sheet(aoa);
-  // Effective formula per row (col J): H=Observed, I=Standard
+  // Effective formula per row (col K): I=Observed, J=Standard
   for (let r = firstRow; r <= lastRow; r++) {
     const t = ordered[r - firstRow].t;
     let f;
-    if (br.metric === 'standard')      f = `I${r}`;
-    else if (br.metric === 'observed') f = `H${r}`;
-    else                               f = `IF(F${r}="Regular",I${r},H${r})`;
-    ws[`J${r}`] = { t: 'n', f, v: +t.time.toFixed(2) };
+    if (br.metric === 'standard')      f = `J${r}`;
+    else if (br.metric === 'observed') f = `I${r}`;
+    else                               f = `IF(F${r}="Regular",J${r},I${r})`;
+    ws[`K${r}`] = { t: 'n', f, v: +t.time.toFixed(2) };
   }
   br.stageTime.forEach((st, i) => {
     const R = stageSumStart + i;
     ws[`B${R}`] = { t: 'n', v: +st.toFixed(2),
-      f: `SUMIF($A${firstRow}:$A${lastRow},"S${i + 1}",$J${firstRow}:$J${lastRow})` };
+      f: `SUMIF($A${firstRow}:$A${lastRow},"S${i + 1}",$K${firstRow}:$K${lastRow})` };
   });
-  ws['!cols'] = [{wch:8},{wch:7},{wch:14},{wch:24},{wch:24},{wch:9},{wch:9},{wch:11},{wch:11},{wch:12}];
+  ws['!cols'] = [{wch:8},{wch:7},{wch:14},{wch:24},{wch:24},{wch:9},{wch:9},{wch:9},{wch:11},{wch:11},{wch:12}];
   XLSX.utils.book_append_sheet(wb, ws, 'After');
 
   // ---- Linked After chart data, by stage ----
@@ -1826,7 +1865,7 @@ function buildBalancedSheet(wb, br) {
       const R = stepTop + i, v = +((cell[sl + ' ' + steps[i]]) || 0).toFixed(2);
       colTot += v;
       ws2[`${colL}${R}`] = { t: 'n', v,
-        f: `SUMIFS('After'!$J:$J,'After'!$A:$A,${colL}$${headRow},'After'!$D:$D,$A${R})` };
+        f: `SUMIFS('After'!$K:$K,'After'!$A:$A,${colL}$${headRow},'After'!$D:$D,$A${R})` };
     }
     if (steps.length) ws2[`${colL}${totRow}`] = { t: 'n', v: +colTot.toFixed(2), f: `SUM(${colL}${stepTop}:${colL}${stepBot})` };
   });
