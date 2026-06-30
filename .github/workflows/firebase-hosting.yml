@@ -1,0 +1,27 @@
+name: Deploy to Firebase Hosting
+
+# Auto-publish the site whenever code is pushed to these branches.
+on:
+  push:
+    branches:
+      - main
+      - master
+      - claude/add-to-github-c37ksz
+  workflow_dispatch:   # also allow manual "Run workflow" from the Actions tab
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Firebase Hosting (live channel)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_STOPWATCHAZIZ }}
+          projectId: stopwatchaziz
+          channelId: live
